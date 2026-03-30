@@ -100,6 +100,7 @@ const SECTION_DETAILS = [
       },
       {
         label: "DESIGN SYSTEM",
+        videos: ["/DSFME.mp4"],
         body: "The iconography handoff surfaced a systemic problem: without a shared token layer, every component handoff required manual cross-referencing between Figma frames and the engineering codebase — a slow, error-prone process that did not scale. Initiated the FME Design System foundation with semantic tokens for color, spacing, typography, and iconography, each with a 1:1 mapping to CSS custom properties via a lightweight codegen step. The icon token layer connects directly to the iconography redesign work, ensuring that every icon variant is referenceable by name rather than by asset path — eliminating the most common class of handoff errors.",
       },
     ],
