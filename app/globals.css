@@ -1,26 +1,399 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --bg-body: #bec9d2;
+  --surface-main: #e4ebf0;
+  --surface-light: #f4f8fa;
+  --surface-dark: #d1d9e0;
+  --shadow-base: #aab6c2;
+  --highlight-base: #ffffff;
+  --text-engraved: #7a8b99;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  user-select: none;
+  -webkit-user-drag: none;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+html,
+body {
+  height: 100%;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  /* Skeuomorphic surface — linen texture + center lighting + corner vignette */
+  background-color: #bec9d2;
+  background-image:
+    /* Corner vignette — simulates ambient occlusion / depth */
+    radial-gradient(ellipse at 50% 50%, transparent 30%, rgba(0, 0, 0, 0.22) 100%),
+    /* Diagonal cross-hatch — fine linen / fabric grain */
+    repeating-linear-gradient(
+      45deg,
+      rgba(255, 255, 255, 0.032) 0px,
+      rgba(255, 255, 255, 0.032) 1px,
+      transparent 1px,
+      transparent 5px
+    ),
+    repeating-linear-gradient(
+      -45deg,
+      rgba(0, 0, 0, 0.018) 0px,
+      rgba(0, 0, 0, 0.018) 1px,
+      transparent 1px,
+      transparent 5px
+    ),
+    /* Center lighting — soft overhead light */
+    radial-gradient(ellipse 130% 110% at 50% 44%, #d8e3ec 0%, #c2cdd8 38%, #a8b6c4 100%);
+  background-size:    100% 100%, 5px 5px, 5px 5px, 100% 100%;
+  background-repeat:  no-repeat,  repeat,  repeat,  no-repeat;
+  font-family: var(--font-inter), Inter, sans-serif;
+  color: var(--text-engraved);
+  overflow: hidden;
 }
+
+/* ── Knob rotator — transparent, just holds the indicator ── */
+.knob-rotator {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  position: absolute;
+  will-change: transform;
+  /* transform driven directly via element.style.transform in JS */
+}
+
+/* ── Outer grip tick-ring on the dark metal knob ─────────── */
+.knob-grip {
+  position: absolute;
+  inset: 3px;
+  border-radius: 50%;
+  /* Two conic layers: bright highlight ticks + dark shadow ticks = 3-D knurl */
+  background:
+    repeating-conic-gradient(
+      from 0deg,
+      transparent       0deg   1.8deg,
+      rgba(255,255,255,0.13) 1.8deg 2.6deg,
+      transparent       2.6deg 4.4deg,
+      rgba(0,0,0,0.18)  4.4deg 5deg
+    );
+  mask-image: radial-gradient(circle, transparent 61%, black 63.5%);
+  -webkit-mask-image: radial-gradient(circle, transparent 61%, black 63.5%);
+}
+
+/* ── Thin chrome rim just inside the knurled edge ─────────── */
+.knob-grip::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: transparent;
+  box-shadow:
+    inset 0 0 0 2px rgba(255,255,255,0.08),
+    inset 0 0 0 4px rgba(0,0,0,0.25);
+}
+
+/* ── Glowing indicator line (points toward 12 o'clock in local frame) ── */
+.knob-indicator {
+  position: absolute;
+  top: 14px;
+  left: 50%;
+  margin-left: -2px;
+  width: 4px;
+  height: 30px;
+  border-radius: 2px;
+  background: linear-gradient(to bottom, #ffffff 0%, rgba(200, 230, 255, 0.9) 100%);
+  box-shadow:
+    0 0 4px  2px rgba(255, 255, 255, 1),
+    0 0 10px 3px rgba(180, 220, 255, 0.90),
+    0 0 22px 6px rgba(140, 200, 255, 0.60),
+    0 0 40px 8px rgba(100, 170, 255, 0.30);
+}
+
+/* ── Project selector buttons ────────────────────────────── */
+.proj-btn {
+  width: 100%;
+  padding: 8px 12px;
+  border-radius: 8px;
+  border: none;
+  outline: none;
+  background: linear-gradient(145deg, #edf2f5, #dce5ec);
+  box-shadow:
+    3px 3px 7px #aab6c2,
+    -2px -2px 5px #ffffff;
+  cursor: pointer;
+  color: #8a9baa;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: box-shadow 0.1s, color 0.1s;
+  text-align: left;
+}
+
+.proj-btn:hover:not(.active) {
+  box-shadow:
+    4px 4px 9px #aab6c2,
+    -3px -3px 6px #ffffff;
+}
+
+.proj-btn.active {
+  box-shadow:
+    inset 2px 2px 6px #a8b4c0,
+    inset -1px -1px 4px rgba(255, 255, 255, 0.85);
+  color: #4e6070;
+}
+
+/* ── Switch toggle pill ──────────────────────────────────── */
+.switch-toggle {
+  position: absolute;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  top: 2px;
+  left: 2px;
+  transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.switch-toggle::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  /* Satin steel puck — visibly lighter than the dark housing */
+  background: linear-gradient(140deg, #7a8a96 0%, #5a6870 45%, #424e58 100%);
+  box-shadow:
+    2px 3px 7px rgba(0, 0, 0, 0.70),
+    -1px -1px 3px rgba(255, 255, 255, 0.18),
+    inset 0 1px 2px rgba(255, 255, 255, 0.20),
+    inset 0 -1px 1px rgba(0, 0, 0, 0.40);
+}
+
+/* ── Old CRT convex glass vignette ──────────────────────── */
+.screen-tv::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: radial-gradient(
+    ellipse at 50% 50%,
+    transparent 42%,
+    rgba(0, 0, 0, 0.62) 100%
+  );
+  pointer-events: none;
+  z-index: 20;
+}
+
+/* ── Screen content fade-in ──────────────────────────────── */
+@keyframes screenFadeIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.screen-fade {
+  animation: screenFadeIn 0.25s ease-out both;
+}
+
+/* ── TV overlay backdrop — full viewport ─────────────────── */
+.tv-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  background: rgba(6, 8, 10, 0.96);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* ── CRT inner container ─────────────────────────────────── */
+.tv-crt-large {
+  width: 90vw;
+  height: 76vh;
+  background: #060808;
+  border-radius: 20px;
+  position: relative;
+  overflow: hidden;
+  /* box-shadow driven dynamically from JSX to match screenColor */
+}
+
+/* ── Scrollable content inside CRT ──────────────────────── */
+.crt-scrollable {
+  width: 100%;
+  height: 100%;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 48px 60px 80px;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(51, 255, 102, 0.28) transparent;
+  position: relative;
+  z-index: 5;
+}
+
+.crt-scrollable::-webkit-scrollbar {
+  width: 3px;
+}
+.crt-scrollable::-webkit-scrollbar-track {
+  background: transparent;
+}
+.crt-scrollable::-webkit-scrollbar-thumb {
+  background: rgba(129, 173, 138, 0.28);
+  border-radius: 2px;
+}
+
+/* ── Scanlines overlay ───────────────────────────────────── */
+.crt-scanlines {
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 3px,
+    rgba(0, 0, 0, 0.028) 3px,
+    rgba(0, 0, 0, 0.028) 4px
+  );
+  pointer-events: none;
+  z-index: 10;
+}
+
+/* ── CRT curve vignette ──────────────────────────────────── */
+.crt-curve {
+  position: absolute;
+  inset: 0;
+  border-radius: 20px;
+  box-shadow: inset 0 0 60px rgba(0, 0, 0, 0.35);
+  pointer-events: none;
+  z-index: 11;
+}
+
+/* ── CRT phosphor glow flicker (overlay content) ─────────── */
+@keyframes flicker {
+  0%,  2%,  4%,  100%  { opacity: 1; }
+  1%                   { opacity: 0.92; }
+  3%                   { opacity: 0.96; }
+  30%, 32%             { opacity: 1; }
+  31%                  { opacity: 0.88; }
+  60%, 63%             { opacity: 1; }
+  61%                  { opacity: 0.94; }
+  62%                  { opacity: 0.98; }
+  80%                  { opacity: 1; }
+  81%                  { opacity: 0.91; }
+  82%                  { opacity: 1; }
+}
+
+.crt-flicker {
+  animation: flicker 9s linear infinite;
+}
+
+/* ── Pixel dog walk — left edge to right edge of clock screen ── */
+@keyframes dogWalkRight {
+  from { transform: translateX(-60px); }
+  to   { transform: translateX(165px); }
+}
+
+/* ── Pixel dog jump — in-place jumping ── */
+@keyframes dogJump {
+  0%, 100% { transform: translateY(0px); }
+  40%      { transform: translateY(-14px); }
+  60%      { transform: translateY(-14px); }
+}
+
+/* ── Pixel dog bounce — vertical hop while walking ── */
+@keyframes dogBounce {
+  0%, 100% { transform: translateY(0px); }
+  30%      { transform: translateY(-9px); }
+  60%      { transform: translateY(-9px); }
+  80%      { transform: translateY(0px); }
+}
+
+/* ── Board screen flicker (the small screen on the gadget) ── */
+@keyframes boardFlicker {
+  0%,  3%,  5%,  100%  { opacity: 1; }
+  2%                   { opacity: 0.85; }
+  4%                   { opacity: 0.95; }
+  20%,  22%            { opacity: 1; }
+  21%                  { opacity: 0.82; }
+  50%,  53%            { opacity: 1; }
+  51%                  { opacity: 0.78; }
+  52%                  { opacity: 0.93; }
+  75%                  { opacity: 1; }
+  76%                  { opacity: 0.88; }
+  77%                  { opacity: 0.96; }
+  78%                  { opacity: 1; }
+}
+
+.board-flicker {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  animation: boardFlicker 8s linear infinite;
+  pointer-events: none;
+  z-index: 15;
+  background: transparent;
+}
+
+/* ── Power LED indicator — skeuomorphic amber pulse when off ── */
+@keyframes ledStandby {
+  0%, 100% {
+    background: radial-gradient(circle at 38% 32%, #4a3010 0%, #2a1a08 55%, #180e04 100%);
+    box-shadow:
+      inset 0 1px 2px rgba(255,255,255,0.08),
+      inset 0 -1px 1px rgba(0,0,0,0.6),
+      0 2px 6px rgba(0,0,0,0.75);
+  }
+  48%, 52% {
+    background: radial-gradient(circle at 38% 32%, #ffb84a 0%, #e07010 45%, #903808 100%);
+    box-shadow:
+      inset 0 1px 2px rgba(255,220,120,0.45),
+      inset 0 -1px 1px rgba(0,0,0,0.4),
+      0 0 6px 2px rgba(255,140,30,0.70),
+      0 0 14px 5px rgba(200,90,10,0.35),
+      0 2px 6px rgba(0,0,0,0.65);
+  }
+}
+
+.toggle-standby {
+  animation: ledStandby 2.8s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+/* ── Blinking cursor ─────────────────────────────────────── */
+@keyframes blink {
+  0%, 49% { opacity: 1; }
+  50%, 100% { opacity: 0; }
+}
+
+.crt-blink {
+  animation: blink 1s step-end infinite;
+}
+
+/* ── CRT section divider ─────────────────────────────────── */
+.crt-divider {
+  width: 100%;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(129, 173, 138, 0.35) 20%, rgba(129, 173, 138, 0.35) 80%, transparent);
+  margin: 20px 0;
+}
+
+/* ── CRT info grid (kept for backwards compat) ───────────── */
+.crt-info-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  border: 1px solid rgba(51, 255, 102, 0.15);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.crt-info-cell {
+  padding: 16px 20px;
+  border-right: 1px solid rgba(51, 255, 102, 0.10);
+  border-bottom: 1px solid rgba(51, 255, 102, 0.10);
+}
+
+.crt-info-cell:nth-child(2n) {
+  border-right: none;
+}
+
+.crt-info-cell:nth-last-child(-n+2) {
+  border-bottom: none;
+}
+
