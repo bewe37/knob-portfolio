@@ -94,6 +94,8 @@ const SECTION_DETAILS = [
       },
       {
         label: "FEATURE ENHANCEMENT — ANNOTATION TOOLS",
+        images: ["/AnnotationContainer.png"],
+        videos: ["/safedialogannotation.mp4", "/visibilityannotation.mp4"],
         body: "Designed a contextual annotation layer for FME's workspace canvas — enabling users to place notes, grouping labels, and inline documentation directly within complex data transformation pipelines. Prior to this, documentation lived entirely outside the workspace in separate files, creating a context gap for new contributors and making pipeline review sessions slower. The annotation system surfaces context exactly where the work happens, reducing onboarding friction and keeping spatial reasoning intact during reviews.",
       },
       {
@@ -970,7 +972,7 @@ export default function HardwareBoard() {
 
                   {/* Custom sections OR default PROCESS + OUTCOMES */}
                   {(details as Record<string,any>).sections ? (
-                    ((details as Record<string,any>).sections as Array<{label:string;body?:string;items?:string[];image?:string;images?:string[]}>).map((sec, si, arr) => (
+                    ((details as Record<string,any>).sections as Array<{label:string;body?:string;items?:string[];image?:string;images?:string[];videos?:string[]}>).map((sec, si, arr) => (
                       <div key={si} style={{ marginBottom: si < arr.length - 1 ? 36 : 52 }}>
 
                         {/* Section header */}
@@ -982,14 +984,14 @@ export default function HardwareBoard() {
 
                         {/* Body text */}
                         {sec.body && (
-                          <p style={{ fontSize:13, lineHeight:1.95, color:amberDim, letterSpacing:0.1, marginBottom: (sec.items || sec.image || sec.images) ? 16 : 0 }}>
+                          <p style={{ fontSize:13, lineHeight:1.95, color:amberDim, letterSpacing:0.1, marginBottom: (sec.items || sec.image || sec.images || sec.videos) ? 16 : 0 }}>
                             {sec.body}
                           </p>
                         )}
 
                         {/* Bullet items */}
                         {sec.items && (
-                          <div style={{ display:'flex', flexDirection:'column', gap:12, marginBottom: (sec.image || sec.images) ? 16 : 0 }}>
+                          <div style={{ display:'flex', flexDirection:'column', gap:12, marginBottom: (sec.image || sec.images || sec.videos) ? 16 : 0 }}>
                             {sec.items.map((item, ii) => (
                               <div key={ii} style={{ display:'flex', gap:12, alignItems:'flex-start' }}>
                                 <div style={{ width:3, height:3, background:`rgba(${modalRGB},0.55)`, borderRadius:1, flexShrink:0, marginTop:7 }} />
@@ -1010,6 +1012,13 @@ export default function HardwareBoard() {
                         {sec.images && sec.images.map((src: string, ii: number) => (
                           <div key={ii} style={{ border:`1px solid ${amberFaint}`, borderRadius:4, marginBottom: ii < sec.images!.length - 1 ? 12 : 0, overflow:'hidden' }}>
                             <img src={src} alt={`${sec.label} ${ii + 1}`} style={{ display:'block', width:'100%', height:'auto' }} />
+                          </div>
+                        ))}
+
+                        {/* Multiple videos — stacked */}
+                        {sec.videos && sec.videos.map((src: string, ii: number) => (
+                          <div key={ii} style={{ border:`1px solid ${amberFaint}`, borderRadius:4, marginBottom: ii < sec.videos!.length - 1 ? 12 : 0, overflow:'hidden' }}>
+                            <video src={src} autoPlay loop muted playsInline style={{ display:'block', width:'100%', height:'auto' }} />
                           </div>
                         ))}
 
