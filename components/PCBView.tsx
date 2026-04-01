@@ -153,10 +153,10 @@ function ConnH({ style }: { style: React.CSSProperties }) {
 }
 
 // ── Main Component ─────────────────────────────────────────────
-export default function PCBView({ onClose, onSdInserted }: { onClose: () => void; onSdInserted?: (inserted: boolean) => void }) {
+export default function PCBView({ onClose, onSdInserted, initialSdInserted }: { onClose: () => void; onSdInserted?: (inserted: boolean) => void; initialSdInserted?: boolean }) {
   const wrapRef  = useRef<HTMLDivElement>(null)
   const sdRef    = useRef<HTMLDivElement>(null)
-  const [sdInserted, setSdInserted] = useState(false)
+  const [sdInserted, setSdInserted] = useState(initialSdInserted ?? false)
 
   useEffect(() => {
     if (wrapRef.current) {

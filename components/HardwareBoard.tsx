@@ -997,6 +997,7 @@ export default function HardwareBoard() {
         <PCBView
           onClose={() => { setShowPCB(false); resetBolts() }}
           onSdInserted={setSdInserted}
+          initialSdInserted={sdInserted}
         />
       )}
 
