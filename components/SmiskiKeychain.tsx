@@ -1,7 +1,20 @@
 'use client'
 
-import { useRef, useEffect, useCallback } from 'react'
+import { useRef, useEffect, useCallback, useState } from 'react'
 import gsap from 'gsap'
+
+const QUOTES = [
+  "just hanging around, no big deal.",
+  "some of us are born to hang.",
+  "the key to life? find something worth hanging on to.",
+  "hanging on by a thread — and thriving.",
+  "why stand when you can hang?",
+  "gravity is just a suggestion.",
+  "hanging out is an underrated skill.",
+  "the longer you hang, the more perspective you gain.",
+  "i don't cling — i hang. there's a difference.",
+  "life is short. hang loose.",
+]
 
 const BALL_R    = 5.5
 const CONNECTOR = 6
@@ -17,6 +30,9 @@ export default function SmiskiKeychain() {
   const lastX      = useRef(0)
   const velX       = useRef(0)
   const idleTl     = useRef<gsap.core.Timeline | null>(null)
+  const [quote, setQuote]   = useState<string | null>(null)
+  const tooltipRef          = useRef<HTMLDivElement>(null)
+  const quoteIndexRef       = useRef(0)
 
   // ── Idle pendulum ───────────────────────────────────────────
   const startIdle = useCallback(() => {
@@ -41,7 +57,31 @@ export default function SmiskiKeychain() {
     return () => { idleTl.current?.kill() }
   }, [startIdle])
 
+  // ── Animate tooltip in after it mounts ─────────────────────
+  useEffect(() => {
+    if (quote && tooltipRef.current) {
+      gsap.fromTo(tooltipRef.current, { opacity: 0, y: 6 }, { opacity: 1, y: 0, duration: 0.2, ease: 'power2.out' })
+    }
+  }, [quote])
+
   // ── Drag to swing ───────────────────────────────────────────
+  const showQuote = useCallback(() => {
+    const idx = quoteIndexRef.current % QUOTES.length
+    quoteIndexRef.current++
+    setQuote(QUOTES[idx])
+  }, [])
+
+  const hideQuoteTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  const hideQuote = useCallback(() => {
+    if (hideQuoteTimeoutRef.current) clearTimeout(hideQuoteTimeoutRef.current)
+    hideQuoteTimeoutRef.current = setTimeout(() => {
+      if (tooltipRef.current) {
+        gsap.to(tooltipRef.current, { opacity: 0, y: 4, duration: 0.4, ease: 'power2.in', onComplete: () => setQuote(null) })
+      }
+    }, 1500)
+  }, [])
+
   const onPointerDown = useCallback((e: React.PointerEvent) => {
     e.preventDefault()
     stopIdle()
@@ -49,7 +89,8 @@ export default function SmiskiKeychain() {
     lastX.current = e.clientX
     velX.current  = 0
     swingRef.current!.setPointerCapture(e.pointerId)
-  }, [stopIdle])
+    showQuote()
+  }, [stopIdle, showQuote])
 
   const onPointerMove = useCallback((e: React.PointerEvent) => {
     if (!isDragging.current || !swingRef.current) return
@@ -70,13 +111,14 @@ export default function SmiskiKeychain() {
     gsap.to(swingRef.current, {
       rotation: flung, duration: 0.22, ease: 'power2.out',
       transformOrigin: '50% 0px',
-      onComplete: () => gsap.to(swingRef.current, {
+      onComplete: () => { gsap.to(swingRef.current, {
         rotation: 0, duration: 1.8, ease: 'elastic.out(1, 0.32)',
         transformOrigin: '50% 0px',
         onComplete: startIdle,
-      }),
+      }) },
     })
-  }, [startIdle])
+    hideQuote()
+  }, [startIdle, hideQuote])
 
   return (
     <div style={{
@@ -89,6 +131,46 @@ export default function SmiskiKeychain() {
       zIndex: 10,
       pointerEvents: 'none',
     }}>
+      {/* Tooltip bubble */}
+      {quote && (
+        <div
+          ref={tooltipRef}
+          style={{
+            position: 'absolute',
+            top: 48,
+            right: 'calc(100% + 12px)',
+            width: 190,
+            background: 'rgba(14,18,24,0.95)',
+            border: '1px solid rgba(255,255,255,0.12)',
+            borderRadius: 10,
+            padding: '10px 13px',
+            fontFamily: 'var(--font-jetbrains-mono), monospace',
+            fontSize: 11,
+            lineHeight: 1.7,
+            color: 'rgba(255,255,255,0.75)',
+            backdropFilter: 'blur(10px)',
+            boxShadow: '0 8px 24px rgba(0,0,0,0.5)',
+            pointerEvents: 'none',
+            opacity: 0,
+            whiteSpace: 'normal',
+            zIndex: 100,
+          }}
+        >
+          {quote}
+          {/* Speech bubble tail pointing right */}
+          <div style={{
+            position: 'absolute',
+            top: 16,
+            right: -5,
+            width: 9,
+            height: 9,
+            background: 'rgba(14,18,24,0.95)',
+            borderTop: '1px solid rgba(255,255,255,0.12)',
+            borderRight: '1px solid rgba(255,255,255,0.12)',
+            transform: 'rotate(45deg)',
+          }} />
+        </div>
+      )}
       {/* Mounting nub */}
       <div style={{
         width: 14, height: 14,
@@ -163,7 +245,7 @@ export default function SmiskiKeychain() {
             width: FIGURE_PX,
             display: 'block',
             marginTop: -(CONNECTOR + BALL_R + 4),
-            filter: 'saturate(1.8) contrast(1.05)',
+            filter: 'saturate(0.85) contrast(1.02)',
             pointerEvents: 'none',
           }}
         />

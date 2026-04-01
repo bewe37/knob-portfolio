@@ -3,19 +3,23 @@
 import { useEffect, useRef } from 'react'
 import gsap from 'gsap'
 
-const LEVELS       = [' ', '.', ':', '+', '=', 'x', 'o', '#', '@']   // 9 chars — simpler set, fewer index lookups
-const CELL         = 26          // was 18 — ~50% fewer cells again
-const TARGET_FPS   = 20          // drop to 20fps; imperceptible on a static bg
+const LEVELS       = [' ', '.', ':', '+', '=', 'x', 'o', '#', '@']
+const CELL         = 18
+const TARGET_FPS   = 20
 const FRAME_MS     = 1000 / TARGET_FPS
 const BASE_OPACITY = 0.05
-const PEAK_OPACITY = 0.35
+const PEAK_OPACITY = 0.68
 const MOUSE_RADIUS = 140
-const DECAY        = 0.86
-const MAX_EMBERS   = 20          // was 32
+const DECAY        = 0.91        // slower decay — trails linger longer
+const MAX_EMBERS   = 20
 
 interface Ember {
   x: number; y: number; size: number; opacity: number
   speed: number; wobble: number; wobblePhase: number; hue: number
+}
+
+interface Ripple {
+  x: number; y: number; r: number; maxR: number; speed: number
 }
 
 export default function AsciiBackground() {
@@ -33,7 +37,8 @@ export default function AsciiBackground() {
     let mouse       = { x: -9999, y: -9999 }
     let frameTime   = 0
     const videoMode = { t: 0 }
-    const embers: Ember[] = []
+    const embers: Ember[]  = []
+    const ripples: Ripple[] = []
 
     const img = new Image()
     img.src = '/bgimage.jpg'
@@ -65,7 +70,6 @@ export default function AsciiBackground() {
       heat = new Float32Array(n)
       base = new Uint8Array(n)
       for (let i = 0; i < n; i++) base[i] = Math.random() < 0.5 ? 0 : 1
-      // Set font once here so render loop never needs to set it
       ctx.font         = `${Math.round(CELL * 0.75)}px "JetBrains Mono", monospace`
       ctx.textAlign    = 'center'
       ctx.textBaseline = 'middle'
@@ -74,13 +78,20 @@ export default function AsciiBackground() {
     const onMove  = (e: MouseEvent) => { mouse.x = e.clientX; mouse.y = e.clientY }
     const onLeave = () => { mouse.x = -9999; mouse.y = -9999 }
 
+    const onClick = (e: MouseEvent) => {
+      ripples.push({
+        x: e.clientX, y: e.clientY,
+        r: 0, maxR: Math.hypot(canvas.width, canvas.height) * 0.72,
+        speed: 320,
+      })
+    }
+
     let raf: number
     let lastSpawn = 0
 
     const render = (timestamp: number) => {
       raf = requestAnimationFrame(render)
 
-      // ── Throttle to TARGET_FPS ──────────────────────────
       const elapsed = timestamp - frameTime
       if (elapsed < FRAME_MS) return
       const dt = Math.min(elapsed, 50)
@@ -89,7 +100,7 @@ export default function AsciiBackground() {
       ctx.clearRect(0, 0, canvas.width, canvas.height)
       const t = videoMode.t
 
-      // ── Video mode ──────────────────────────────────────
+      // ── Video mode ──────────────────────────────────────────
       if (t > 0 && img.complete) {
         ctx.save()
         ctx.globalAlpha = t
@@ -135,17 +146,42 @@ export default function AsciiBackground() {
         }
       }
 
-      // ── ASCII layer ─────────────────────────────────────
+      // ── ASCII layer ─────────────────────────────────────────
       if (t < 1) {
-        const alpha1t   = 1 - t
-        const baseAlpha = BASE_OPACITY * alpha1t
+        const alpha1t = 1 - t
 
-        // Compute mouse bounding box in cell space (skip hypot for far cells)
+        // ── Process ripples → heat cells at the wavefront ──
+        for (let i = ripples.length - 1; i >= 0; i--) {
+          const rip = ripples[i]
+          rip.r += rip.speed * (dt / 1000)
+          if (rip.r > rip.maxR) { ripples.splice(i, 1); continue }
+
+          const bandW = CELL * 2.2
+          const col0 = Math.max(0, ((rip.x - rip.r - bandW) / CELL) | 0)
+          const col1 = Math.min(cols - 1, Math.ceil((rip.x + rip.r + bandW) / CELL))
+          const row0 = Math.max(0, ((rip.y - rip.r - bandW) / CELL) | 0)
+          const row1 = Math.min(rows - 1, Math.ceil((rip.y + rip.r + bandW) / CELL))
+
+          for (let row = row0; row <= row1; row++) {
+            for (let col = col0; col <= col1; col++) {
+              const cx   = col * CELL + CELL / 2
+              const cy   = row * CELL + CELL / 2
+              const dist = Math.hypot(cx - rip.x, cy - rip.y)
+              const diff = Math.abs(dist - rip.r)
+              if (diff < bandW) {
+                const strength = (1 - diff / bandW) * (1 - rip.r / rip.maxR) * 1.1
+                const idx = row * cols + col
+                if (strength > heat[idx]) heat[idx] = strength
+              }
+            }
+          }
+        }
+
+        // ── Mouse heat ──────────────────────────────────────
         const mcol = (mouse.x / CELL) | 0
         const mrow = (mouse.y / CELL) | 0
         const rad  = Math.ceil(MOUSE_RADIUS / CELL)
 
-        // Update heat only for cells in mouse radius bounding box
         for (let r = Math.max(0, mrow - rad); r <= Math.min(rows - 1, mrow + rad); r++) {
           for (let c = Math.max(0, mcol - rad); c <= Math.min(cols - 1, mcol + rad); c++) {
             const idx  = r * cols + c
@@ -153,19 +189,20 @@ export default function AsciiBackground() {
             const cy   = r * CELL + CELL / 2
             const dist = Math.hypot(cx - mouse.x, cy - mouse.y)
             if (dist < MOUSE_RADIUS) {
-              heat[idx] = Math.max(1 - dist / MOUSE_RADIUS, heat[idx])
+              const v = 1 - dist / MOUSE_RADIUS
+              if (v > heat[idx]) heat[idx] = v
             }
           }
         }
 
-        // Decay all heat
+        // ── Decay ───────────────────────────────────────────
         for (let i = 0; i < heat.length; i++) {
           if (heat[i] > 0.001) heat[i] *= DECAY
           else heat[i] = 0
         }
 
-        // ── Pass 1: all cold cells in one fillStyle ───────
-        ctx.fillStyle = `rgba(80,100,115,${baseAlpha})`
+        // ── Pass 1: cold cells ──────────────────────────────
+        ctx.fillStyle = `rgba(80,100,115,${BASE_OPACITY * alpha1t})`
         for (let r = 0; r < rows; r++) {
           for (let c = 0; c < cols; c++) {
             if (heat[r * cols + c] > 0.01) continue
@@ -173,15 +210,15 @@ export default function AsciiBackground() {
           }
         }
 
-        // ── Pass 2: hot cells only (typically <100 cells) ─
-        for (let r = Math.max(0, mrow - rad - 1); r <= Math.min(rows - 1, mrow + rad + 1); r++) {
-          for (let c = Math.max(0, mcol - rad - 1); c <= Math.min(cols - 1, mcol + rad + 1); c++) {
+        // ── Pass 2: hot cells ───────────────────────────────
+        for (let r = 0; r < rows; r++) {
+          for (let c = 0; c < cols; c++) {
             const idx = r * cols + c
             const h   = heat[idx]
             if (h <= 0.01) continue
-            const opacity  = (BASE_OPACITY + h * (PEAK_OPACITY - BASE_OPACITY)) * alpha1t
-            const charIdx  = Math.min(LEVELS.length - 1, base[idx] + Math.round(h * (LEVELS.length - 2)))
-            ctx.fillStyle  = `rgba(80,100,115,${opacity})`
+            const a       = (BASE_OPACITY + h * (PEAK_OPACITY - BASE_OPACITY)) * alpha1t
+            const charIdx = Math.min(LEVELS.length - 1, base[idx] + Math.round(h * (LEVELS.length - 2)))
+            ctx.fillStyle = `rgba(80,100,115,${a})`
             ctx.fillText(LEVELS[charIdx], c * CELL + CELL / 2, r * CELL + CELL / 2)
           }
         }
@@ -198,6 +235,7 @@ export default function AsciiBackground() {
     window.addEventListener('resize',         resize)
     window.addEventListener('mousemove',      onMove)
     window.addEventListener('mouseleave',     onLeave)
+    window.addEventListener('click',          onClick)
     window.addEventListener('video-active',   onVideoActive)
     window.addEventListener('video-inactive', onVideoInactive)
     raf = requestAnimationFrame(render)
@@ -209,6 +247,7 @@ export default function AsciiBackground() {
       window.removeEventListener('resize',         resize)
       window.removeEventListener('mousemove',      onMove)
       window.removeEventListener('mouseleave',     onLeave)
+      window.removeEventListener('click',          onClick)
       window.removeEventListener('video-active',   onVideoActive)
       window.removeEventListener('video-inactive', onVideoInactive)
     }

@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useState, useCallback } from 'react'
 import gsap from 'gsap'
 
 // ── Style constants ────────────────────────────────────────────
@@ -153,8 +153,10 @@ function ConnH({ style }: { style: React.CSSProperties }) {
 }
 
 // ── Main Component ─────────────────────────────────────────────
-export default function PCBView({ onClose }: { onClose: () => void }) {
-  const wrapRef = useRef<HTMLDivElement>(null)
+export default function PCBView({ onClose, onSdInserted }: { onClose: () => void; onSdInserted?: (inserted: boolean) => void }) {
+  const wrapRef  = useRef<HTMLDivElement>(null)
+  const sdRef    = useRef<HTMLDivElement>(null)
+  const [sdInserted, setSdInserted] = useState(false)
 
   useEffect(() => {
     if (wrapRef.current) {
@@ -173,6 +175,81 @@ export default function PCBView({ onClose }: { onClose: () => void }) {
     })
   }
 
+  const pcbRef       = useRef<HTMLDivElement>(null)
+  const startPtr     = useRef({ x: 0, y: 0 })   // pointer at drag start
+  const startXY      = useRef({ x: 0, y: 0 })   // card translate at drag start
+  const currentXY    = useRef({ x: 0, y: 0 })   // live translate
+  const isDraggingSd = useRef(false)
+
+  const onSdPointerDown = useCallback((e: React.PointerEvent) => {
+    if (sdInserted) return
+    e.preventDefault()
+    e.stopPropagation()
+    isDraggingSd.current = true
+    sdRef.current!.setPointerCapture(e.pointerId)
+    startPtr.current = { x: e.clientX, y: e.clientY }
+    startXY.current  = { ...currentXY.current }
+    gsap.killTweensOf(sdRef.current)
+  }, [sdInserted])
+
+  const onSdPointerMove = useCallback((e: React.PointerEvent) => {
+    if (!isDraggingSd.current) return
+    const dx = e.clientX - startPtr.current.x + startXY.current.x
+    const dy = e.clientY - startPtr.current.y + startXY.current.y
+    currentXY.current = { x: dx, y: dy }
+    gsap.set(sdRef.current, { x: dx, y: dy })
+  }, [])
+
+  const onSdPointerUp = useCallback(() => {
+    if (!isDraggingSd.current) return
+    isDraggingSd.current = false
+
+    const el  = sdRef.current!
+    const pcb = pcbRef.current!
+    const pcbRect = pcb.getBoundingClientRect()
+    const elRect  = el.getBoundingClientRect()
+
+    // Card center relative to PCB in %
+    const cx = ((elRect.left + elRect.width  / 2) - pcbRect.left) / pcbRect.width  * 100
+    const cy = ((elRect.top  + elRect.height / 2) - pcbRect.top)  / pcbRect.height * 100
+
+    // Slot center: storage chip is at left:81%, top:10%-23% → center ~81%+3.75%, 16.5%
+    const SLOT_CX = 84.75, SLOT_CY = 16.5
+    const dist = Math.hypot(cx - SLOT_CX, cy - SLOT_CY)
+
+    if (dist < 10) {
+      // Compute translate needed to land card at slot position
+      const slotPixX = pcbRect.left + SLOT_CX / 100 * pcbRect.width  - elRect.width  / 2
+      const slotPixY = pcbRect.top  + 10       / 100 * pcbRect.height
+      const snapX = currentXY.current.x + (slotPixX - elRect.left)
+      const snapY = currentXY.current.y + (slotPixY - elRect.top)
+      gsap.to(el, {
+        x: snapX, y: snapY, duration: 0.2, ease: 'power3.out',
+        onComplete: () => {
+          currentXY.current = { x: snapX, y: snapY }
+          setSdInserted(true)
+          onSdInserted?.(true)
+        },
+      })
+    } else {
+      // Spring back to home (translate 0,0)
+      gsap.to(el, {
+        x: 0, y: 0, duration: 0.35, ease: 'back.out(1.8)',
+        onComplete: () => { currentXY.current = { x: 0, y: 0 } },
+      })
+    }
+  }, [onSdInserted])
+
+  const handleSdEject = useCallback(() => {
+    if (!sdInserted) return
+    setSdInserted(false)
+    onSdInserted?.(false)
+    gsap.to(sdRef.current, {
+      x: 0, y: 0, duration: 0.3, ease: 'back.out(1.6)',
+      onComplete: () => { currentXY.current = { x: 0, y: 0 } },
+    })
+  }, [sdInserted, onSdInserted])
+
   return (
     <div
       ref={wrapRef}
@@ -182,20 +259,25 @@ export default function PCBView({ onClose }: { onClose: () => void }) {
         background: '#1e2023',
         boxShadow: 'inset 0 5px 25px rgba(0,0,0,0.9)',
         display: 'flex', flexDirection: 'column',
-        padding: '32px 32px 20px',
+        padding: '20px 24px 16px',
         fontFamily: 'var(--font-jetbrains-mono), monospace',
         zIndex: 200, opacity: 0,
+        gap: '12px',
       }}
     >
 
-      {/* ── Top bar ── */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', zIndex: 30, position: 'relative', flexShrink: 0 }}>
+      {/* ── Top bar — flex row, no absolute overlap ── */}
+      <div style={{
+        display: 'flex', alignItems: 'center', gap: '16px',
+        flexShrink: 0, zIndex: 30, position: 'relative',
+      }}>
+        {/* Close button */}
         <button
           onClick={handleClose}
           style={{
             background: '#f0f4f8', color: '#2c333a',
-            fontSize: '12px', fontWeight: 700, padding: '12px 24px',
-            borderRadius: '4px',
+            fontSize: '11px', fontWeight: 700, padding: '10px 20px',
+            borderRadius: '4px', flexShrink: 0,
             boxShadow: '0 4px 6px rgba(0,0,0,0.3), inset 0 1px 0 white',
             border: '1px solid #d1d5db',
             letterSpacing: '0.1em', cursor: 'pointer',
@@ -206,59 +288,21 @@ export default function PCBView({ onClose }: { onClose: () => void }) {
         >
           CLOSE HOUSING
         </button>
+
+        {/* Spacer */}
+        <div style={{ flex: 1 }} />
+
+        {/* Green LED */}
         <div style={{
           width: '10px', height: '10px', borderRadius: '50%',
-          background: '#4ade80',
+          background: '#4ade80', flexShrink: 0,
           boxShadow: '0 0 15px 2px #4ade80',
         }} />
       </div>
 
-      {/* ── Terminal info box ── */}
-      <div style={{
-        position: 'absolute', top: '8%', left: '50%', transform: 'translateX(-50%)',
-        width: '65%', maxWidth: '800px',
-        background: '#16181a',
-        border: '1px solid #2c3036',
-        borderRadius: '4px',
-        boxShadow: '0 20px 40px rgba(0,0,0,0.8)',
-        zIndex: 30,
-        display: 'flex', flexDirection: 'column',
-      }}>
-        <div style={{ padding: '10px 20px', color: '#6d7b85', fontSize: '10px', letterSpacing: '0.1em', borderBottom: '1px solid #2c3036' }}>
-          PRIMARY_INTERFACE_DISPLAY_REV_4.0
-        </div>
-        <div style={{ padding: '16px 20px', color: '#8a98a3', fontSize: '11px', lineHeight: 1.6, letterSpacing: '0.05em', height: '90px' }}>
-          REV 4.0 // ARCH 04-0 // DIAG EXT<br />
-          NEVRORS INC B x 5-8<br />
-          PRIMARY_INTERFACE_REV.4.0<br />
-          TECHNICALPROCESSOR
-        </div>
-      </div>
-
-      {/* ── Rainbow ribbon cable ── */}
-      <div style={{
-        position: 'absolute', top: '21%', left: '50%', transform: 'translateX(-50%)',
-        width: '55px', height: '7%', zIndex: 20,
-        boxShadow: '0 4px 6px rgba(0,0,0,0.3)',
-        background: 'linear-gradient(to right, #e65147 0%, #e65147 16%, #e98d3e 16%, #e98d3e 33%, #e6c23d 33%, #e6c23d 50%, #58a356 50%, #58a356 66%, #4088bc 66%, #4088bc 83%, #865c9c 83%, #865c9c 100%)',
-      }} />
-
-      {/* ── White connector at top of ribbon ── */}
-      <div style={{
-        position: 'absolute', top: '21%', left: '50%', transform: 'translateX(-50%)',
-        width: '65px', height: '8px',
-        background: '#e5e7eb', border: '1px solid #9ca3af',
-        zIndex: 30, borderRadius: '2px 2px 0 0',
-        boxShadow: '0 2px 6px rgba(0,0,0,0.3)',
-        display: 'flex', justifyContent: 'center', alignItems: 'flex-end', paddingBottom: '1px',
-      }}>
-        <div style={{ width: '90%', height: '3px', background: '#111' }} />
-      </div>
-
       {/* ── PCB Board ── */}
-      <div style={{
+      <div ref={pcbRef} style={{
         flex: 1,
-        marginTop: '11%', marginBottom: '40px', marginLeft: '1%', marginRight: '1%',
         background: '#1c3d24',
         backgroundImage: 'radial-gradient(rgba(255,255,255,0.03) 1px, transparent 1px)',
         backgroundSize: '12px 12px',
@@ -267,47 +311,151 @@ export default function PCBView({ onClose }: { onClose: () => void }) {
         boxShadow: 'inset 0 0 60px rgba(0,0,0,0.8), 0 10px 30px rgba(0,0,0,0.5)',
         border: '2px solid #2a5234',
         zIndex: 10,
+        overflow: 'hidden',
       }}>
 
-        {/* ── SVG traces background ── */}
-        <svg viewBox="0 0 1000 600" preserveAspectRatio="none" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', pointerEvents: 'none', zIndex: 0 }}>
-          <g stroke="#649e6d" strokeWidth="2" fill="none" opacity="0.6">
-            <path d="M 160 270 L 220 270 L 260 230 L 320 230" />
-            <path d="M 160 280 L 220 280 L 260 240 L 320 240" />
-            <path d="M 160 290 L 220 290 L 260 250 L 320 250" />
-            <path d="M 160 300 L 220 300 L 260 260 L 320 260" />
-            <path d="M 160 310 L 220 310 L 260 270 L 320 270" />
-            <path d="M 160 320 L 220 320 L 260 280 L 320 280" />
-            <path d="M 280 340 L 330 340 L 360 300 L 400 300" />
-            <path d="M 280 350 L 330 350 L 360 310 L 400 310" />
-            <path d="M 280 360 L 330 360 L 360 320 L 400 320" />
-            <path d="M 280 370 L 330 370 L 360 330 L 400 330" />
-            <path d="M 200 460 L 200 500 L 160 540 L 130 540" />
-            <path d="M 210 460 L 210 500 L 170 540 L 140 540" />
-            <path d="M 220 460 L 220 500 L 180 540 L 150 540" />
-            <path d="M 480 250 L 530 250" />
-            <path d="M 480 260 L 530 260" />
-            <path d="M 480 270 L 530 270" />
-            <path d="M 480 280 L 530 280" />
-            <path d="M 480 290 L 530 290" />
-            <path d="M 480 300 L 530 300" />
-            <path d="M 640 480 L 640 440 L 680 400 L 730 400" />
-            <path d="M 650 480 L 650 440 L 690 400 L 730 400" />
-            <path d="M 660 480 L 660 440 L 700 400 L 730 400" />
-            <path d="M 670 480 L 670 440 L 710 400 L 730 400" />
-            <path d="M 780 280 L 810 250 L 810 130 L 840 100" />
-            <path d="M 790 280 L 820 250 L 820 130 L 850 100" />
-            <path d="M 320 120 L 450 120 L 480 150 L 700 150 L 730 120 L 820 120" />
-            <path d="M 120 150 L 250 150 L 280 180 L 350 180" />
-            <path d="M 80 520 L 250 520 L 280 490 L 450 490 L 480 520 L 850 520" />
-            <path d="M 300 560 L 500 560 L 530 530 L 700 530 L 730 560 L 920 560" />
+        {/* ── SVG traces — all connected to component positions ── */}
+        {/*
+          Component positions (% → viewBox 1000×600):
+          J14_DIAG left top:  x=40–52,  y=60–144   → right edge x=52
+          J14_DIAG left bot:  x=40–52,  y=300–384  → right edge x=52
+          WIFI module:        x=80–180, y=84–150    → left x=80
+          XZNETIC:            x=140–290,y=222–372   → right x=290, left x=140
+          Memory:             x=400–475,y=168–348   → left x=400, right x=475
+          Small IC top:       x=330–375,y=84–129    → right x=375, center y=106
+          FPC V1:             x=530–542,y=216–270   → left x=530, center y=243
+          FPC V2:             x=530–542,y=288–342   → left x=530, center y=315
+          FPC H1:             x=480–535,y=480–492
+          FPC H2:             x=565–620,y=480–492
+          Small IC right mid: x=590–625,y=252–285   → left x=590
+          J14_DIAG horiz:     x=630–695,y=84–96     → right x=695
+          Storage:            x=810–885,y=60–138    → left x=810
+          POWER_MGMT:         x=730–785,y=300–354   → right x=785
+          DSP_AUDIO:          x=730–785,y=420–474   → right x=785
+          J15_PWR:            x=950–962,y=228–300   → left x=950
+          J16_PWR:            x=950–962,y=360–408   → left x=950
+          J16_OTA:            x=950–962,y=450–510   → left x=950
+          2O_HEADER:          x=100–190,y=480–492   → right x=190
+          J15_PNR:            x=280–355,y=480–492   → left x=280
+        */}
+        <svg
+          viewBox="0 0 1000 600"
+          preserveAspectRatio="none"
+          style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', pointerEvents: 'none', zIndex: 2 }}
+        >
+          {/* ── Primary traces ── */}
+          <g stroke="#649e6d" strokeWidth="2" fill="none" opacity="0.75">
+
+            {/* J14_DIAG left top → WIFI module */}
+            <path d="M 52 90  L 80 90" />
+            <path d="M 52 105 L 80 105" />
+            <path d="M 52 120 L 80 120" />
+
+            {/* J14_DIAG left bottom → XZNETIC left */}
+            <path d="M 52 318 L 100 318 L 100 262 L 140 262" />
+            <path d="M 52 332 L 108 332 L 108 278 L 140 278" />
+            <path d="M 52 346 L 116 346 L 116 297 L 140 297" />
+
+            {/* WIFI module right → Small IC top left (data bus) */}
+            <path d="M 180 100 L 280 100 L 280 106 L 330 106" />
+            <path d="M 180 117 L 270 117 L 270 115 L 330 115" />
+
+            {/* XZNETIC right → Memory module left */}
+            <path d="M 290 248 L 340 248 L 340 210 L 400 210" />
+            <path d="M 290 270 L 350 270 L 350 230 L 400 230" />
+            <path d="M 290 297 L 360 297 L 360 258 L 400 258" />
+            <path d="M 290 324 L 350 324 L 350 290 L 400 290" />
+
+            {/* Small IC top right → Memory top */}
+            <path d="M 375 95  L 420 95  L 420 168" />
+            <path d="M 375 106 L 438 106 L 438 168" />
+
+            {/* Memory right → FPC V1 */}
+            <path d="M 475 220 L 530 220" />
+            <path d="M 475 243 L 530 243" />
+            <path d="M 475 266 L 530 266" />
+
+            {/* Memory right → FPC V2 */}
+            <path d="M 475 295 L 510 295 L 510 315 L 530 315" />
+            <path d="M 475 316 L 506 316 L 506 330 L 530 330" />
+
+            {/* FPC V2 right → Small IC right mid */}
+            <path d="M 542 305 L 565 305 L 565 268 L 590 268" />
+            <path d="M 542 320 L 572 320 L 572 278 L 590 278" />
+
+            {/* J14_DIAG horiz right → Storage left */}
+            <path d="M 695 87 L 810 87" />
+            <path d="M 695 93 L 810 93" />
+
+            {/* POWER_MGMT right → J15_PWR left */}
+            <path d="M 785 312 L 860 312 L 860 245 L 950 245" />
+            <path d="M 785 327 L 870 327 L 870 260 L 950 260" />
+            <path d="M 785 342 L 880 342 L 880 278 L 950 278" />
+
+            {/* DSP_AUDIO right → J16_PWR left */}
+            <path d="M 785 432 L 855 432 L 855 372 L 950 372" />
+            <path d="M 785 447 L 865 447 L 865 385 L 950 385" />
+
+            {/* DSP_AUDIO right → J16_OTA left */}
+            <path d="M 785 458 L 895 458 L 895 468 L 950 468" />
+            <path d="M 785 465 L 902 465 L 902 480 L 950 480" />
+
+            {/* POWER_MGMT left ← → DSP_AUDIO left (vertical bus) */}
+            <path d="M 730 340 L 710 340 L 710 420 L 730 420" />
+            <path d="M 730 354 L 716 354 L 716 434 L 730 434" />
+
+            {/* XZNETIC bottom → 2O_HEADER */}
+            <path d="M 190 372 L 190 445 L 130 445 L 130 480" />
+            <path d="M 210 372 L 210 456 L 145 456 L 145 480" />
+            <path d="M 230 372 L 230 462 L 160 462 L 160 480" />
+
+            {/* 2O_HEADER right → J15_PNR left (bottom bus) */}
+            <path d="M 190 484 L 280 484" />
+            <path d="M 190 488 L 280 488" />
+
+            {/* Small IC bottom → FPC H1 */}
+            <path d="M 422 420 L 422 400 L 480 400 L 480 480" />
+            <path d="M 440 420 L 440 408 L 510 408 L 510 480" />
+
+            {/* FPC H2 right → Small IC right mid bottom */}
+            <path d="M 620 486 L 650 486 L 650 420 L 625 420 L 625 278" />
+
           </g>
-          <g stroke="#8abf94" strokeWidth="1" fill="none" opacity="0.4">
-            <path d="M 50 80 L 100 80 L 120 100" />
-            <path d="M 60 400 L 100 400 L 120 420" />
-            <path d="M 900 200 L 950 200 L 970 220" />
-            <path d="M 880 350 L 930 350 L 950 370" />
-            <path d="M 750 480 L 800 480 L 820 500" />
+
+          {/* ── Secondary / fill traces ── */}
+          <g stroke="#8abf94" strokeWidth="1" fill="none" opacity="0.35">
+            {/* Corner fills */}
+            <path d="M 50 60  L 50 30  L 80 30" />
+            <path d="M 950 60 L 980 60 L 980 30 L 950 30" />
+            <path d="M 50 540 L 50 570 L 80 570" />
+            <path d="M 950 540 L 980 540 L 980 570 L 950 570" />
+            {/* Long horizontal ground/power planes */}
+            <path d="M 60 555 L 940 555" />
+            <path d="M 60 45  L 940 45" />
+          </g>
+
+          {/* ── Via pads at trace junctions ── */}
+          <g fill="#81ad8a" opacity="0.6">
+            <circle cx="100" cy="262" r="3" />
+            <circle cx="108" cy="278" r="3" />
+            <circle cx="116" cy="297" r="3" />
+            <circle cx="340" cy="210" r="3" />
+            <circle cx="350" cy="230" r="3" />
+            <circle cx="360" cy="258" r="3" />
+            <circle cx="420" cy="168" r="3" />
+            <circle cx="438" cy="168" r="3" />
+            <circle cx="510" cy="315" r="3" />
+            <circle cx="565" cy="268" r="3" />
+            <circle cx="860" cy="245" r="3" />
+            <circle cx="870" cy="260" r="3" />
+            <circle cx="855" cy="372" r="3" />
+            <circle cx="865" cy="385" r="3" />
+            <circle cx="895" cy="458" r="3" />
+            <circle cx="190" cy="445" r="3" />
+            <circle cx="210" cy="456" r="3" />
+            <circle cx="480" cy="400" r="3" />
+            <circle cx="710" cy="340" r="3" />
+            <circle cx="710" cy="420" r="3" />
           </g>
         </svg>
 
@@ -330,11 +478,11 @@ export default function PCBView({ onClose }: { onClose: () => void }) {
         </div>
 
         {/* ── J14_DIAG left edge (top) ── */}
-        <div style={{ ...pcbLabel, top: '25%', left: '3%', transform: 'rotate(-90deg)', transformOrigin: 'left' }}>J14_DIAG</div>
+        <div style={{ ...pcbLabel, top: '17%', left: '0.5%', transform: 'rotate(-90deg)', transformOrigin: 'center' }}>J14_DIAG</div>
         <PinV style={{ top: '10%', left: '4%', width: '1.2%', height: '14%' }} count={8} />
 
         {/* ── J14_DIAG left edge (bottom) ── */}
-        <div style={{ ...pcbLabel, top: '65%', left: '3%', transform: 'rotate(-90deg)', transformOrigin: 'left' }}>J14_DIAG</div>
+        <div style={{ ...pcbLabel, top: '58%', left: '0.5%', transform: 'rotate(-90deg)', transformOrigin: 'center' }}>J14_DIAG</div>
         <PinV style={{ top: '50%', left: '4%', width: '1.2%', height: '14%' }} count={8} />
 
         {/* ── XZNETIC_CORE X9 ── */}
@@ -400,10 +548,8 @@ export default function PCBView({ onClose }: { onClose: () => void }) {
           </div>
           <div style={{
             width: '75%', height: '80%', background: '#0d0d0d',
-            border: '1px solid #222',
-            boxShadow: 'inset 0 0 10px rgba(0,0,0,0.8)',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            borderRadius: '2px',
+            border: '1px solid #222', boxShadow: 'inset 0 0 10px rgba(0,0,0,0.8)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '2px',
           }}>
             <div style={{ color: '#5a6b5e', fontSize: '7px', transform: 'rotate(-90deg)', whiteSpace: 'nowrap', letterSpacing: '0.2em', fontWeight: 700, textAlign: 'center', lineHeight: 1.4 }}>
               KINETIC<br />// 64GB DDR5
@@ -430,15 +576,19 @@ export default function PCBView({ onClose }: { onClose: () => void }) {
         <ConnH style={{ top: '80%', left: '48%', width: '5.5%', height: '2%' }} />
         <ConnH style={{ top: '80%', left: '56.5%', width: '5.5%', height: '2%' }} />
 
-        {/* ── SVG ribbon cable foreground ── */}
-        <svg viewBox="0 0 1000 600" preserveAspectRatio="none" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', pointerEvents: 'none', zIndex: 20 }}>
-          <g fill="none" strokeWidth="5">
-            <path stroke="#e65147" d="M 542 292 L 610 292 Q 625 292, 625 307 L 625 480" />
-            <path stroke="#e98d3e" d="M 542 297 L 605 297 Q 619 297, 619 307 L 619 480" />
-            <path stroke="#e6c23d" d="M 542 302 L 600 302 Q 613 302, 613 307 L 613 480" />
-            <path stroke="#58a356" d="M 542 307 L 595 307 Q 607 307, 607 312 L 607 480" />
-            <path stroke="#4088bc" d="M 542 312 L 590 312 Q 601 312, 601 317 L 601 480" />
-            <path stroke="#865c9c" d="M 542 317 L 585 317 Q 595 317, 595 322 L 595 480" />
+        {/* ── Rainbow ribbon cable (inside board, connecting FPC V1/V2 to right) ── */}
+        <svg
+          viewBox="0 0 1000 600"
+          preserveAspectRatio="none"
+          style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', pointerEvents: 'none', zIndex: 20 }}
+        >
+          <g fill="none" strokeWidth="4">
+            <path stroke="#e65147" d="M 542 222 L 610 222 Q 625 222 625 237 L 625 420" />
+            <path stroke="#e98d3e" d="M 542 232 L 605 232 Q 618 232 618 247 L 618 420" />
+            <path stroke="#e6c23d" d="M 542 242 L 600 242 Q 611 242 611 257 L 611 420" />
+            <path stroke="#58a356" d="M 542 297 L 595 297 Q 604 297 604 307 L 604 420" />
+            <path stroke="#4088bc" d="M 542 307 L 590 307 Q 597 307 597 317 L 597 420" />
+            <path stroke="#865c9c" d="M 542 317 L 585 317 Q 590 317 590 327 L 590 420" />
           </g>
         </svg>
 
@@ -493,15 +643,15 @@ export default function PCBView({ onClose }: { onClose: () => void }) {
         </div>
 
         {/* ── J15_PWR right edge ── */}
-        <div style={{ ...pcbLabel, top: '50%', left: '93%', transform: 'rotate(-90deg)', transformOrigin: 'left' }}>J15_PWR</div>
+        <div style={{ ...pcbLabel, top: '39%', left: '91.5%', transform: 'rotate(-90deg)', transformOrigin: 'center' }}>J15_PWR</div>
         <PinV style={{ top: '38%', left: '95%', width: '1.2%', height: '12%' }} count={6} />
 
         {/* ── J16_PWR right edge ── */}
-        <div style={{ ...pcbLabel, top: '68%', left: '93%', transform: 'rotate(-90deg)', transformOrigin: 'left' }}>J16_PWR</div>
+        <div style={{ ...pcbLabel, top: '58%', left: '91.5%', transform: 'rotate(-90deg)', transformOrigin: 'center' }}>J16_PWR</div>
         <PinV style={{ top: '60%', left: '95%', width: '1.2%', height: '8%' }} count={4} />
 
         {/* ── J16_OTA right edge ── */}
-        <div style={{ ...pcbLabel, top: '84%', left: '93%', transform: 'rotate(-90deg)', transformOrigin: 'left' }}>J16_OTA</div>
+        <div style={{ ...pcbLabel, top: '74%', left: '91.5%', transform: 'rotate(-90deg)', transformOrigin: 'center' }}>J16_OTA</div>
         <PinV style={{ top: '75%', left: '95%', width: '1.2%', height: '10%' }} count={5} />
 
         {/* ── 2O_HEADER_J12 bottom ── */}
@@ -514,20 +664,95 @@ export default function PCBView({ onClose }: { onClose: () => void }) {
           <div style={{ width: '10%', height: '100%', background: '#a38a6a' }} />
         </div>
 
-        {/* ── J15_PNR bottom ── */}
-        <div style={{ ...pcbLabel, top: '85%', left: '28%' }}>J15_PNR</div>
+        {/* ── J15_PWR bottom label ── */}
+        <div style={{ ...pcbLabel, top: '85%', left: '28%' }}>J15_PWR</div>
         <PinH style={{ top: '80%', left: '28%', width: '7.5%', height: '2%' }} count={7} />
 
-        {/* ── Glow dots ── */}
+        {/* ── SD Card — draggable, home in empty space below J14_DIAG ── */}
+        {!sdInserted && (
+          <div
+            ref={sdRef}
+            onPointerDown={onSdPointerDown}
+            onPointerMove={onSdPointerMove}
+            onPointerUp={onSdPointerUp}
+            title="Drag into SD slot"
+            style={{
+              position: 'absolute', left: '67%', top: '30%',
+              width: '6%', zIndex: 30,
+              cursor: 'grab', touchAction: 'none', userSelect: 'none',
+            }}
+          >
+            <div style={{ position: 'relative', width: '100%', paddingBottom: '130%' }}>
+              <div style={{
+                position: 'absolute', inset: 0,
+                background: 'linear-gradient(160deg, #e8eaec 0%, #c8cacc 40%, #b0b4b8 100%)',
+                borderRadius: '3px 3px 2px 2px',
+                boxShadow: '2px 4px 10px rgba(0,0,0,0.65), inset 0 1px 0 rgba(255,255,255,0.7)',
+                border: '1px solid #9aa0a6', overflow: 'hidden',
+              }}>
+                <div style={{ position: 'absolute', top: 0, right: 0, width: '28%', height: '22%', background: 'linear-gradient(135deg, transparent 50%, #9aa0a6 50%)' }} />
+                <div style={{
+                  position: 'absolute', top: '8%', left: '8%', right: '8%', bottom: '30%',
+                  background: 'linear-gradient(160deg, #f5f5f0 0%, #e8e4dc 100%)',
+                  borderRadius: '2px', border: '0.5px solid #d0ccc4',
+                  display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '2px',
+                }}>
+                  <span style={{ fontSize: '5px', fontFamily: 'var(--font-jetbrains-mono), monospace', color: '#6b5e4e', letterSpacing: '0.1em', fontWeight: 700 }}>PONYO</span>
+                  <span style={{ fontSize: '4px', fontFamily: 'var(--font-jetbrains-mono), monospace', color: '#9a8e82', letterSpacing: '0.05em' }}>64GB</span>
+                </div>
+                <div style={{ position: 'absolute', bottom: 0, left: '4%', right: '4%', height: '26%', display: 'flex', gap: '2px', alignItems: 'flex-end', padding: '0 3px 2px' }}>
+                  {[0,1,2,3,4,5,6].map(i => (
+                    <div key={i} style={{ flex: 1, height: '80%', background: 'linear-gradient(180deg, #d4a843 0%, #b8922e 50%, #d4a843 100%)', borderRadius: '0 0 1px 1px' }} />
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* ── SD inserted indicator — contacts peeking out below slot ── */}
+        {sdInserted && (
+          <div
+            onClick={handleSdEject}
+            title="Click to eject"
+            style={{
+              position: 'absolute', left: '81%', top: '23%',
+              width: '7.5%', cursor: 'pointer', zIndex: 30,
+            }}
+          >
+            <div style={{
+              width: '100%', height: '10px',
+              background: 'linear-gradient(160deg, #d0d3d6 0%, #b8bcbf 100%)',
+              borderRadius: '0 0 3px 3px',
+              border: '1px solid #9aa0a6', borderTop: 'none',
+              display: 'flex', gap: '2px', alignItems: 'center', padding: '2px 4px',
+              boxShadow: '0 3px 8px rgba(0,0,0,0.5)',
+            }}>
+              {[0,1,2,3,4,5,6].map(i => (
+                <div key={i} style={{ flex: 1, height: '5px', background: 'linear-gradient(180deg, #d4a843 0%, #b8922e 60%, #d4a843 100%)', borderRadius: '0 0 1px 1px' }} />
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* ── Glow dots at trace junctions / test points ── */}
         {[
-          { top: '15%', left: '22%' }, { top: '34%', left: '20%' },
-          { top: '50%', left: '35%' }, { top: '25%', left: '45%' },
-          { top: '60%', left: '48%' }, { top: '72%', left: '23%' },
-          { top: '84%', left: '21%' }, { top: '14%', left: '55%' },
-          { top: '48%', left: '66%' }, { top: '20%', left: '75%' },
-          { top: '33%', left: '72%' }, { top: '52%', left: '86%' },
-          { top: '65%', left: '81%' }, { top: '80%', left: '85%' },
-          { top: '46%', left: '59%' }, { top: '61%', left: '74%' },
+          { top: '15%', left: '22%' },
+          { top: '34%', left: '20%' },
+          { top: '50%', left: '35%' },
+          { top: '25%', left: '45%' },
+          { top: '60%', left: '48%' },
+          { top: '72%', left: '23%' },
+          { top: '84%', left: '21%' },
+          { top: '14%', left: '55%' },
+          { top: '48%', left: '66%' },
+          { top: '20%', left: '75%' },
+          { top: '33%', left: '72%' },
+          { top: '52%', left: '86%' },
+          { top: '65%', left: '81%' },
+          { top: '80%', left: '85%' },
+          { top: '46%', left: '59%' },
+          { top: '61%', left: '74%' },
         ].map((pos, i) => (
           <div key={i} style={{ ...glowDot, ...pos }} />
         ))}
@@ -536,10 +761,9 @@ export default function PCBView({ onClose }: { onClose: () => void }) {
 
       {/* ── Bottom label ── */}
       <div style={{
-        position: 'absolute', bottom: '12px', left: 0, width: '100%',
         textAlign: 'center', color: '#4c5c68',
         fontSize: '9px', letterSpacing: '0.4em', fontWeight: 600, opacity: 0.8,
-        zIndex: 20,
+        flexShrink: 0,
       }}>
         KINETIC SYSTEM ARCHITECTURE // INTERNAL DATAPATH SCHEMATIC 04-0 FINAL
       </div>

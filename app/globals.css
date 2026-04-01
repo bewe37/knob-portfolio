@@ -52,7 +52,7 @@ body {
   background-repeat:  no-repeat,  repeat,  repeat,  no-repeat;
   font-family: var(--font-inter), Inter, sans-serif;
   color: var(--text-engraved);
-  overflow: hidden;
+  overflow: clip;
 }
 
 /* ── Knob rotator — transparent, just holds the indicator ── */
@@ -208,8 +208,8 @@ body {
 
 /* ── CRT inner container ─────────────────────────────────── */
 .tv-crt-large {
-  width: 90vw;
-  height: 76vh;
+  width: 92vw;
+  height: 90vh;
   background: #060808;
   border-radius: 20px;
   position: relative;
@@ -223,7 +223,7 @@ body {
   height: 100%;
   overflow-y: auto;
   overflow-x: hidden;
-  padding: 48px 60px 80px;
+  padding: 32px 36px 48px;
   scrollbar-width: thin;
   scrollbar-color: rgba(51, 255, 102, 0.28) transparent;
   position: relative;

@@ -17,7 +17,18 @@ export default function Home() {
           perspective: 1000,
         }}
       >
-        <HardwareBoard />
+        {/*
+          Scale wrapper — only scales DOWN when viewport is too small.
+          920 = board width, 860 = board height (640) + smiski hanging below (~210px) + padding.
+          transform-origin: center so it stays centered within the flex container.
+          The 48px margin gives breathing room on all sides.
+        */}
+        <div style={{
+          transform: 'scale(min(1, min(calc((100vw - 48px) / 920), calc((100vh - 48px) / 860))))',
+          transformOrigin: 'center center',
+        }}>
+          <HardwareBoard />
+        </div>
       </main>
     </>
   )

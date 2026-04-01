@@ -1,6 +1,6 @@
 'use client'
 
-import { useRef, useEffect, useState, useCallback } from 'react'
+import React, { useRef, useEffect, useState, useCallback } from 'react'
 import gsap from 'gsap'
 import PCBView from './PCBView'
 import { LoadingScreen } from './LoadingScreen'
@@ -16,21 +16,21 @@ const SECTIONS = [
   },
   {
     id: 'PRJ-01',
-    title: 'AMD | Conversational AI',
-    tech: 'PRODUCT DESIGN / DESIGN SYSTEM DESIGNER',
-    desc: 'Shaping AMD Software next-gen experience from the inside, including the design system powering it all.',
+    title: 'AMD | Design System',
+    tech: 'DESIGN SYSTEM DESIGNER',
+    desc: 'Built a scalable design system foundation to support major redesign initiative and ensure long-term consistency across products.',
   },
   {
     id: 'PRJ-02',
-    title: 'Safe Software | Annotation Tools',
+    title: 'Safe Software | Platform Modernization',
     tech: 'PRODUCT DESIGN',
-    desc: 'Rethinking how technical users document and annotate complex data workflows.',
+    desc: 'Modernizing FME Form through icon system redesign, annotation tools, and a shared design foundation.',
   },
   {
     id: 'PRJ-03',
-    title: 'Fix the 6ix | Gift Card Tracker',
+    title: 'ReGiftCard',
     tech: 'PRODUCT DESIGN',
-    desc: 'Designing the internal dashboard that helped a non-profit manage its gift card distribution.',
+    desc: 'A dashboard for non-profits to track unused gift cards and replace manual spreadsheet submissions.',
   },
   {
     id: 'PRJ-04',
@@ -40,57 +40,102 @@ const SECTIONS = [
   },
   {
     id: 'COM-05',
-    title: "LET'S CONNECT",
-    tech: 'AVAILABLE FOR WORK',
-    desc: 'Open to full-time and contract roles in product design and frontend engineering.\nbryanwinata112@gmail.com\nlinkedin.com/in/gbryanw',
+    title: 'Thanks for visiting',
+    tech: 'STILL ALIVE & AVAILABLE',
+    desc: "You made it to the end. Respect.\nI'm open to full-time roles and fun side projects — if your idea is weird enough, even better.",
   },
 ]
 
 // ── Rich detail data for the overlay ─────────────────────
 const SECTION_DETAILS = [
   {
-    overview: "UI/UX designer and frontend developer with 4+ years crafting high-fidelity digital experiences. Specializing in spatial computing, skeuomorphic interfaces, and performance-first web applications. Every pixel is intentional.",
-    role: "Product Designer & FE Dev",
+    cover: '/sqwam.png',
+    overview: "Hi, I'm Georgius Bryan Winata — but Bryan works. And yes, Georgius… gorgeous. I've heard it enough times, I'll save you the effort.",
+    role: "Product Designer",
     year: "2020 — Present",
-    specs: [
-      { label: "PRIMARY STACK", value: "React / Next.js" },
-      { label: "DESIGN TOOLS", value: "Figma / Spline" },
-      { label: "ANIMATION", value: "GSAP / Framer" },
-      { label: "SPECIALTY", value: "WebGL / Shaders" },
+    specs: [],
+    sections: [
+      {
+        label: "BACKGROUND",
+        body: "Growing up, my dad and I would fix whatever broke around the house. Electrical gadgets, wiring, anything that stopped working. I was mostly just handing him tools, but I was always watching, always curious about what was underneath. That habit of needing to understand how something actually works before touching it never really left me.\n\nIt's probably why I ended up in design, and why I lean into the technical side of it more than most. It's also why this portfolio looks the way it does. At some point it just made sense to build it like a piece of hardware rather than another clean white grid.",
+      },
+      {
+        label: "WHAT PRODUCT DESIGN IS TO ME",
+        body: "Making things feel obvious. Not by simplifying everything, but by structuring complexity in a way that people don't have to think about it. I'm drawn to systems with many moving parts, where clarity, hierarchy, and flow matter more than decoration.\n\nI care about the decisions behind the interface. Why something is placed a certain way, why a flow works or breaks, and how small details shape the overall experience.",
+      },
+      {
+        label: "MY EXPERIENCE",
+        experience: [
+          { company: 'AMD',           role: 'Product Design Intern', period: "05' — 12' 2025" },
+          { company: 'Safe Software', role: 'Product Design Intern', period: "01' — 08' 2024" },
+          { company: 'Vosyn',         role: 'Product Design Intern', period: "09' — 12' 2023" },
+        ],
+      },
+      {
+        label: "SAY HELLO TO ME!",
+        contacts: [
+          { platform: 'Email',    handle: 'bryanwinata112@gmail.com', href: 'mailto:bryanwinata112@gmail.com' },
+          { platform: 'LinkedIn', handle: 'linkedin.com/in/gbryanw',  href: 'https://linkedin.com/in/gbryanw' },
+          { platform: 'X',        handle: '@gbryanwt',                href: 'https://x.com/gbryanwt' },
+        ],
+      },
     ],
-    process: "I start from user research and systems thinking — mapping out interaction models before touching any tool. Every project goes through low-fidelity wireframes, high-fidelity prototypes, and staged implementation with continuous testing against real hardware.",
-    outcomes: "Delivered 12+ production applications across fintech, gaming, and SaaS verticals. Consistent record of shipping pixel-perfect interfaces that exceed design specifications and delight users.",
   },
   {
-    overview: "Real-time GPU performance overlay built specifically for AMD Radeon hardware. Renders live telemetry — clock speeds, temperature, VRAM utilization, and frame timing — with sub-millisecond rendering latency at 60fps.",
-    role: "Solo Developer",
-    year: "2024",
+    cover: '/AMDThumbnailTop.jpg',
+    overview: "When I joined AMD's UX team, the product didn't have a shared design foundation. Designers organized files differently, colors were applied inconsistently, and components varied from screen to screen. The team was also preparing for a full software redesign — which meant the inconsistency wasn't just a current problem, it was about to be a much bigger one.\n\nI took on building the design system from the ground up: not as a cleanup effort, but as the structural layer the redesign would be built on top of.",
+    role: "Design System Designer",
+    year: "2025",
     specs: [
-      { label: "FRAMEWORK", value: "React / Vite" },
-      { label: "RENDERING", value: "WebGL / Canvas 2D" },
-      { label: "PERF TARGET", value: "< 0.3ms per frame" },
-      { label: "REFRESH RATE", value: "60 Hz telemetry" },
+      { label: "SCOPE", value: "Design System" },
+      { label: "DURATION", value: "May - December 2025" },
     ],
-    process: "Profiled every render path to eliminate jank on the critical path. OffscreenCanvas and Web Workers push GPU data processing entirely off the main thread. Animated charts use a custom ring-buffer architecture to avoid GC pressure.",
-    outcomes: "Zero dropped frames at 60fps on mid-range hardware. Deployed to 200+ beta users with an average gaming session length of 3.2 hours. Memory footprint under 12MB across all visual layers.",
+    sections: [
+      {
+        label: "TOKEN ARCHITECTURE",
+        images: ["/Tokens1.png", "/ApplyFoundationalDesignTokens.png",  "/ColorStructure.png",],
+        body: [
+          "Defined a two-tier color system using primitive and semantic tokens, so components reference intent rather than raw hex values. Spacing and radius followed the same logic, built on a 4-point scale.",
+        ],
+      },
+      {
+        label: "COMPONENT LIBRARY",
+        images: ["/CommonComponents.png", "/Slots.jpg"],
+        body: "Built foundational components starting from buttons and expanded outward as designs were approved. Used a slot-based approach to keep variants flexible without multiplying the component count.",
+      },
+      {
+        label: "DOCUMENTATION",
+        images: ["/guides.png", "/DesignGuides.png"],
+        body: "Wrote usage and behavior guidelines for each component. The goal was simple: designers and developers shouldn't have to chase each other down to figure out how something is supposed to work.",
+      },
+      {
+        label: "OUTCOME",
+        images: ["/DesignSystemImpact.png", "/DesignSpecs.png",],
+        body: "By the end of the internship, the team had a working system they could actually build with. Updates propagated cleanly across mockups, designers stopped guessing at spacing values, and the redesign had a consistent foundation to grow from.",
+      },
+      {
+        label: "HOW IT COMES TOGETHER",
+        images: ["/DSHighlight.png", ],
+        body: "Even as the overlay introduces new features, the design system keeps everything consistent and connected. Shared components and patterns make the interface feel cohesive, so the overlay stays lightweight and easy to navigate without adding visual noise.",
+      },
+    ],
   },
   {
-    overview: "Contributed to Safe Software's product modernization initiative — evaluating and refining the redesigned FME Platform after UI components were shipped by engineering. Work spanned icon library handoff, post-redesign accessibility auditing, annotation feature design, and laying the foundation for a formal design system that emerged directly from the pain of doing handoff without one.",
+    cover: '/SafeThumbnailCover.jpg',
+    overview: "Contributed to Safe Software's product modernization initiative. Evaluating and refining the redesigned FME Platform after UI components were shipped by engineering. Work spanned icon library handoff, annotation feature design, and laying the foundation for a formal design system that emerged directly from the pain of doing handoff without one.",
     role: "Product Designer",
     year: "2024",
     specs: [
-      { label: "SCOPE",            value: "Icon Handoff + UX Audit" },
-      { label: "WCAG TARGET",      value: "AA Compliant" },
-      { label: "ICONS DELIVERED",  value: "47+ components" },
-      { label: "SURFACE",          value: "Web + Desktop (FME)" },
+      { label: "SCOPE",     value: "End-to-end Feature Rework & Design System" },
+      { label: "DURATION",  value: "Jan — Aug 2024" },
     ],
     process: "",
     outcomes: "",
     sections: [
       {
         label: "ICONOGRAPHY REDESIGN",
-        images: ["/IconographRebranding.png", "/IconRebrandingResult.png"],
-        body: "Led the handoff of a comprehensive icon library redesign spanning 47+ icons aligned to FME Platform's modernized visual language. Each icon was delivered across three scales — 16px, 24px, and 32px — with optical compensation to ensure pixel-precise rendering at each size. Defined SVG export specifications and integration guidelines coordinated directly with the engineering team, covering stroke normalization, fill rules, and named layer conventions for automation.",
+        images: ["/IconographRebranding.png", "/IconRebrandingResult.png", "/IconographRebrandingResult2.png"],
+        body: "Led the handoff of a comprehensive icon library redesign spanning 47+ icons aligned to FME Platform's modernized visual language. Defined SVG export specifications and integration guidelines coordinated directly with the engineering team, covering stroke normalization, fill rules, and named layer conventions for automation.",
       },
       {
         label: "FEATURE ENHANCEMENT — ANNOTATION TOOLS",
@@ -100,25 +145,32 @@ const SECTION_DETAILS = [
       },
       {
         label: "DESIGN SYSTEM",
+        images: ["/ThumbnailV2.png", "/dsexample.png"],
         videos: ["/DSFME.mp4"],
         body: "The iconography handoff surfaced a systemic problem: without a shared token layer, every component handoff required manual cross-referencing between Figma frames and the engineering codebase — a slow, error-prone process that did not scale. Initiated the FME Design System foundation with semantic tokens for color, spacing, typography, and iconography, each with a 1:1 mapping to CSS custom properties via a lightweight codegen step. The icon token layer connects directly to the iconography redesign work, ensuring that every icon variant is referenceable by name rather than by asset path — eliminating the most common class of handoff errors.",
       },
     ],
   },
   {
-    overview: "End-to-end design system and component library for a multi-product fintech platform, covering web, mobile, and email surfaces. Built a unified semantic token architecture that bridges Figma and production code.",
+    cover: '/YUBlueprint.jpg',
+    overview: "Fix the 6ix is a Toronto-based non-profit community that distributes gift cards to people who need them most. But keeping track of those cards has always been a manual process: volunteers submit spreadsheets, coordinators piece together the data, and figuring out what's been used, donated, or sitting idle takes more effort than it should.\n\nReGiftCard is the dashboard built to fix that. It gives the Fix the 6ix team a single place to monitor unused gift cards, follow how each one moves through spending or donation, and spot the gaps before they become problems. Less time wrestling with files, more time focused on the people they're actually trying to help.",
     role: "Lead Designer",
-    year: "2023",
+    year: "2026",
     specs: [
-      { label: "COMPONENTS", value: "120+ primitives" },
-      { label: "TOKEN LAYERS", value: "Primitive → Semantic" },
-      { label: "MODE SUPPORT", value: "Dark + Light + HC" },
-      { label: "TOOLING", value: "Figma + Storybook" },
+      { label: "SCOPE", value: "End to-end Product Development" },
+      { label: "DURATION", value: "February 2026 - Now" },
     ],
-    process: "Started with a full audit of 4 existing product codebases, extracting the implicit patterns already in use. Formalized them into a semantic token system where Figma variables map 1:1 to CSS custom properties via a CI/CD codegen pipeline.",
-    outcomes: "Reduced new feature design time by 60%. Engineering team reported 40% faster component integration. Adopted across 3 product squads within 6 months of launch. Zero visual regressions in 8 months post-launch.",
+    sections: [
+      {
+        label: "SNEAK PEAK",
+        images: ["/HighlightBlueprint.png"],
+        videos: ["/BlueprintSneak.mp4"],
+        body: "ReGiftCard is still in development. Here are some sneak peek :)",
+      },
+    ],
   },
   {
+    cover: '/bgimage.jpg',
     overview: "Immersive 3D spatial interface built for a scientific data exploration platform. Procedurally generated geometry, real-time orbital mechanics, and a gesture-first navigation model — all running at 60fps in-browser with Three.js.",
     role: "Solo Developer",
     year: "2025",
@@ -146,8 +198,9 @@ const SECTION_DETAILS = [
   },
 ]
 
-// ── Video for slot 4 (PRJ-04) ──
-const VIDEO_URL = '/HowlsVideo.mp4'
+// ── Video URLs ──
+const VIDEO_DEFAULT = '/HowlsVideo.mp4'
+const VIDEO_PONYO   = '/Ponyoo.mp4'
 
 const NUM          = SECTIONS.length
 const TOTAL_ARC    = 240
@@ -265,32 +318,43 @@ function initCRT(canvas: HTMLCanvasElement): (() => void) | null {
 }
 
 // ── Corner bolt ───────────────────────────────────────────
-function Bolt({ style, onClick, active }: { style: React.CSSProperties; onClick?: () => void; active?: boolean }) {
-  return (
-    <div
-      onClick={onClick}
-      title={active ? 'Bolt loosened' : 'Click to loosen'}
-      style={{
-        position: 'absolute', width: 22, height: 22, borderRadius: '50%',
-        background: active
-          ? 'linear-gradient(145deg, #2a2420 0%, #1c1814 100%)'
-          : 'linear-gradient(145deg, #3c444c 0%, #242a30 100%)',
-        boxShadow: active
-          ? 'inset 2px 2px 5px rgba(0,0,0,0.65), inset -1px -1px 2px rgba(255,255,255,0.07), 0 0 9px rgba(234,63,36,0.4)'
-          : '2px 3px 8px rgba(0,0,0,0.75), -1px -1px 3px rgba(60,80,100,0.12), inset 1px 1px 1px rgba(255,255,255,0.07)',
-        display: 'flex', alignItems: 'center', justifyContent: 'center',
-        cursor: 'pointer',
-        transition: 'box-shadow 0.2s, background 0.2s',
-        ...style,
-      }}
-    >
-      <div style={{ position: 'relative', width: 9, height: 9 }}>
-        <div style={{ position:'absolute', top:'50%', left:0, right:0, height:1.5, marginTop:-0.75, background: active ? 'rgba(180,120,80,0.45)' : 'rgba(80,100,118,0.35)', borderRadius:1 }} />
-        <div style={{ position:'absolute', left:'50%', top:0, bottom:0, width:1.5, marginLeft:-0.75, background: active ? 'rgba(180,120,80,0.45)' : 'rgba(80,100,118,0.35)', borderRadius:1 }} />
+const Bolt = React.forwardRef<HTMLDivElement, { style: React.CSSProperties; onClick?: () => void; active?: boolean }>(
+  function Bolt({ style, onClick, active }, ref) {
+    return (
+      <div
+        ref={ref}
+        onClick={onClick}
+        title={active ? 'Bolt loosened' : 'Click to loosen'}
+        style={{
+          position: 'absolute', width: 22, height: 22, borderRadius: '50%',
+          /* Chrome base — light top-left, dark bottom-right */
+          background: 'linear-gradient(140deg, #d4d9de 0%, #9aa0a8 32%, #636c75 62%, #3e474f 100%)',
+          boxShadow: '2px 4px 10px rgba(0,0,0,0.85), inset 0 1px 2px rgba(255,255,255,0.6), inset 0 -1px 2px rgba(0,0,0,0.5)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          cursor: 'pointer',
+          overflow: 'hidden',
+          ...style,
+        }}
+      >
+        {/* Radial brush marks — machined surface texture */}
+        <div style={{
+          position: 'absolute', inset: 0, borderRadius: '50%',
+          background: `repeating-conic-gradient(
+            from 0deg,
+            rgba(255,255,255,0.07) 0deg 1.5deg,
+            rgba(0,0,0,0.06)      1.5deg 3deg
+          )`,
+          pointerEvents: 'none',
+        }} />
+        {/* Slot — horizontal + vertical */}
+        <div style={{ position: 'relative', width: 9, height: 9, zIndex: 1 }}>
+          <div style={{ position:'absolute', top:'50%', left:0, right:0, height:1.5, marginTop:-0.75, background:'rgba(20,26,32,0.75)', borderRadius:1, boxShadow:'0 0.5px 0 rgba(255,255,255,0.22)' }} />
+          <div style={{ position:'absolute', left:'50%', top:0, bottom:0, width:1.5, marginLeft:-0.75, background:'rgba(20,26,32,0.75)', borderRadius:1, boxShadow:'0.5px 0 0 rgba(255,255,255,0.22)' }} />
+        </div>
       </div>
-    </div>
-  )
-}
+    )
+  }
+)
 
 // ── Component ─────────────────────────────────────────────
 export default function HardwareBoard() {
@@ -298,7 +362,9 @@ export default function HardwareBoard() {
   const [phosphorGreen, setPhosphorGreen] = useState(true)
   const [isZoomed,      setIsZoomed]      = useState(false)
   const [clickedBolts,  setClickedBolts]  = useState<Set<string>>(new Set())
+  const boltRefs = useRef<Record<string, HTMLDivElement | null>>({ tl: null, tr: null, bl: null, br: null })
   const [showPCB,       setShowPCB]       = useState(false)
+  const [sdInserted,    setSdInserted]    = useState(false)
   const [torontoTime,   setTorontoTime]   = useState('')
   const [showDog,       setShowDog]       = useState(false)
   const [dogFrame,      setDogFrame]      = useState(0)
@@ -306,6 +372,7 @@ export default function HardwareBoard() {
   const [isPoweredOn,       setIsPoweredOn]       = useState(false)
   const [bootingUp,         setBootingUp]         = useState(false)
   const [isPolaroidZoomed,  setIsPolaroidZoomed]  = useState(false)
+  const [lightboxSrc,       setLightboxSrc]       = useState<string | null>(null)
 
   const knobRef        = useRef<HTMLDivElement>(null)
   const rotatorRef     = useRef<HTMLDivElement>(null)
@@ -437,8 +504,17 @@ export default function HardwareBoard() {
     return () => window.removeEventListener('keydown', onKey)
   }, [isZoomed])
 
+  // ── Escape key to close lightbox
+  useEffect(() => {
+    if (!lightboxSrc) return
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setLightboxSrc(null) }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [lightboxSrc])
+
   const handleZoom = useCallback(() => {
     if (activeIdxRef.current === 4) return
+    if (activeIdxRef.current === SECTIONS.length - 1) return
     setIsZoomed(true)
   }, [])
 
@@ -454,23 +530,22 @@ export default function HardwareBoard() {
     })
   }, [])
 
-  // ── Polaroid hover
+  // ── Polaroid hover — fan from bottom-left pivot
   const handlePolaroidEnter = useCallback(() => {
     if (!polaroidRef.current) return
-    gsap.to(polaroidRef.current, {
-      y: -14, scale: 1.07, rotation: 3,
-      boxShadow: '6px 18px 40px rgba(0,0,0,0.45)',
-      duration: 0.35, ease: 'power2.out',
-    })
+    const cards = polaroidRef.current.querySelectorAll<HTMLDivElement>(':scope > div')
+    // back card fans out the most, front stays near upright
+    if (cards[0]) gsap.to(cards[0], { rotation: -30, duration: 0.4, ease: 'power2.out' })
+    if (cards[1]) gsap.to(cards[1], { rotation: -15, duration: 0.4, ease: 'power2.out', delay: 0.04 })
+    if (cards[2]) gsap.to(cards[2], { rotation: 0,   duration: 0.4, ease: 'power2.out', delay: 0.08 })
   }, [])
 
   const handlePolaroidLeave = useCallback(() => {
     if (!polaroidRef.current) return
-    gsap.to(polaroidRef.current, {
-      y: 0, scale: 1, rotation: 0,
-      boxShadow: 'none',
-      duration: 0.45, ease: 'elastic.out(1, 0.6)',
-    })
+    const cards = polaroidRef.current.querySelectorAll<HTMLDivElement>(':scope > div')
+    if (cards[0]) gsap.to(cards[0], { rotation: 2, duration: 0.5, ease: 'elastic.out(1, 0.6)', delay: 0.08 })
+    if (cards[1]) gsap.to(cards[1], { rotation: 2, duration: 0.5, ease: 'elastic.out(1, 0.6)', delay: 0.04 })
+    if (cards[2]) gsap.to(cards[2], { rotation: 2, duration: 0.5, ease: 'elastic.out(1, 0.6)' })
   }, [])
 
   // ── Polaroid zoom in
@@ -653,69 +728,121 @@ export default function HardwareBoard() {
 
   const handleBoltClick = useCallback((id: string) => {
     setClickedBolts(prev => {
-      const next = new Set(prev)
-      if (next.has(id)) { next.delete(id) } else { next.add(id) }
-      if (next.size === 4) {
-        // Small delay for the last bolt animation to register visually
-        setTimeout(() => setShowPCB(true), 300)
+      if (prev.has(id)) return prev  // already loosened, ignore
+
+      const el = boltRefs.current[id]
+      if (el) {
+        // Unscrew: bolt spins CCW and rises out of the surface (scale up = lifting)
+        const nudge = { tl: { x:-4, y:-4 }, tr: { x:4, y:-4 }, bl: { x:-4, y:4 }, br: { x:4, y:4 } }[id] ?? { x:0, y:0 }
+        gsap.timeline()
+          .to(el, { rotation: -200, duration: 0.2, ease: 'power3.in' })
+          .to(el, { rotation: -150, scale: 1.18, x: nudge.x, y: nudge.y, duration: 0.38, ease: 'elastic.out(1.2, 0.45)' })
+          .to(el, { boxShadow: '0 8px 20px rgba(0,0,0,0.75), inset 0 1px 2px rgba(255,255,255,0.55), inset 0 -1px 2px rgba(0,0,0,0.45)', duration: 0.2 }, '<0.1')
       }
+
+      const next = new Set(prev)
+      next.add(id)
+
+      if (next.size === 4) {
+        // All loosened — fly off to corners then open PCB
+        setTimeout(() => {
+          const fly = [
+            { id: 'tl', x: -80, y: -80 }, { id: 'tr', x: 80, y: -80 },
+            { id: 'bl', x: -80, y: 80 },  { id: 'br', x: 80, y: 80 },
+          ]
+          fly.forEach(({ id: bid, x, y }, i) => {
+            const el = boltRefs.current[bid]
+            if (!el) return
+            gsap.to(el, { x, y, rotation: '-=540', scale: 0.3, opacity: 0, duration: 0.45, ease: 'power2.in', delay: i * 0.04 })
+          })
+          setTimeout(() => setShowPCB(true), 350)
+        }, 120)
+      }
+
       return next
+    })
+  }, [])
+
+  const resetBolts = useCallback(() => {
+    setClickedBolts(new Set())
+    Object.values(boltRefs.current).forEach(el => {
+      if (el) gsap.to(el, { x: 0, y: 0, rotation: 0, scale: 1, opacity: 1, duration: 0.35, ease: 'back.out(1.4)' })
     })
   }, [])
 
   // Modal colors — same phosphor tint as the main CRT screen
   const modalRGB   = phosphorGreen ? '51,255,102' : '192,126,24'
   const amber      = screenColor
-  const amberDim   = `rgba(${modalRGB},0.72)`
-  const amberFaint = `rgba(${modalRGB},0.12)`
-  const amberLabel = `rgba(${modalRGB},0.38)`
+  const amberDim   = `rgba(${modalRGB},0.82)`
+  const amberFaint = `rgba(${modalRGB},0.14)`
+  const amberLabel = `rgba(${modalRGB},0.55)`
 
   return (
     <div style={{
       width: 920, height: 640,
-      background: 'linear-gradient(145deg, #22282e 0%, #191d22 42%, #111418 100%)',
+      /* Dark anodized aluminum — space grey, matches knob + bezel tones */
+      background: 'linear-gradient(175deg, #3e4650 0%, #30383e 30%, #262e34 58%, #1e252c 100%)',
       borderRadius: 24,
-      boxShadow: '40px 50px 80px rgba(0,0,0,0.80), -5px -5px 16px rgba(50,70,90,0.10), inset 0 1px 0 rgba(255,255,255,0.055), inset 1px 1px 2px rgba(255,255,255,0.025), inset -2px -2px 8px rgba(0,0,0,0.55), 0 0 0 1px rgba(0,0,0,0.85)',
+      boxShadow: '40px 50px 80px rgba(0,0,0,0.82), 0 0 0 1px rgba(0,0,0,0.85), inset 0 1px 0 rgba(255,255,255,0.12), inset 0 -1px 0 rgba(0,0,0,0.55)',
       display: 'grid',
       gridTemplateRows: 'auto 1fr',
       padding: 40,
       gap: 32,
       position: 'relative',
     }}>
-      {/* ── Anodized micro-grain noise ──────────────────────── */}
+      {/* ── Subtle horizontal brush striation — texture not lines */}
       <div style={{
         position: 'absolute', inset: 0, borderRadius: 24, overflow: 'hidden',
-        backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='256' height='256'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.80' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")`,
-        opacity: 0.072,
+        backgroundImage: [
+          'repeating-linear-gradient(to bottom,',
+          '  rgba(255,255,255,0.032) 0px,',
+          '  rgba(255,255,255,0.032) 1px,',
+          '  rgba(0,0,0,0.032) 1px,',
+          '  rgba(0,0,0,0.032) 2px',
+          ')',
+        ].join(''),
         pointerEvents: 'none', zIndex: 0,
+      }} />
+      {/* ── Micro-noise — surface roughness ─────────────────── */}
+      <div style={{
+        position: 'absolute', inset: 0, borderRadius: 24, overflow: 'hidden',
+        backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.78' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")`,
+        opacity: 0.065,
         mixBlendMode: 'overlay',
-      }} />
-      {/* ── Horizontal brushed-aluminum grain lines ─────────── */}
-      <div style={{
-        position: 'absolute', inset: 0, borderRadius: 24, overflow: 'hidden',
-        backgroundImage: 'repeating-linear-gradient(to bottom, rgba(255,255,255,0.016) 0px, rgba(255,255,255,0.016) 1px, rgba(0,0,0,0.028) 1px, rgba(0,0,0,0.028) 3px)',
         pointerEvents: 'none', zIndex: 0,
       }} />
-      {/* ── Raking light — upper-left catchlight ────────────── */}
+      {/* ── Upper catchlight — diffuse overhead light on metal ── */}
       <div style={{
         position: 'absolute', inset: 0, borderRadius: 24,
-        background: 'radial-gradient(ellipse 60% 50% at 10% 8%, rgba(255,255,255,0.065) 0%, rgba(255,255,255,0.018) 45%, transparent 80%)',
+        background: 'radial-gradient(ellipse 80% 50% at 50% 0%, rgba(255,255,255,0.09) 0%, transparent 70%)',
+        pointerEvents: 'none', zIndex: 0,
+      }} />
+      {/* ── Top bevel — machined chamfer ─────────────────────── */}
+      <div style={{
+        position: 'absolute', inset: 0, borderRadius: 24,
+        background: 'linear-gradient(to bottom, rgba(255,255,255,0.22) 0px, rgba(255,255,255,0.06) 1px, transparent 10px)',
+        pointerEvents: 'none', zIndex: 0,
+      }} />
+      {/* ── Bottom AO ────────────────────────────────────────── */}
+      <div style={{
+        position: 'absolute', inset: 0, borderRadius: 24,
+        background: 'linear-gradient(to top, rgba(0,0,0,0.3) 0px, transparent 80px)',
         pointerEvents: 'none', zIndex: 0,
       }} />
       {/* ── Smiski keychain — hangs below bottom-right ──────── */}
       <SmiskiKeychain />
 
       {/* Corner bolts — click all 4 to open housing */}
-      <Bolt style={{ top: 18, left: 18 }}   active={clickedBolts.has('tl')} onClick={() => handleBoltClick('tl')} />
-      <Bolt style={{ top: 18, right: 18 }}  active={clickedBolts.has('tr')} onClick={() => handleBoltClick('tr')} />
-      <Bolt style={{ bottom: 18, left: 18 }}  active={clickedBolts.has('bl')} onClick={() => handleBoltClick('bl')} />
-      <Bolt style={{ bottom: 18, right: 18 }} active={clickedBolts.has('br')} onClick={() => handleBoltClick('br')} />
+      <Bolt ref={el => { boltRefs.current.tl = el }} style={{ top: 18, left: 18 }}   active={clickedBolts.has('tl')} onClick={() => handleBoltClick('tl')} />
+      <Bolt ref={el => { boltRefs.current.tr = el }} style={{ top: 18, right: 18 }}  active={clickedBolts.has('tr')} onClick={() => handleBoltClick('tr')} />
+      <Bolt ref={el => { boltRefs.current.bl = el }} style={{ bottom: 18, left: 18 }}  active={clickedBolts.has('bl')} onClick={() => handleBoltClick('bl')} />
+      <Bolt ref={el => { boltRefs.current.br = el }} style={{ bottom: 18, right: 18 }} active={clickedBolts.has('br')} onClick={() => handleBoltClick('br')} />
 
       {/* ── SCREEN BEZEL ──────────────────────────────────── */}
       <div style={{
         background: 'linear-gradient(155deg, #202830 0%, #161c22 50%, #0e1216 100%)',
         borderRadius: 18, padding: 16,
-        boxShadow: '0 6px 20px rgba(0,0,0,0.65), inset 0 1px 0 rgba(255,255,255,0.065), inset 0 -1px 0 rgba(0,0,0,0.6), inset 2px 0 4px rgba(255,255,255,0.03), inset -2px 0 4px rgba(0,0,0,0.45)',
+        boxShadow: '0 8px 24px rgba(0,0,0,0.7), 0 2px 6px rgba(0,0,0,0.5), inset 0 2px 8px rgba(0,0,0,0.8), inset 0 1px 0 rgba(255,255,255,0.04)',
         position: 'relative',
       }}>
         <div
@@ -790,21 +917,35 @@ export default function HardwareBoard() {
             /* overflow:hidden clips the TikTok watermark at the bottom */
             <div key="video" style={{ position:'absolute', inset:0, overflow:'hidden', borderRadius:10, zIndex:0 }}>
               <video
-                src={VIDEO_URL}
+                src={sdInserted ? VIDEO_PONYO : VIDEO_DEFAULT}
                 autoPlay
                 loop
                 muted={false}
                 playsInline
                 style={{
                   position:'absolute',
-                  top:0, left:0,
+                  top:'50%', left:0,
+                  transform:'translateY(-50%)',
                   width:'100%',
-                  /* Scale height ~15% taller so the bottom watermark is pushed out of the clipping container */
+                  /* Scale height ~15% taller so the bottom watermark is pushed out */
                   height:'115%',
                   objectFit:'cover',
-                  objectPosition:'top',
+                  objectPosition:'center',
                 }}
               />
+              <div style={{
+                position: 'absolute',
+                bottom: 10,
+                left: 12,
+                fontFamily: 'var(--font-jetbrains-mono), monospace',
+                fontSize: 9,
+                letterSpacing: '0.08em',
+                color: 'rgba(255,255,255,0.5)',
+                pointerEvents: 'none',
+                zIndex: 5,
+              }}>
+                @stvlightss
+              </div>
             </div>
           ) : (
             <>
@@ -821,13 +962,27 @@ export default function HardwareBoard() {
                 <div style={{ fontSize:14, lineHeight:1.6, maxWidth:'80%', opacity:0.9, whiteSpace:'pre-line' }}>{section.desc}</div>
               </div>
 
-              {/* Audio viz */}
-              <div style={{ display:'flex', gap:3, alignItems:'flex-end', height:24 }}>
-                {Array.from({ length: 28 }).map((_, i) => (
-                  <div key={i} ref={el => { audioBarsRef.current[i] = el }}
-                    style={{ width:6, height:4, background:screenColor, opacity:0.8, borderRadius:1, flexShrink:0, transition:'background 0.3s' }}
-                  />
-                ))}
+              {/* Audio viz + click hint */}
+              <div style={{ display:'flex', alignItems:'flex-end', justifyContent:'space-between' }}>
+                <div style={{ display:'flex', gap:3, alignItems:'flex-end', height:24 }}>
+                  {Array.from({ length: 28 }).map((_, i) => (
+                    <div key={i} ref={el => { audioBarsRef.current[i] = el }}
+                      style={{ width:6, height:4, background:screenColor, opacity:0.8, borderRadius:1, flexShrink:0, transition:'background 0.3s' }}
+                    />
+                  ))}
+                </div>
+                <div style={{
+                  fontSize: 10,
+                  letterSpacing: '0.18em',
+                  fontWeight: 700,
+                  color: screenColor,
+                  opacity: 0.75,
+                  fontFamily: 'var(--font-jetbrains-mono), monospace',
+                  whiteSpace: 'nowrap',
+                  paddingBottom: 2,
+                }}>
+                  [ CLICK TO OPEN ]
+                </div>
               </div>
             </>
           )}
@@ -836,10 +991,10 @@ export default function HardwareBoard() {
 
       {/* ── PCB EASTER EGG ────────────────────────────────── */}
       {showPCB && (
-        <PCBView onClose={() => {
-          setShowPCB(false)
-          setClickedBolts(new Set())
-        }} />
+        <PCBView
+          onClose={() => { setShowPCB(false); resetBolts() }}
+          onSdInserted={setSdInserted}
+        />
       )}
 
       {/* ── TV OVERLAY ────────────────────────────────────── */}
@@ -874,30 +1029,30 @@ export default function HardwareBoard() {
               }}
             >
               {/* ── Two-column layout: sticky sidebar + scrollable content */}
-              <div style={{ display:'flex', gap:0, alignItems:'flex-start', minHeight:'100%' }}>
+              <div style={{ display:'flex', gap:0, alignItems:'flex-start', minHeight:'100%', justifyContent:'center' }}>
 
                 {/* ── LEFT SIDEBAR — sticky */}
                 <div style={{
                   position:'sticky', top:0,
-                  width:280, flexShrink:0,
-                  paddingRight:36,
+                  width:240, flexShrink:0,
+                  paddingRight:28,
                   paddingTop:4,
                   borderRight:`1px solid ${amberFaint}`,
                 }}>
                   {/* ID badge */}
                   <span style={{
-                    fontSize:9, letterSpacing:2.5, color:amberLabel,
+                    fontSize:10, letterSpacing:2.5, color:amberLabel,
                     border:`1px solid ${amberFaint}`, padding:'2px 8px', borderRadius:2,
                     display:'inline-block', marginBottom:20,
                   }}>{section.id}</span>
 
                   {/* Project title */}
-                  <div style={{ fontSize:24, fontWeight:700, lineHeight:1.25, letterSpacing:-0.3, color:amber, marginBottom:10 }}>
+                  <div style={{ fontSize:20, fontWeight:700, lineHeight:1.3, letterSpacing:-0.3, color:amber, marginBottom:10 }}>
                     {section.title}
                   </div>
 
                   {/* Sub-heading — tech */}
-                  <div style={{ fontSize:10, letterSpacing:1.5, color:amberLabel, lineHeight:1.6, marginBottom:28 }}>
+                  <div style={{ fontSize:11, letterSpacing:1.5, color:amberLabel, lineHeight:1.6, marginBottom:28 }}>
                     {section.tech}
                   </div>
 
@@ -913,8 +1068,8 @@ export default function HardwareBoard() {
                     { label:'YEAR', value: details.year },
                   ] as {label:string;value:string}[]).map(({ label, value }) => (
                     <div key={label} style={{ marginBottom:18 }}>
-                      <div style={{ fontSize:8, letterSpacing:3, color:amberLabel, marginBottom:5 }}>▪ {label}</div>
-                      <div style={{ fontSize:12, color:amberDim, lineHeight:1.5 }}>{value}</div>
+                      <div style={{ fontSize:10, letterSpacing:2.5, color:amberLabel, marginBottom:5 }}>▪ {label}</div>
+                      <div style={{ fontSize:13, color:amberDim, lineHeight:1.5 }}>{value}</div>
                     </div>
                   ))}
 
@@ -925,74 +1080,104 @@ export default function HardwareBoard() {
                   </div>
 
                   {/* Footer hint */}
-                  <div style={{ marginTop:16, fontSize:9, letterSpacing:2, color:`rgba(${modalRGB},0.22)` }}>
+                  <div style={{ marginTop:16, fontSize:10, letterSpacing:2, color:`rgba(${modalRGB},0.35)` }}>
                     [ESC] CLOSE
                   </div>
                 </div>
 
                 {/* ── RIGHT CONTENT — scrolls naturally */}
-                <div style={{ flex:1, minWidth:0, paddingLeft:36 }}>
+                <div style={{ flex:1, minWidth:0, paddingLeft:28, maxWidth:780 }}>
 
-                  {/* Hero image placeholder */}
-                  <div style={{
-                    height:210, border:`1px solid ${amberFaint}`, borderRadius:4,
-                    background:`rgba(${modalRGB},0.02)`, position:'relative', marginBottom:20, overflow:'hidden',
-                  }}>
-                    {[{top:6,left:6},{top:6,right:6},{bottom:6,left:6},{bottom:6,right:6}].map((pos, i) => (
-                      <div key={i} style={{
-                        position:'absolute', width:12, height:12,
-                        borderTop: i < 2 ? `1px solid ${amberFaint}` : 'none',
-                        borderBottom: i >= 2 ? `1px solid ${amberFaint}` : 'none',
-                        borderLeft: (i===0||i===2) ? `1px solid ${amberFaint}` : 'none',
-                        borderRight: (i===1||i===3) ? `1px solid ${amberFaint}` : 'none',
-                        ...pos,
-                      }} />
-                    ))}
-                    <div style={{ position:'absolute', inset:0, display:'flex', alignItems:'center', justifyContent:'center', fontSize:9, letterSpacing:3, color:`rgba(${modalRGB},0.2)` }}>
-                      [ PREVIEW ]
+                  {/* Cover image */}
+                  {(details as Record<string,any>).cover && (
+                    <div style={{ borderRadius:6, marginBottom:16, border:`1px solid ${amberFaint}`, overflow:'hidden', cursor:'zoom-in' }} onClick={() => setLightboxSrc((details as Record<string,any>).cover)}>
+                      <img
+                        src={(details as Record<string,any>).cover}
+                        alt={section.title}
+                        style={{ display:'block', width:'100%', height:'auto', opacity:0.85 }}
+                      />
                     </div>
-                  </div>
+                  )}
 
                   {/* Overview text */}
-                  <p style={{ fontSize:13, lineHeight:1.95, color:amber, letterSpacing:0.2, marginBottom:20, whiteSpace:'pre-line' }}>
+                  <p style={{ fontSize:13, lineHeight:1.8, color:amber, letterSpacing:0.2, marginBottom:14, whiteSpace:'pre-line' }}>
                     {details.overview}
                   </p>
 
                   {/* 2-col spec cards */}
-                  <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:10, marginBottom:32 }}>
-                    {details.specs.map(({ label, value }) => (
-                      <div key={label} style={{
-                        background:`rgba(${modalRGB},0.03)`, border:`1px solid ${amberFaint}`,
-                        borderRadius:3, padding:'11px 14px', display:'flex', flexDirection:'column', gap:6,
-                      }}>
-                        <span style={{ fontSize:8, letterSpacing:2.5, color:amberLabel }}>▪ {label}</span>
-                        <span style={{ fontSize:12, color:amber, letterSpacing:0.2, lineHeight:1.3 }}>{value}</span>
-                      </div>
-                    ))}
-                  </div>
+                  {details.specs.length > 0 && (
+                    <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:8, marginBottom:20 }}>
+                      {details.specs.map(({ label, value }) => (
+                        <div key={label} style={{
+                          background:`rgba(${modalRGB},0.03)`, border:`1px solid ${amberFaint}`,
+                          borderRadius:3, padding:'11px 14px', display:'flex', flexDirection:'column', gap:6,
+                        }}>
+                          <span style={{ fontSize:8, letterSpacing:2.5, color:amberLabel }}>▪ {label}</span>
+                          <span style={{ fontSize:12, color:amber, letterSpacing:0.2, lineHeight:1.3 }}>{value}</span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
 
                   {/* Custom sections OR default PROCESS + OUTCOMES */}
                   {(details as Record<string,any>).sections ? (
-                    ((details as Record<string,any>).sections as Array<{label:string;body?:string;items?:string[];image?:string;images?:string[];videos?:string[]}>).map((sec, si, arr) => (
-                      <div key={si} style={{ marginBottom: si < arr.length - 1 ? 36 : 52 }}>
+                    ((details as Record<string,any>).sections as Array<{label:string;body?:string;items?:string[];image?:string;images?:string[];videos?:string[];experience?:{company:string;role:string;period:string}[];contacts?:{platform:string;handle:string;href:string}[]}>).map((sec, si, arr) => (
+                      <div key={si} style={{ marginBottom: si < arr.length - 1 ? 20 : 28 }}>
 
                         {/* Section header */}
-                        <div style={{ display:'flex', alignItems:'center', gap:8, marginBottom:14 }}>
+                        <div style={{ display:'flex', alignItems:'center', gap:8, marginBottom:10 }}>
                           <div style={{ width:4, height:4, background:`rgba(${modalRGB},0.5)`, borderRadius:1, flexShrink:0 }} />
-                          <span style={{ fontSize:9, letterSpacing:3.5, color:amberLabel }}>{sec.label}</span>
+                          <span style={{ fontSize:10, letterSpacing:3, color:amberLabel }}>{sec.label}</span>
                           <div style={{ flex:1, height:1, background:`linear-gradient(90deg, ${amberFaint}, transparent)` }} />
                         </div>
 
                         {/* Body text */}
                         {sec.body && (
-                          <p style={{ fontSize:13, lineHeight:1.95, color:amberDim, letterSpacing:0.1, marginBottom: (sec.items || sec.image || sec.images || sec.videos) ? 16 : 0 }}>
+                          <p style={{ fontSize:13, lineHeight:1.8, color:amberDim, letterSpacing:0.1, marginBottom:12 }}>
                             {sec.body}
                           </p>
                         )}
 
+                        {/* Experience rows */}
+                        {sec.experience && (
+                          <div style={{ display:'flex', flexDirection:'column', gap:0 }}>
+                            {sec.experience.map((exp: {company:string;role:string;period:string}, ei: number, arr: unknown[]) => (
+                              <div key={ei} style={{ display:'flex', alignItems:'center', justifyContent:'space-between', paddingTop:10, paddingBottom:10, borderBottom: ei < arr.length - 1 ? `1px solid rgba(${modalRGB},0.08)` : 'none' }}>
+                                <div style={{ display:'flex', flexDirection:'column', gap:3 }}>
+                                  <span style={{ fontSize:13, fontWeight:600, color:amberDim, letterSpacing:0.2 }}>{exp.company}</span>
+                                  <span style={{ fontSize:11, color:`rgba(${modalRGB},0.6)`, letterSpacing:0.5 }}>{exp.role}</span>
+                                </div>
+                                <span style={{ fontSize:11, fontFamily:'monospace', color:`rgba(${modalRGB},0.55)`, letterSpacing:0.5, flexShrink:0, marginLeft:16 }}>{exp.period}</span>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+
+                        {/* Contact links */}
+                        {sec.contacts && (
+                          <div style={{ display:'flex', flexDirection:'column', gap:0 }}>
+                            {sec.contacts.map((c: {platform:string;handle:string;href:string}, ci: number, arr: unknown[]) => (
+                              <div key={ci} style={{ display:'flex', alignItems:'center', justifyContent:'space-between', paddingTop:10, paddingBottom:10, borderBottom: ci < arr.length - 1 ? `1px solid rgba(${modalRGB},0.08)` : 'none' }}>
+                                <span style={{ fontSize:10, letterSpacing:2, color:amberLabel }}>{c.platform}</span>
+                                <a
+                                  href={c.href}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  onClick={e => e.stopPropagation()}
+                                  style={{ fontSize:12, color:amberDim, textDecoration:'none', letterSpacing:0.3, transition:'color 0.15s' }}
+                                  onMouseEnter={e => (e.currentTarget.style.color = amber)}
+                                  onMouseLeave={e => (e.currentTarget.style.color = amberDim)}
+                                >
+                                  {c.handle}
+                                </a>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+
                         {/* Bullet items */}
                         {sec.items && (
-                          <div style={{ display:'flex', flexDirection:'column', gap:12, marginBottom: (sec.image || sec.images || sec.videos) ? 16 : 0 }}>
+                          <div style={{ display:'flex', flexDirection:'column', gap:8, marginBottom:12 }}>
                             {sec.items.map((item, ii) => (
                               <div key={ii} style={{ display:'flex', gap:12, alignItems:'flex-start' }}>
                                 <div style={{ width:3, height:3, background:`rgba(${modalRGB},0.55)`, borderRadius:1, flexShrink:0, marginTop:7 }} />
@@ -1004,24 +1189,32 @@ export default function HardwareBoard() {
 
                         {/* Single image */}
                         {sec.image && !sec.images && (
-                          <div style={{ border:`1px solid ${amberFaint}`, borderRadius:4, overflow:'hidden' }}>
+                          <div style={{ border:`1px solid ${amberFaint}`, borderRadius:4, overflow:'hidden', cursor:'zoom-in' }} onClick={() => setLightboxSrc(sec.image!)}>
                             <img src={sec.image} alt={sec.label} style={{ display:'block', width:'100%', height:'auto' }} />
                           </div>
                         )}
 
                         {/* Multiple images — stacked */}
-                        {sec.images && sec.images.map((src: string, ii: number) => (
-                          <div key={ii} style={{ border:`1px solid ${amberFaint}`, borderRadius:4, marginBottom: ii < sec.images!.length - 1 ? 12 : 0, overflow:'hidden' }}>
-                            <img src={src} alt={`${sec.label} ${ii + 1}`} style={{ display:'block', width:'100%', height:'auto' }} />
+                        {sec.images && (
+                          <div style={{ marginBottom: sec.videos ? 16 : 0 }}>
+                            {sec.images.map((src: string, ii: number) => (
+                              <div key={ii} style={{ border:`1px solid ${amberFaint}`, borderRadius:4, marginBottom: ii < sec.images!.length - 1 ? 8 : 0, overflow:'hidden', cursor:'zoom-in' }} onClick={() => setLightboxSrc(src)}>
+                                <img src={src} alt={`${sec.label} ${ii + 1}`} style={{ display:'block', width:'100%', height:'auto' }} />
+                              </div>
+                            ))}
                           </div>
-                        ))}
+                        )}
 
                         {/* Multiple videos — stacked */}
-                        {sec.videos && sec.videos.map((src: string, ii: number) => (
-                          <div key={ii} style={{ border:`1px solid ${amberFaint}`, borderRadius:4, marginBottom: ii < sec.videos!.length - 1 ? 12 : 0, overflow:'hidden' }}>
-                            <video src={src} autoPlay loop muted playsInline style={{ display:'block', width:'100%', height:'auto' }} />
+                        {sec.videos && (
+                          <div>
+                            {sec.videos.map((src: string, ii: number) => (
+                              <div key={ii} style={{ border:`1px solid ${amberFaint}`, borderRadius:4, marginBottom: ii < sec.videos!.length - 1 ? 8 : 0, overflow:'hidden' }}>
+                                <video src={src} autoPlay loop muted playsInline style={{ display:'block', width:'100%', height:'auto' }} />
+                              </div>
+                            ))}
                           </div>
-                        ))}
+                        )}
 
                       </div>
                     ))
@@ -1086,58 +1279,113 @@ export default function HardwareBoard() {
           <div
             ref={polaroidCardRef}
             onClick={e => e.stopPropagation()}
-            style={{ opacity: 0 }}
+            style={{ opacity: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 16 }}
           >
-            {/* Zoomed polaroid body */}
-            <div style={{
-              width: 320,
-              background: '#f5f2ec',
-              padding: '18px 18px 56px 18px',
-              boxShadow: '0 40px 80px rgba(0,0,0,0.6), 0 8px 20px rgba(0,0,0,0.3)',
-            }}>
-              <div style={{ position: 'relative', overflow: 'hidden', height: 300 }}>
-                <img
-                  src="/nyc.jpg"
-                  alt="NYC – Employees Only"
-                  style={{
-                    width: '100%', height: '100%',
-                    objectFit: 'cover', objectPosition: 'center',
-                    display: 'block',
-                    filter: 'sepia(0.38) saturate(0.72) brightness(0.84) contrast(0.88)',
+            <div style={{ display: 'flex', gap: 20, alignItems: 'flex-end' }}>
+              {[
+                { src: '/austria.jpg',  caption: 'austria - salzburg',          sub: 'winter 2023', rot: -6,  filter: 'sepia(0.5) saturate(0.6) brightness(0.8)' },
+                { src: '/nyc.jpg',      caption: 'nyc – employees only',  sub: 'summer 2025', rot: 0,   filter: 'sepia(0.38) saturate(0.72) brightness(0.84) contrast(0.88)' },
+                { src: '/korea.jpg',   caption: 'korea - seoul',              sub: 'winter 2025',        rot: 5,   filter: 'sepia(0.2) saturate(0.85) brightness(0.88)' },
+              ].map(({ src, caption, sub, rot, filter }) => (
+                <div
+                  key={src}
+                  onMouseEnter={e => {
+                    gsap.to(e.currentTarget, {
+                      y: -12,
+                      scale: 1.045,
+                      rotation: rot * 0.4,
+                      boxShadow: '0 36px 64px rgba(0,0,0,0.65), 0 8px 20px rgba(0,0,0,0.35)',
+                      duration: 0.32,
+                      ease: 'power2.out',
+                    })
                   }}
-                />
-                <div style={{
-                  position: 'absolute', inset: 0, pointerEvents: 'none',
-                  background: 'radial-gradient(ellipse 88% 82% at 50% 50%, transparent 45%, rgba(30,20,10,0.38) 100%)',
-                }} />
-                <div style={{
-                  position: 'absolute', inset: 0, pointerEvents: 'none',
-                  background: 'rgba(210,180,120,0.10)', mixBlendMode: 'multiply',
-                }} />
-              </div>
-              <div style={{
-                marginTop: 14, textAlign: 'center',
-                fontFamily: 'var(--font-caveat), "Caveat", cursive',
-                fontWeight: 600, color: '#3a3020',
-                textShadow: '0.3px 0.3px 0 rgba(20,12,0,0.12)',
-              }}>
-                <div style={{ fontSize: 26, letterSpacing: '0.2px', lineHeight: 1.2 }}>
-                  nyc – employees only
+                  onMouseLeave={e => {
+                    gsap.to(e.currentTarget, {
+                      y: 0,
+                      scale: 1,
+                      rotation: rot,
+                      boxShadow: '0 24px 48px rgba(0,0,0,0.5), 0 4px 12px rgba(0,0,0,0.2)',
+                      duration: 0.45,
+                      ease: 'elastic.out(1, 0.65)',
+                    })
+                  }}
+                  style={{
+                    width: 200,
+                    background: '#f5f2ec',
+                    padding: '12px 12px 40px 12px',
+                    boxShadow: '0 24px 48px rgba(0,0,0,0.5), 0 4px 12px rgba(0,0,0,0.2)',
+                    transform: `rotate(${rot}deg)`,
+                    flexShrink: 0,
+                    cursor: 'default',
+                    willChange: 'transform',
+                  }}
+                  onClick={e => e.stopPropagation()}
+                >
+                  <div style={{ position: 'relative', overflow: 'hidden', height: 188 }}>
+                    <img src={src} alt={caption} style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center', display: 'block', filter }} />
+                    <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none', background: 'radial-gradient(ellipse 88% 82% at 50% 50%, transparent 45%, rgba(30,20,10,0.38) 100%)' }} />
+                  </div>
+                  <div style={{ marginTop: 10, textAlign: 'center', fontFamily: 'var(--font-caveat), "Caveat", cursive', fontWeight: 600, color: '#3a3020' }}>
+                    <div style={{ fontSize: 18, lineHeight: 1.2 }}>{caption}</div>
+                    <div style={{ fontSize: 14, opacity: 0.62, marginTop: 2 }}>{sub}</div>
+                  </div>
                 </div>
-                <div style={{ fontSize: 18, opacity: 0.62, marginTop: 4, letterSpacing: '0.3px' }}>
-                  summer 2025
-                </div>
-              </div>
+              ))}
             </div>
-            {/* Close hint */}
             <div style={{
-              marginTop: 16, textAlign: 'center',
               fontFamily: 'var(--font-jetbrains-mono), monospace',
               fontSize: 10, letterSpacing: 2, color: 'rgba(255,255,255,0.28)',
             }}>
               CLICK ANYWHERE TO CLOSE
             </div>
           </div>
+        </div>
+      )}
+
+      {/* ── IMAGE LIGHTBOX ───────────────────────────────────── */}
+      {lightboxSrc && (
+        <div
+          onClick={() => setLightboxSrc(null)}
+          style={{
+            position: 'fixed', inset: 0, zIndex: 99999,
+            background: 'rgba(4,5,6,0.92)',
+            backdropFilter: 'blur(18px)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            cursor: 'zoom-out',
+            animation: 'screenFadeIn 0.18s ease-out both',
+          }}
+        >
+          <button
+            onClick={() => setLightboxSrc(null)}
+            style={{
+              position: 'absolute', top: 20, right: 20,
+              width: 32, height: 32,
+              background: 'rgba(255,255,255,0.08)',
+              border: '1px solid rgba(255,255,255,0.18)',
+              borderRadius: 8,
+              color: 'rgba(255,255,255,0.7)',
+              fontSize: 14, lineHeight: 1,
+              cursor: 'pointer',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              transition: 'background 0.15s, color 0.15s',
+            }}
+            onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = 'rgba(255,255,255,0.15)'; (e.currentTarget as HTMLButtonElement).style.color = '#fff' }}
+            onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = 'rgba(255,255,255,0.08)'; (e.currentTarget as HTMLButtonElement).style.color = 'rgba(255,255,255,0.7)' }}
+          >
+            ✕
+          </button>
+          <img
+            src={lightboxSrc}
+            onClick={e => e.stopPropagation()}
+            style={{
+              maxWidth: '90vw', maxHeight: '88vh',
+              objectFit: 'contain',
+              borderRadius: 6,
+              boxShadow: '0 32px 80px rgba(0,0,0,0.8)',
+              cursor: 'default',
+              display: 'block',
+            }}
+          />
         </div>
       )}
 
@@ -1196,31 +1444,13 @@ export default function HardwareBoard() {
 
         {/* COL 2 — Sticky note + Polaroid */}
         <div style={{ display:'flex', justifyContent:'center', alignItems:'center', gap: 20 }}>
-          {/* Subtle paper grain — low opacity, no texture distortion */}
-          <svg style={{ position:'absolute', width:0, height:0, overflow:'hidden' }} aria-hidden>
-            <defs>
-              <filter id="paper-grain" x="0%" y="0%" width="100%" height="100%" colorInterpolationFilters="sRGB">
-                <feTurbulence type="fractalNoise" baseFrequency="0.72 0.68" numOctaves="3" seed="5" stitchTiles="stitch" result="noise" />
-                <feColorMatrix type="saturate" values="0" in="noise" result="gray" />
-                <feComponentTransfer in="gray" result="dimGray">
-                  <feFuncR type="linear" slope="0.18" intercept="0.41"/>
-                  <feFuncG type="linear" slope="0.18" intercept="0.41"/>
-                  <feFuncB type="linear" slope="0.18" intercept="0.41"/>
-                </feComponentTransfer>
-                <feBlend in="SourceGraphic" in2="dimGray" mode="multiply" result="out" />
-                <feComposite in="out" in2="SourceGraphic" operator="in" />
-              </filter>
-            </defs>
-          </svg>
-
           <div style={{
             position: 'relative',
             width: 152,
-            background: 'linear-gradient(160deg, #fefce8 0%, #fef3c7 55%, #fde68a 100%)',
+            background: 'linear-gradient(170deg, #fefce4 0%, #fdf0b0 40%, #fce878 100%)',
             borderRadius: 2,
             padding: '24px 15px 18px',
             transform: 'rotate(-4deg) translateY(14px)',
-            filter: 'url(#paper-grain)',
             boxShadow: [
               '2px 3px 6px rgba(0,0,0,0.18)',
               '5px 8px 20px rgba(0,0,0,0.15)',
@@ -1285,7 +1515,7 @@ export default function HardwareBoard() {
             </div>
           </div>
 
-          {/* ── Polaroid ── */}
+          {/* ── Polaroid stack ── */}
           <div
             ref={polaroidRef}
             onMouseEnter={handlePolaroidEnter}
@@ -1293,82 +1523,76 @@ export default function HardwareBoard() {
             onClick={handlePolaroidZoom}
             style={{
               position: 'relative',
-              transform: 'rotate(5.5deg) translateY(-10px)',
+              marginLeft: 32,
+              width: 145,
+              height: 195,
               flexShrink: 0,
               cursor: 'pointer',
             }}
           >
-            {/* Tape on top of polaroid */}
+            {/* Back card */}
             <div style={{
-              position: 'absolute',
-              top: -12, left: '50%',
-              transform: 'translateX(-50%) rotate(-1.4deg)',
-              width: 58, height: 22,
-              background: 'linear-gradient(180deg, rgba(255,255,255,0.48) 0%, rgba(238,235,205,0.40) 100%)',
-              backdropFilter: 'blur(2px)',
-              borderRadius: 2,
-              boxShadow: '0 1px 4px rgba(0,0,0,0.12), inset 0 1px 1px rgba(255,255,255,0.72)',
-              zIndex: 5,
-            }} />
-
-            {/* Polaroid body */}
-            <div style={{
-              width: 145,
+              position: 'absolute', inset: 0,
               background: '#f5f2ec',
               padding: '9px 9px 24px 9px',
-              boxShadow: [
-                '3px 6px 18px rgba(0,0,0,0.32)',
-                '1px 2px 5px rgba(0,0,0,0.18)',
-                'inset 0 0 0 0.5px rgba(0,0,0,0.06)',
-              ].join(', '),
+              transform: 'rotate(0deg)',
+              transformOrigin: 'top center',
+              boxShadow: '3px 6px 18px rgba(0,0,0,0.28)',
             }}>
-              {/* Photo */}
-              <div style={{
-                position: 'relative',
-                overflow: 'hidden',
-                height: 138,
-              }}>
-                {/* Vintage colour grading */}
-                <img
-                  src="/nyc.jpg"
-                  alt="NYC – Employees Only"
-                  style={{
-                    width: '100%',
-                    height: '100%',
-                    objectFit: 'cover',
-                    objectPosition: 'center',
-                    display: 'block',
-                    filter: 'sepia(0.38) saturate(0.72) brightness(0.84) contrast(0.88)',
-                  }}
-                />
-                {/* Faded-edge vignette — simulates old print bleed */}
-                <div style={{
-                  position: 'absolute', inset: 0, pointerEvents: 'none',
-                  background: 'radial-gradient(ellipse 88% 82% at 50% 50%, transparent 45%, rgba(30,20,10,0.38) 100%)',
-                }} />
-                {/* Warm colour cast overlay */}
-                <div style={{
-                  position: 'absolute', inset: 0, pointerEvents: 'none',
-                  background: 'rgba(210,180,120,0.10)',
-                  mixBlendMode: 'multiply',
-                }} />
+              <div style={{ position: 'relative', overflow: 'hidden', height: 138, background: '#ddd' }}>
+                <img src="/korea.jpg" alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', filter: 'sepia(0.5) saturate(0.6) brightness(0.8)' }} />
+                <div style={{ position: 'absolute', inset: 0, background: 'radial-gradient(ellipse 88% 82% at 50% 50%, transparent 45%, rgba(30,20,10,0.38) 100%)' }} />
               </div>
+              <div style={{ marginTop: 6, textAlign: 'center', fontFamily: 'var(--font-caveat), "Caveat", cursive', fontWeight: 600, color: '#3a3020', fontSize: 14 }}>
+                toronto, on
+              </div>
+            </div>
 
-              {/* Handwritten caption */}
+            {/* Mid card */}
+            <div style={{
+              position: 'absolute', inset: 0,
+              background: '#f5f2ec',
+              padding: '9px 9px 24px 9px',
+              transform: 'rotate(0deg)',
+              transformOrigin: 'top center',
+              boxShadow: '3px 6px 18px rgba(0,0,0,0.30)',
+            }}>
+              <div style={{ position: 'relative', overflow: 'hidden', height: 138, background: '#ddd' }}>
+                <img src="/austria.jpg" alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', filter: 'sepia(0.2) saturate(0.85) brightness(0.88)' }} />
+                <div style={{ position: 'absolute', inset: 0, background: 'radial-gradient(ellipse 88% 82% at 50% 50%, transparent 45%, rgba(30,20,10,0.38) 100%)' }} />
+              </div>
+              <div style={{ marginTop: 6, textAlign: 'center', fontFamily: 'var(--font-caveat), "Caveat", cursive', fontWeight: 600, color: '#3a3020', fontSize: 14 }}>
+                good boi
+              </div>
+            </div>
+
+            {/* Front card — top */}
+            <div style={{
+              position: 'absolute', inset: 0,
+              background: '#f5f2ec',
+              padding: '9px 9px 24px 9px',
+              transform: 'rotate(0deg)',
+              transformOrigin: 'top center',
+              boxShadow: '3px 6px 18px rgba(0,0,0,0.32), 1px 2px 5px rgba(0,0,0,0.18)',
+            }}>
+              {/* Tape */}
               <div style={{
-                marginTop: 6,
-                textAlign: 'center',
-                fontFamily: 'var(--font-caveat), "Caveat", cursive',
-                fontWeight: 600,
-                color: '#3a3020',
-                textShadow: '0.3px 0.3px 0 rgba(20,12,0,0.12)',
-              }}>
-                <div style={{ fontSize: 17, letterSpacing: '0.2px', lineHeight: 1.2 }}>
-                  nyc – employees only
-                </div>
-                <div style={{ fontSize: 13, opacity: 0.62, marginTop: 2, letterSpacing: '0.3px' }}>
-                  summer 2025
-                </div>
+                position: 'absolute', top: -12, left: '50%',
+                transform: 'translateX(-50%) rotate(-1.4deg)',
+                width: 58, height: 22,
+                background: 'linear-gradient(180deg, rgba(255,255,255,0.48) 0%, rgba(238,235,205,0.40) 100%)',
+                backdropFilter: 'blur(2px)', borderRadius: 2,
+                boxShadow: '0 1px 4px rgba(0,0,0,0.12), inset 0 1px 1px rgba(255,255,255,0.72)',
+                zIndex: 5,
+              }} />
+              <div style={{ position: 'relative', overflow: 'hidden', height: 138 }}>
+                <img src="/nyc.jpg" alt="NYC – Employees Only" style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center', display: 'block', filter: 'sepia(0.38) saturate(0.72) brightness(0.84) contrast(0.88)' }} />
+                <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none', background: 'radial-gradient(ellipse 88% 82% at 50% 50%, transparent 45%, rgba(30,20,10,0.38) 100%)' }} />
+                <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none', background: 'rgba(210,180,120,0.10)', mixBlendMode: 'multiply' }} />
+              </div>
+              <div style={{ marginTop: 6, textAlign: 'center', fontFamily: 'var(--font-caveat), "Caveat", cursive', fontWeight: 600, color: '#3a3020', textShadow: '0.3px 0.3px 0 rgba(20,12,0,0.12)' }}>
+                <div style={{ fontSize: 17, letterSpacing: '0.2px', lineHeight: 1.2 }}>nyc – employees only</div>
+                <div style={{ fontSize: 13, opacity: 0.62, marginTop: 2, letterSpacing: '0.3px' }}>summer 2025</div>
               </div>
             </div>
           </div>
@@ -1513,23 +1737,27 @@ export default function HardwareBoard() {
             </div>
           </div>
 
-          {/* Speaker grille slats */}
-          <div style={{ display:'grid', gridTemplateColumns:'repeat(6, 6px)', gap:7 }}>
-            {Array.from({ length: 12 }).map((_, i) => (
-              <div key={i} style={{
-                width:6, height:22, borderRadius:1, overflow:'hidden', position:'relative',
-                background: 'linear-gradient(180deg, #44505a 0%, #0e1214 16%, #06080a 50%, #0e1214 84%, #44505a 100%)',
-                boxShadow: '1px 0 0 rgba(255,255,255,0.08), -1px 0 0 rgba(0,0,0,0.75), 0 1px 0 rgba(255,255,255,0.07), 0 -1px 0 rgba(255,255,255,0.07)',
-              }}>
-                {/* Mesh screen — visible inside the dark slot */}
-                <div style={{
-                  position:'absolute', inset:'17% 0 17%',
-                  backgroundImage: 'repeating-linear-gradient(0deg, rgba(255,255,255,0.045) 0px, rgba(255,255,255,0.045) 1px, transparent 1px, transparent 2px), repeating-linear-gradient(90deg, rgba(255,255,255,0.045) 0px, rgba(255,255,255,0.045) 1px, transparent 1px, transparent 2px)',
-                  backgroundSize: '2px 2px',
-                }} />
-              </div>
-            ))}
-          </div>
+          {/* Speaker — perforated dot grille */}
+          <svg
+            viewBox="0 0 100 26"
+            width="100"
+            height="26"
+            style={{ display: 'block', opacity: 0.9 }}
+          >
+            {Array.from({ length: 3 }).flatMap((_, row) =>
+              Array.from({ length: 14 }).map((_, col) => {
+                const cx = 5 + col * 7
+                const cy = 5 + row * 8
+                return (
+                  <g key={`${row}-${col}`}>
+                    <circle cx={cx} cy={cy - 0.5} r={2.5} fill="rgba(0,0,0,0.45)"/>
+                    <circle cx={cx} cy={cy} r={2} fill="#03060a"/>
+                    <circle cx={cx + 0.3} cy={cy + 1.8} r={0.65} fill="rgba(255,255,255,0.08)"/>
+                  </g>
+                )
+              })
+            )}
+          </svg>
         </div>
       </div>
     </div>
