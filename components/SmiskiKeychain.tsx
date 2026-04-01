@@ -34,17 +34,6 @@ export default function SmiskiKeychain() {
   const tooltipRef          = useRef<HTMLDivElement>(null)
   const quoteIndexRef       = useRef(0)
 
-  // ── Responsive positioning ───────────────────────────────
-  // If the viewport isn't tall enough to show the board + smiski below it,
-  // attach Smiski to the right side of the board instead.
-  const [isRight, setIsRight] = useState(false)
-  useEffect(() => {
-    const check = () => setIsRight(window.innerHeight < 860)
-    check()
-    window.addEventListener('resize', check)
-    return () => window.removeEventListener('resize', check)
-  }, [])
-
   // ── Idle pendulum ────────────────────────────────────────
   const startIdle = useCallback(() => {
     if (!swingRef.current) return
@@ -131,79 +120,11 @@ export default function SmiskiKeychain() {
     hideQuote()
   }, [startIdle, hideQuote])
 
-  // ── Tooltip styles vary by position mode ─────────────────
-  const tooltipStyle: React.CSSProperties = isRight ? {
-    position: 'absolute',
-    bottom: 'calc(100% + 8px)',
-    left: '50%',
-    transform: 'translateX(-50%)',
-    width: 190,
-    background: 'rgba(14,18,24,0.95)',
-    border: '1px solid rgba(255,255,255,0.12)',
-    borderRadius: 10,
-    padding: '10px 13px',
-    fontFamily: 'var(--font-jetbrains-mono), monospace',
-    fontSize: 11,
-    lineHeight: 1.7,
-    color: 'rgba(255,255,255,0.75)',
-    backdropFilter: 'blur(10px)',
-    boxShadow: '0 8px 24px rgba(0,0,0,0.5)',
-    pointerEvents: 'none',
-    opacity: 0,
-    whiteSpace: 'normal',
-    zIndex: 100,
-  } : {
-    position: 'absolute',
-    top: 48,
-    right: 'calc(100% + 12px)',
-    width: 190,
-    background: 'rgba(14,18,24,0.95)',
-    border: '1px solid rgba(255,255,255,0.12)',
-    borderRadius: 10,
-    padding: '10px 13px',
-    fontFamily: 'var(--font-jetbrains-mono), monospace',
-    fontSize: 11,
-    lineHeight: 1.7,
-    color: 'rgba(255,255,255,0.75)',
-    backdropFilter: 'blur(10px)',
-    boxShadow: '0 8px 24px rgba(0,0,0,0.5)',
-    pointerEvents: 'none',
-    opacity: 0,
-    whiteSpace: 'normal',
-    zIndex: 100,
-  }
-
-  const tailStyle: React.CSSProperties = isRight ? {
-    // Down-pointing tail, centered bottom
-    position: 'absolute',
-    bottom: -5,
-    left: '50%',
-    transform: 'translateX(-50%) rotate(135deg)',
-    width: 9,
-    height: 9,
-    background: 'rgba(14,18,24,0.95)',
-    borderTop: '1px solid rgba(255,255,255,0.12)',
-    borderRight: '1px solid rgba(255,255,255,0.12)',
-  } : {
-    // Right-pointing tail
-    position: 'absolute',
-    top: 16,
-    right: -5,
-    width: 9,
-    height: 9,
-    background: 'rgba(14,18,24,0.95)',
-    borderTop: '1px solid rgba(255,255,255,0.12)',
-    borderRight: '1px solid rgba(255,255,255,0.12)',
-    transform: 'rotate(45deg)',
-  }
-
   return (
     <div style={{
       position: 'absolute',
-      ...(isRight
-        ? { top: 40, left: '100%', marginLeft: 16 }
-        : { top: '100%', right: 80 }
-      ),
+      top: '100%',
+      right: 80,
       display: 'flex',
       flexDirection: 'column',
       alignItems: 'center',
@@ -212,9 +133,42 @@ export default function SmiskiKeychain() {
     }}>
       {/* Tooltip bubble */}
       {quote && (
-        <div ref={tooltipRef} style={tooltipStyle}>
+        <div
+          ref={tooltipRef}
+          style={{
+            position: 'absolute',
+            top: 48,
+            right: 'calc(100% + 12px)',
+            width: 190,
+            background: 'rgba(14,18,24,0.95)',
+            border: '1px solid rgba(255,255,255,0.12)',
+            borderRadius: 10,
+            padding: '10px 13px',
+            fontFamily: 'var(--font-jetbrains-mono), monospace',
+            fontSize: 11,
+            lineHeight: 1.7,
+            color: 'rgba(255,255,255,0.75)',
+            backdropFilter: 'blur(10px)',
+            boxShadow: '0 8px 24px rgba(0,0,0,0.5)',
+            pointerEvents: 'none',
+            opacity: 0,
+            whiteSpace: 'normal',
+            zIndex: 100,
+          }}
+        >
           {quote}
-          <div style={tailStyle} />
+          {/* Speech bubble tail pointing right */}
+          <div style={{
+            position: 'absolute',
+            top: 16,
+            right: -5,
+            width: 9,
+            height: 9,
+            background: 'rgba(14,18,24,0.95)',
+            borderTop: '1px solid rgba(255,255,255,0.12)',
+            borderRight: '1px solid rgba(255,255,255,0.12)',
+            transform: 'rotate(45deg)',
+          }} />
         </div>
       )}
 
