@@ -34,7 +34,18 @@ export default function SmiskiKeychain() {
   const tooltipRef          = useRef<HTMLDivElement>(null)
   const quoteIndexRef       = useRef(0)
 
-  // ── Idle pendulum ───────────────────────────────────────────
+  // ── Responsive positioning ───────────────────────────────
+  // If the viewport isn't tall enough to show the board + smiski below it,
+  // attach Smiski to the right side of the board instead.
+  const [isRight, setIsRight] = useState(false)
+  useEffect(() => {
+    const check = () => setIsRight(window.innerHeight < 860)
+    check()
+    window.addEventListener('resize', check)
+    return () => window.removeEventListener('resize', check)
+  }, [])
+
+  // ── Idle pendulum ────────────────────────────────────────
   const startIdle = useCallback(() => {
     if (!swingRef.current) return
     gsap.set(swingRef.current, { transformOrigin: '50% 0px' })
@@ -57,14 +68,14 @@ export default function SmiskiKeychain() {
     return () => { idleTl.current?.kill() }
   }, [startIdle])
 
-  // ── Animate tooltip in after it mounts ─────────────────────
+  // ── Animate tooltip in after it mounts ──────────────────
   useEffect(() => {
     if (quote && tooltipRef.current) {
       gsap.fromTo(tooltipRef.current, { opacity: 0, y: 6 }, { opacity: 1, y: 0, duration: 0.2, ease: 'power2.out' })
     }
   }, [quote])
 
-  // ── Drag to swing ───────────────────────────────────────────
+  // ── Drag to swing ────────────────────────────────────────
   const showQuote = useCallback(() => {
     const idx = quoteIndexRef.current % QUOTES.length
     quoteIndexRef.current++
@@ -120,11 +131,79 @@ export default function SmiskiKeychain() {
     hideQuote()
   }, [startIdle, hideQuote])
 
+  // ── Tooltip styles vary by position mode ─────────────────
+  const tooltipStyle: React.CSSProperties = isRight ? {
+    position: 'absolute',
+    bottom: 'calc(100% + 8px)',
+    left: '50%',
+    transform: 'translateX(-50%)',
+    width: 190,
+    background: 'rgba(14,18,24,0.95)',
+    border: '1px solid rgba(255,255,255,0.12)',
+    borderRadius: 10,
+    padding: '10px 13px',
+    fontFamily: 'var(--font-jetbrains-mono), monospace',
+    fontSize: 11,
+    lineHeight: 1.7,
+    color: 'rgba(255,255,255,0.75)',
+    backdropFilter: 'blur(10px)',
+    boxShadow: '0 8px 24px rgba(0,0,0,0.5)',
+    pointerEvents: 'none',
+    opacity: 0,
+    whiteSpace: 'normal',
+    zIndex: 100,
+  } : {
+    position: 'absolute',
+    top: 48,
+    right: 'calc(100% + 12px)',
+    width: 190,
+    background: 'rgba(14,18,24,0.95)',
+    border: '1px solid rgba(255,255,255,0.12)',
+    borderRadius: 10,
+    padding: '10px 13px',
+    fontFamily: 'var(--font-jetbrains-mono), monospace',
+    fontSize: 11,
+    lineHeight: 1.7,
+    color: 'rgba(255,255,255,0.75)',
+    backdropFilter: 'blur(10px)',
+    boxShadow: '0 8px 24px rgba(0,0,0,0.5)',
+    pointerEvents: 'none',
+    opacity: 0,
+    whiteSpace: 'normal',
+    zIndex: 100,
+  }
+
+  const tailStyle: React.CSSProperties = isRight ? {
+    // Down-pointing tail, centered bottom
+    position: 'absolute',
+    bottom: -5,
+    left: '50%',
+    transform: 'translateX(-50%) rotate(135deg)',
+    width: 9,
+    height: 9,
+    background: 'rgba(14,18,24,0.95)',
+    borderTop: '1px solid rgba(255,255,255,0.12)',
+    borderRight: '1px solid rgba(255,255,255,0.12)',
+  } : {
+    // Right-pointing tail
+    position: 'absolute',
+    top: 16,
+    right: -5,
+    width: 9,
+    height: 9,
+    background: 'rgba(14,18,24,0.95)',
+    borderTop: '1px solid rgba(255,255,255,0.12)',
+    borderRight: '1px solid rgba(255,255,255,0.12)',
+    transform: 'rotate(45deg)',
+  }
+
   return (
     <div style={{
       position: 'absolute',
-      top: '100%',
-      right: 80,
+      ...(isRight
+        ? { top: 40, left: '100%', marginLeft: 16 }
+        : { top: '100%', right: 80 }
+      ),
       display: 'flex',
       flexDirection: 'column',
       alignItems: 'center',
@@ -133,44 +212,12 @@ export default function SmiskiKeychain() {
     }}>
       {/* Tooltip bubble */}
       {quote && (
-        <div
-          ref={tooltipRef}
-          style={{
-            position: 'absolute',
-            top: 48,
-            right: 'calc(100% + 12px)',
-            width: 190,
-            background: 'rgba(14,18,24,0.95)',
-            border: '1px solid rgba(255,255,255,0.12)',
-            borderRadius: 10,
-            padding: '10px 13px',
-            fontFamily: 'var(--font-jetbrains-mono), monospace',
-            fontSize: 11,
-            lineHeight: 1.7,
-            color: 'rgba(255,255,255,0.75)',
-            backdropFilter: 'blur(10px)',
-            boxShadow: '0 8px 24px rgba(0,0,0,0.5)',
-            pointerEvents: 'none',
-            opacity: 0,
-            whiteSpace: 'normal',
-            zIndex: 100,
-          }}
-        >
+        <div ref={tooltipRef} style={tooltipStyle}>
           {quote}
-          {/* Speech bubble tail pointing right */}
-          <div style={{
-            position: 'absolute',
-            top: 16,
-            right: -5,
-            width: 9,
-            height: 9,
-            background: 'rgba(14,18,24,0.95)',
-            borderTop: '1px solid rgba(255,255,255,0.12)',
-            borderRight: '1px solid rgba(255,255,255,0.12)',
-            transform: 'rotate(45deg)',
-          }} />
+          <div style={tailStyle} />
         </div>
       )}
+
       {/* Mounting nub */}
       <div style={{
         width: 14, height: 14,
@@ -224,7 +271,6 @@ export default function SmiskiKeychain() {
             const cy = i * LINK_UNIT + BALL_R + 2
             return (
               <g key={i}>
-                {/* Connector — draw for ALL balls including last, so chain extends to figure */}
                 <rect
                   x={cx - 2} y={cy + BALL_R - 1}
                   width={4}  height={CONNECTOR + 2}
@@ -237,7 +283,7 @@ export default function SmiskiKeychain() {
           })}
         </svg>
 
-        {/* Smiski — negative margin closes the gap entirely */}
+        {/* Smiski */}
         <img
           src="/smik.png"
           alt="Smiski"

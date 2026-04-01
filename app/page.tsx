@@ -26,6 +26,7 @@ export default function Home() {
         <div style={{
           transform: 'scale(min(1, min(calc((100vw - 48px) / 920), calc((100vh - 48px) / 860))))',
           transformOrigin: 'center center',
+          paddingBottom: 218,
         }}>
           <HardwareBoard />
         </div>

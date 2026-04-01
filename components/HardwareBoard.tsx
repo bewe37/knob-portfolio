@@ -971,18 +971,20 @@ export default function HardwareBoard() {
                     />
                   ))}
                 </div>
-                <div style={{
-                  fontSize: 10,
-                  letterSpacing: '0.18em',
-                  fontWeight: 700,
-                  color: screenColor,
-                  opacity: 0.75,
-                  fontFamily: 'var(--font-jetbrains-mono), monospace',
-                  whiteSpace: 'nowrap',
-                  paddingBottom: 2,
-                }}>
-                  [ CLICK TO OPEN ]
-                </div>
+                {activeIndex < 5 && (
+                  <div style={{
+                    fontSize: 10,
+                    letterSpacing: '0.18em',
+                    fontWeight: 700,
+                    color: screenColor,
+                    opacity: 0.75,
+                    fontFamily: 'var(--font-jetbrains-mono), monospace',
+                    whiteSpace: 'nowrap',
+                    paddingBottom: 2,
+                  }}>
+                    [ CLICK TO OPEN ]
+                  </div>
+                )}
               </div>
             </>
           )}
@@ -1285,7 +1287,7 @@ export default function HardwareBoard() {
               {[
                 { src: '/austria.jpg',  caption: 'austria - salzburg',          sub: 'winter 2023', rot: -6,  filter: 'sepia(0.5) saturate(0.6) brightness(0.8)' },
                 { src: '/nyc.jpg',      caption: 'nyc – employees only',  sub: 'summer 2025', rot: 0,   filter: 'sepia(0.38) saturate(0.72) brightness(0.84) contrast(0.88)' },
-                { src: '/korea.jpg',   caption: 'korea - seoul',              sub: 'winter 2025',        rot: 5,   filter: 'sepia(0.2) saturate(0.85) brightness(0.88)' },
+                { src: '/korea.jpg',   caption: 'seoul - gwanjang market',              sub: 'winter 2025',        rot: 5,   filter: 'sepia(0.2) saturate(0.85) brightness(0.88)' },
               ].map(({ src, caption, sub, rot, filter }) => (
                 <div
                   key={src}
@@ -1585,7 +1587,7 @@ export default function HardwareBoard() {
                 boxShadow: '0 1px 4px rgba(0,0,0,0.12), inset 0 1px 1px rgba(255,255,255,0.72)',
                 zIndex: 5,
               }} />
-              <div style={{ position: 'relative', overflow: 'hidden', height: 138 }}>
+              <div style={{ position: 'relative', overflow: 'hidden', height: 128 }}>
                 <img src="/nyc.jpg" alt="NYC – Employees Only" style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center', display: 'block', filter: 'sepia(0.38) saturate(0.72) brightness(0.84) contrast(0.88)' }} />
                 <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none', background: 'radial-gradient(ellipse 88% 82% at 50% 50%, transparent 45%, rgba(30,20,10,0.38) 100%)' }} />
                 <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none', background: 'rgba(210,180,120,0.10)', mixBlendMode: 'multiply' }} />
