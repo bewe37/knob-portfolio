@@ -74,6 +74,7 @@ const SECTION_DETAILS = [
       {
         label: "SAY HELLO TO ME!",
         contacts: [
+          { platform: 'Resume',        handle: 'maa resume', href: 'https://drive.google.com/file/d/1E8AUWkgri9AAHSLil1fQK9KBzZUQbtnK/view?usp=sharingt' },
           { platform: 'Email',    handle: 'bryanwinata112@gmail.com', href: 'mailto:bryanwinata112@gmail.com' },
           { platform: 'LinkedIn', handle: 'linkedin.com/in/gbryanw',  href: 'https://linkedin.com/in/gbryanw' },
           { platform: 'X',        handle: '@gbryanwt',                href: 'https://x.com/gbryanwt' },
