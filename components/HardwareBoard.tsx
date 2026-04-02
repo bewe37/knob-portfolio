@@ -1440,7 +1440,7 @@ export default function HardwareBoard() {
               }} />
               {/* Clock — always rendered, dimmed when dog is on screen */}
               <div style={{ position:'relative', zIndex:3, fontFamily:'var(--font-jetbrains-mono), monospace', opacity: showDog ? 0 : 1, transition:'opacity 0.15s' }}>
-                <div style={{ fontSize:6.5, letterSpacing:3, color:screenColor, opacity:0.45, marginBottom:5, textTransform:'uppercase' }}>
+                <div style={{ fontSize:6.5, letterSpacing:3, color:screenColor, opacity:0.45, marginBottom:5, textTransform:'uppercase', fontWeight:700 }}>
                   TOR · LOCAL
                 </div>
                 <div style={{
