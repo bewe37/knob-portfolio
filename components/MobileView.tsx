@@ -341,6 +341,7 @@ export default function MobileView() {
       overflowY: 'auto', overflowX: 'hidden',
       fontFamily: 'var(--font-jetbrains-mono), monospace',
       color: GREEN,
+      background: '#06090b',
     }}>
       {/* Header */}
       <div style={{
