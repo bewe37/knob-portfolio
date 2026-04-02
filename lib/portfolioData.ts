@@ -5,6 +5,7 @@ export interface Section {
   title: string
   tech: string
   desc: string
+  desktopOnly?: boolean
 }
 
 export type SectionDetail = Record<string, any>
@@ -39,6 +40,7 @@ export const SECTIONS: Section[] = [
     title: 'SPATIAL UI',
     tech: 'THREE.JS / REACT / GSAP',
     desc: 'Immersive 3D spatial interface for a data exploration platform. Real-time orbital simulations, procedural geometry, and gesture-driven navigation.',
+    desktopOnly: true,
   },
   {
     id: 'COM-05',
@@ -168,18 +170,12 @@ export const SECTION_DETAILS: SectionDetail[] = [
     ],
   },
   {
-    cover: '/bgimage.jpg',
+    // PRJ-04 — desktop only, renders as video screen (no overlay content)
     overview: 'Immersive 3D spatial interface built for a scientific data exploration platform. Procedurally generated geometry, real-time orbital mechanics, and a gesture-first navigation model — all running at 60fps in-browser with Three.js.',
     role: 'Solo Developer',
     year: '2025',
-    specs: [
-      { label: 'RENDERER',  value: 'Three.js / WebGL' },
-      { label: 'ANIMATION', value: 'GSAP / Custom springs' },
-      { label: 'GEOMETRY',  value: 'Procedural / instanced' },
-      { label: 'TARGET',    value: '60fps desktop + tablet' },
-    ],
-    process:  'Started with a physics simulation of orbital bodies, then built the UI layer on top — treating the 3D scene as the primary navigation surface rather than a background decoration. All geometry is instanced for draw-call efficiency.',
-    outcomes: 'Sustained 60fps on mid-range GPUs with 10,000+ instanced meshes. Navigation latency under 16ms on all tested devices. Selected as a featured experiment on Three.js Journey community showcase.',
+    specs: [],
+    sections: [],
   },
   {
     overview: 'Open for full-time and contract engagements in product design and frontend engineering. Experienced with early-stage startups moving fast and established product teams managing complex systems at scale.',

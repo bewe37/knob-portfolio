@@ -331,9 +331,113 @@ function SectionCard({ index, onOpen }: { index: number; onOpen: () => void }) {
   )
 }
 
+const TERMINAL_ENTRIES = [
+  { cmd: 'whoami',            out: 'georgius_bryan — product designer, occasional dev' },
+  { cmd: 'cat philosophy.txt', out: "powerful tools shouldn't require a PhD to operate. that's the gap i close." },
+  { cmd: 'ls skills/',        out: 'product_design/  design_systems/  frontend/  prototyping/' },
+  { cmd: 'cat status.txt',    out: 'open to full-time roles. weird ideas welcome.' },
+  { cmd: 'ping creativity',   out: 'reply from brain: time=0ms  TTL=∞' },
+]
+
+// ── Mini terminal ─────────────────────────────────────────
+function Terminal() {
+  const [step, setStep] = useState(0)
+  const [displayed, setDisplayed] = useState('')
+  const [phase, setPhase] = useState<'typing'|'idle'>('idle')
+  const tweenRef = useRef<gsap.core.Tween | null>(null)
+  const outputRef = useRef<HTMLDivElement>(null)
+
+  const run = useCallback(() => {
+    if (phase === 'typing') return
+    const entry = TERMINAL_ENTRIES[step % TERMINAL_ENTRIES.length]
+    setStep(s => s + 1)
+    setDisplayed('')
+    setPhase('typing')
+    const proxy = { n: 0 }
+    tweenRef.current = gsap.to(proxy, {
+      n: entry.out.length,
+      duration: entry.out.length * 0.028,
+      ease: 'none',
+      onUpdate() { setDisplayed(entry.out.slice(0, Math.floor(proxy.n))) },
+      onComplete() { setDisplayed(entry.out); setPhase('idle') },
+    })
+  }, [phase, step])
+
+  useEffect(() => () => { tweenRef.current?.kill() }, [])
+
+  const entry = TERMINAL_ENTRIES[(step === 0 ? 0 : (step - 1)) % TERMINAL_ENTRIES.length]
+  const nextCmd = TERMINAL_ENTRIES[step % TERMINAL_ENTRIES.length].cmd
+
+  return (
+    <div
+      onClick={run}
+      style={{
+        position: 'relative',
+        border: `1px solid ${FAINT}`,
+        borderRadius: 6,
+        padding: '14px 16px',
+        cursor: 'pointer',
+        userSelect: 'none',
+        WebkitTapHighlightColor: 'transparent',
+        background: 'rgba(51,255,102,0.02)',
+      }}
+    >
+      {/* Ran command */}
+      {step > 0 && (
+        <div style={{ marginBottom: 8 }}>
+          <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginBottom: 6 }}>
+            <span style={{ color: LABEL, fontSize: 10 }}>$</span>
+            <span style={{ color: GREEN, fontSize: 11 }}>{entry.cmd}</span>
+          </div>
+          <div ref={outputRef} style={{ fontSize: 12, lineHeight: 1.7, color: DIM, paddingLeft: 16 }}>
+            {displayed}{phase === 'typing' && <span style={{ display:'inline-block', width:6, height:11, background:GREEN, verticalAlign:'middle', marginLeft:2 }} />}
+          </div>
+        </div>
+      )}
+
+      {/* Next prompt */}
+      <div style={{ display: 'flex', gap: 8, alignItems: 'center', opacity: phase === 'typing' ? 0.3 : 1 }}>
+        <span style={{ color: LABEL, fontSize: 10 }}>$</span>
+        <span style={{ color: `rgba(51,255,102,0.45)`, fontSize: 11 }}>{nextCmd}</span>
+        {phase === 'idle' && <span style={{ display:'inline-block', width:6, height:11, background:`rgba(51,255,102,0.5)`, verticalAlign:'middle' }} />}
+      </div>
+
+      {/* Tap hint */}
+      <div style={{
+        position: 'absolute', bottom: 10, right: 12,
+        fontSize: 8, letterSpacing: 2, color: `rgba(51,255,102,0.25)`,
+      }}>
+        TAP TO RUN
+      </div>
+    </div>
+  )
+}
+
+// ── Blinking cursor ───────────────────────────────────────
+function Cursor() {
+  const ref = useRef<HTMLSpanElement>(null)
+  useEffect(() => {
+    if (!ref.current) return
+    const tl = gsap.timeline({ repeat: -1 })
+    tl.to(ref.current, { opacity: 0, duration: 0, delay: 0.55 })
+      .to(ref.current, { opacity: 1, duration: 0, delay: 0.45 })
+    return () => { tl.kill() }
+  }, [])
+  return <span ref={ref} style={{ display: 'inline-block', width: 8, height: 13, background: GREEN, verticalAlign: 'middle', marginLeft: 2 }} />
+}
+
 // ── Main mobile view ──────────────────────────────────────
 export default function MobileView() {
   const [openIndex, setOpenIndex] = useState<number | null>(null)
+  const abt = SECTION_DETAILS[0]
+
+  // Projects only (skip ABT-00 and COM-05 — handled separately)
+  const projectIndices = SECTIONS
+    .map((s, i) => ({ s, i }))
+    .filter(({ s }) => s.id.startsWith('PRJ') && !s.desktopOnly)
+    .map(({ i }) => i)
+
+  const contactIndex = SECTIONS.findIndex(s => s.id === 'COM-05')
 
   return (
     <div style={{
@@ -343,26 +447,77 @@ export default function MobileView() {
       color: GREEN,
       background: '#06090b',
     }}>
-      {/* Header */}
+
+      {/* ── Hero / ABT ── */}
       <div style={{
-        position: 'sticky', top: 0,
-        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-        padding: '12px 20px',
-        background: 'rgba(4,6,8,0.88)',
-        backdropFilter: 'blur(12px)',
+        padding: '48px 20px 36px',
         borderBottom: `1px solid ${FAINT}`,
-        zIndex: 10,
+        position: 'relative',
+        overflow: 'hidden',
       }}>
-        <span style={{ fontSize: 9, letterSpacing: 3, color: LABEL }}>SYS.PORTFOLIO.OS</span>
-        <span style={{ fontSize: 9, letterSpacing: 2, color: `rgba(${RGB},0.35)` }}>MOBILE MODE</span>
+        {/* Faint grid lines */}
+        <div style={{
+          position: 'absolute', inset: 0, pointerEvents: 'none',
+          backgroundImage: `linear-gradient(${FAINT} 1px, transparent 1px), linear-gradient(90deg, ${FAINT} 1px, transparent 1px)`,
+          backgroundSize: '40px 40px',
+          opacity: 0.35,
+        }} />
+
+        {/* System badge */}
+        <div style={{ fontSize: 9, letterSpacing: 3, color: LABEL, marginBottom: 20, position: 'relative' }}>
+          SYS.PORTFOLIO.OS — ABT-00
+        </div>
+
+        {/* Name */}
+        <div style={{ fontSize: 32, fontWeight: 700, letterSpacing: -1, color: GREEN, lineHeight: 1.1, marginBottom: 6, position: 'relative' }}>
+          Georgius Bryan<Cursor />
+        </div>
+
+        {/* Role */}
+        <div style={{ fontSize: 11, letterSpacing: 3, color: LABEL, marginBottom: 20, position: 'relative' }}>
+          PRODUCT DESIGNER
+        </div>
+
+        {/* Trace divider */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 20, position: 'relative' }}>
+          <div style={{ width: 4, height: 4, borderRadius: 1, background: `rgba(${RGB},0.4)` }} />
+          <div style={{ flex: 1, height: 1, background: `linear-gradient(90deg, ${FAINT}, transparent)` }} />
+        </div>
+
+        {/* Tagline */}
+        <p style={{ fontSize: 13, lineHeight: 1.85, color: DIM, marginBottom: 24, position: 'relative' }}>
+          {SECTIONS[0].desc}
+        </p>
+
+        {/* Interactive terminal */}
+        <Terminal />
       </div>
 
-      {/* Cards */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 12, padding: '20px 16px 48px' }}>
-        {SECTIONS.map((_, i) => (
-          <SectionCard key={i} index={i} onOpen={() => setOpenIndex(i)} />
-        ))}
+      {/* ── Project cards ── */}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+        {/* Section label */}
+        <div style={{ padding: '16px 20px 10px', display: 'flex', alignItems: 'center', gap: 8 }}>
+          <span style={{ fontSize: 9, letterSpacing: 3, color: LABEL }}>WORK</span>
+          <div style={{ flex: 1, height: 1, background: `linear-gradient(90deg, ${FAINT}, transparent)` }} />
+        </div>
+
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 12, padding: '0 16px 16px' }}>
+          {projectIndices.map(i => (
+            <SectionCard key={i} index={i} onOpen={() => setOpenIndex(i)} />
+          ))}
+        </div>
       </div>
+
+      {/* ── Contact card ── */}
+      {contactIndex !== -1 && (
+        <div style={{ padding: '0 16px 48px' }}>
+          <div style={{ padding: '16px 0 10px', display: 'flex', alignItems: 'center', gap: 8 }}>
+            <span style={{ fontSize: 9, letterSpacing: 3, color: LABEL }}>CONTACT</span>
+            <div style={{ flex: 1, height: 1, background: `linear-gradient(90deg, ${FAINT}, transparent)` }} />
+          </div>
+          <SectionCard index={contactIndex} onOpen={() => {}} />
+        </div>
+      )}
 
       {/* Case study overlay */}
       {openIndex !== null && (

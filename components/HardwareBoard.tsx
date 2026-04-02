@@ -723,37 +723,13 @@ export default function HardwareBoard() {
               screenGlow={screenGlow}
             />
           ) : activeIndex === 4 ? (
-            /* ── Video mode — fills the screen, CRT effects sit on top ── */
-            /* overflow:hidden clips the TikTok watermark at the bottom */
             <div key="video" style={{ position:'absolute', inset:0, overflow:'hidden', borderRadius:10, zIndex:0 }}>
               <video
                 src={sdInserted ? VIDEO_PONYO : VIDEO_DEFAULT}
-                autoPlay
-                loop
-                muted={false}
-                playsInline
-                style={{
-                  position:'absolute',
-                  top:'50%', left:0,
-                  transform:'translateY(-50%)',
-                  width:'100%',
-                  /* Scale height ~15% taller so the bottom watermark is pushed out */
-                  height:'115%',
-                  objectFit:'cover',
-                  objectPosition:'center',
-                }}
+                autoPlay loop muted={false} playsInline
+                style={{ position:'absolute', top:'50%', left:0, transform:'translateY(-50%)', width:'100%', height:'115%', objectFit:'cover', objectPosition:'center' }}
               />
-              <div style={{
-                position: 'absolute',
-                bottom: 10,
-                left: 12,
-                fontFamily: 'var(--font-jetbrains-mono), monospace',
-                fontSize: 9,
-                letterSpacing: '0.08em',
-                color: 'rgba(255,255,255,0.5)',
-                pointerEvents: 'none',
-                zIndex: 5,
-              }}>
+              <div style={{ position:'absolute', bottom:10, left:12, fontFamily:'var(--font-jetbrains-mono), monospace', fontSize:9, letterSpacing:'0.08em', color:'rgba(255,255,255,0.5)', pointerEvents:'none', zIndex:5 }}>
                 @stvlightss
               </div>
             </div>
