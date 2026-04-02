@@ -1072,36 +1072,44 @@ export default function HardwareBoard() {
           >
             <div style={{ display: 'flex', gap: 20, alignItems: 'flex-end' }}>
               {[
-                { src: '/austria.jpg',  caption: 'austria - salzburg',          sub: 'winter 2023', rot: -6,  filter: 'sepia(0.5) saturate(0.6) brightness(0.8)' },
-                { src: '/nyc.jpg',      caption: 'nyc – employees only',  sub: 'summer 2025', rot: 0,   filter: 'sepia(0.38) saturate(0.72) brightness(0.84) contrast(0.88)' },
-                { src: '/korea.jpg',   caption: 'seoul - gwanjang market',              sub: 'winter 2025',        rot: 5,   filter: 'sepia(0.2) saturate(0.85) brightness(0.88)' },
+                { src: '/austria.jpg',  caption: 'austria - salzburg',     sub: 'winter 2023', rot: -6, filter: 'sepia(0.5) saturate(0.6) brightness(0.8)' },
+                { src: '/nyc.jpg',      caption: 'nyc – employees only',   sub: 'summer 2025', rot: 0,  filter: 'sepia(0.38) saturate(0.72) brightness(0.84) contrast(0.88)' },
+                { src: '/korea.jpg',    caption: 'seoul - gwanjang market', sub: 'winter 2025', rot: 5,  filter: 'sepia(0.2) saturate(0.85) brightness(0.88)' },
               ].map(({ src, caption, sub, rot, filter }) => (
                 <div
                   key={src}
                   onMouseEnter={e => {
                     gsap.to(e.currentTarget, {
-                      y: -12,
-                      scale: 1.045,
-                      rotation: rot * 0.4,
-                      boxShadow: '0 36px 64px rgba(0,0,0,0.65), 0 8px 20px rgba(0,0,0,0.35)',
-                      duration: 0.32,
-                      ease: 'power2.out',
+                      y: -14, scale: 1.05, rotation: rot * 0.3,
+                      boxShadow: '0 40px 70px rgba(0,0,0,0.7), 0 8px 20px rgba(0,0,0,0.35)',
+                      transformPerspective: 700,
+                      duration: 0.28, ease: 'power2.out',
+                    })
+                  }}
+                  onMouseMove={e => {
+                    const rect = e.currentTarget.getBoundingClientRect()
+                    const dx = (e.clientX - (rect.left + rect.width  / 2)) / (rect.width  / 2)
+                    const dy = (e.clientY - (rect.top  + rect.height / 2)) / (rect.height / 2)
+                    gsap.to(e.currentTarget, {
+                      rotateX: -dy * 14,
+                      rotateY:  dx * 14,
+                      transformPerspective: 700,
+                      duration: 0.4, ease: 'power3.out',
                     })
                   }}
                   onMouseLeave={e => {
                     gsap.to(e.currentTarget, {
-                      y: 0,
-                      scale: 1,
-                      rotation: rot,
+                      y: 0, scale: 1, rotation: rot,
+                      rotateX: 0, rotateY: 0,
                       boxShadow: '0 24px 48px rgba(0,0,0,0.5), 0 4px 12px rgba(0,0,0,0.2)',
-                      duration: 0.45,
-                      ease: 'elastic.out(1, 0.65)',
+                      transformPerspective: 700,
+                      duration: 0.55, ease: 'elastic.out(1, 0.6)',
                     })
                   }}
                   style={{
                     width: 200,
                     background: '#f5f2ec',
-                    padding: '12px 12px 40px 12px',
+                    padding: '12px 12px 24px 12px',
                     boxShadow: '0 24px 48px rgba(0,0,0,0.5), 0 4px 12px rgba(0,0,0,0.2)',
                     transform: `rotate(${rot}deg)`,
                     flexShrink: 0,
