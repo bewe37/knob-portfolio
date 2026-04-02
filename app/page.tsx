@@ -48,6 +48,9 @@ export default function Home() {
           display: 'flex',
           alignItems: 'flex-start',
           justifyContent: 'center',
+          // paddingBottom reserves space for the Smiski keychain (position:absolute,
+          // top:'100%' inside HardwareBoard) so flex centering accounts for it.
+          paddingBottom: 218,
         }}>
           <HardwareBoard />
         </div>
