@@ -2,21 +2,25 @@
 
 import { useState, useEffect } from 'react'
 import HardwareBoard from '@/components/HardwareBoard'
+import MobileView from '@/components/MobileView'
 import AsciiBackground from '@/components/AsciiBackground'
 
-// Total visual bounding box: board width × (board height + smiski below)
 const BOARD_W = 920
 const BOARD_H = 858
+const MOBILE_BP = 768
 
 export default function Home() {
-  const [scale, setScale] = useState(1)
+  const [isMobile, setIsMobile] = useState(false)
+  const [scale,    setScale]    = useState(1)
 
   useEffect(() => {
     const update = () => {
+      const w = window.innerWidth
+      setIsMobile(w < MOBILE_BP)
       setScale(Math.min(
         1,
-        (window.innerWidth  - 48) / BOARD_W,
-        (window.innerHeight - 48) / BOARD_H
+        (w - 48) / BOARD_W,
+        (window.innerHeight - 48) / BOARD_H,
       ))
     }
     update()
@@ -27,34 +31,31 @@ export default function Home() {
   return (
     <>
       <AsciiBackground />
-      <main
-        style={{
-          position: 'fixed',
-          inset: 0,
-          zIndex: 1,
-          display: 'flex',
-          justifyContent: 'center',
-          alignItems: 'center',
-          perspective: 1000,
-        }}
-      >
-        {/*
-          zoom (not transform: scale) shrinks the layout box too,
-          so the browser centers the already-scaled dimensions —
-          no overflow, no clipping, smiski always visible.
-        */}
-        <div style={{
-          zoom: scale,
-          display: 'flex',
-          alignItems: 'flex-start',
-          justifyContent: 'center',
-          // paddingBottom reserves space for the Smiski keychain (position:absolute,
-          // top:'100%' inside HardwareBoard) so flex centering accounts for it.
-          paddingBottom: 218,
-        }}>
-          <HardwareBoard />
-        </div>
-      </main>
+      {isMobile ? (
+        <MobileView />
+      ) : (
+        <main
+          style={{
+            position: 'fixed',
+            inset: 0,
+            zIndex: 1,
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
+            perspective: 1000,
+          }}
+        >
+          <div style={{
+            zoom: scale,
+            display: 'flex',
+            alignItems: 'flex-start',
+            justifyContent: 'center',
+            paddingBottom: 218,
+          }}>
+            <HardwareBoard />
+          </div>
+        </main>
+      )}
     </>
   )
 }
