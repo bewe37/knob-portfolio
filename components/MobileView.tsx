@@ -297,7 +297,7 @@ function SectionCard({ index, onOpen }: { index: number; onOpen: () => void }) {
       {isContact && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 0, marginTop: 4 }}>
           {[
-            { platform: 'Resume',   handle: 'view resume',              href: 'https://drive.google.com/file/d/1E8AUWkgri9AAHSLil1fQK9KBzZUQbtnK/view?usp=sharingt' },
+            { platform: 'Resume',   handle: 'maa resume',              href: 'https://drive.google.com/file/d/1E8AUWkgri9AAHSLil1fQK9KBzZUQbtnK/view?usp=sharingt' },
             { platform: 'Email',    handle: 'bryanwinata112@gmail.com', href: 'mailto:bryanwinata112@gmail.com' },
             { platform: 'LinkedIn', handle: 'linkedin.com/in/gbryanw',  href: 'https://linkedin.com/in/gbryanw' },
             { platform: 'X',        handle: '@gbryanwt',                href: 'https://x.com/gbryanwt' },
@@ -333,9 +333,9 @@ function SectionCard({ index, onOpen }: { index: number; onOpen: () => void }) {
 }
 
 const TERMINAL_ENTRIES = [
-  { cmd: 'whoami',            out: 'georgius_bryan — product designer, occasional dev' },
-  { cmd: 'cat philosophy.txt', out: "powerful tools shouldn't require a PhD to operate. that's the gap i close." },
-  { cmd: 'ls skills/',        out: 'product_design/  design_systems/  frontend/  prototyping/' },
+  { cmd: 'whoami',            out: 'georgius_bryan — casual golfer, occasional vibe-coder' },
+  { cmd: 'my philosophy.txt', out: "i believe every pixel has feelings, and it is my job to make sure none of them feel misaligned." },
+  { cmd: 'ls skills/',        out: 'product_design/ design_systems'},
   { cmd: 'cat status.txt',    out: 'open to full-time roles. weird ideas welcome.' },
   { cmd: 'ping creativity',   out: 'reply from brain: time=0ms  TTL=∞' },
 ]
