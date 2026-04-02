@@ -765,7 +765,7 @@ export default function PCBView({ onClose, onSdInserted, initialSdInserted }: { 
         fontSize: '9px', letterSpacing: '0.4em', fontWeight: 600, opacity: 0.8,
         flexShrink: 0,
       }}>
-        KINETIC SYSTEM ARCHITECTURE // INTERNAL DATAPATH SCHEMATIC 04-0 FINAL
+        THE GHOST IN THE MACHINE IS A DOG LOVER // WOOF 04-0 FINAL
       </div>
 
     </div>
