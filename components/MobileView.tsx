@@ -71,6 +71,7 @@ function CaseStudy({ index, onClose }: { index: number; onClose: () => void }) {
             background: 'none', border: `1px solid ${FAINT}`, borderRadius: 4,
             color: LABEL, fontFamily: 'var(--font-jetbrains-mono), monospace',
             fontSize: 9, letterSpacing: 2, padding: '6px 10px', cursor: 'pointer',
+            flexShrink: 0, whiteSpace: 'nowrap',
           }}
         >
           [ CLOSE ]
@@ -429,8 +430,6 @@ function Cursor() {
 // ── Main mobile view ──────────────────────────────────────
 export default function MobileView() {
   const [openIndex, setOpenIndex] = useState<number | null>(null)
-  const abt = SECTION_DETAILS[0]
-
   // Projects only (skip ABT-00 and COM-05 — handled separately)
   const projectIndices = SECTIONS
     .map((s, i) => ({ s, i }))
