@@ -20,11 +20,10 @@ function CaseStudy({ index, onClose }: { index: number; onClose: () => void }) {
   useEffect(() => {
     if (wrapRef.current) {
       gsap.fromTo(wrapRef.current,
-        { opacity: 0, y: 24 },
-        { opacity: 1, y: 0, duration: 0.32, ease: 'power3.out' }
+        { opacity: 0, y: 60, scale: 0.96 },
+        { opacity: 1, y: 0, scale: 1, duration: 0.55, ease: 'expo.out', clearProps: 'scale' }
       )
     }
-    // lock body scroll
     document.body.style.overflow = 'hidden'
     return () => { document.body.style.overflow = '' }
   }, [])
@@ -32,7 +31,7 @@ function CaseStudy({ index, onClose }: { index: number; onClose: () => void }) {
   const close = useCallback(() => {
     if (!wrapRef.current) { onClose(); return }
     gsap.to(wrapRef.current, {
-      opacity: 0, y: 16, duration: 0.22, ease: 'power2.in',
+      opacity: 0, y: 40, scale: 0.97, duration: 0.3, ease: 'power3.in',
       onComplete: onClose,
     })
   }, [onClose])
@@ -128,32 +127,55 @@ function CaseStudy({ index, onClose }: { index: number; onClose: () => void }) {
         </p>
 
         {/* Sections */}
-        {details.sections?.map((sec: Record<string, any>, si: number) => (
+        {details.sections?.map((sec: Record<string, any>, si: number) => {
+          const renderBlock = (blk: Record<string, any>, bi: number) => (
+            <div key={bi} style={{ marginBottom: 32 }}>
+              {blk.title && <div style={{ fontSize: 16, fontWeight: 700, color: GREEN, marginBottom: 8, letterSpacing: -0.3, lineHeight: 1.25 }}>{blk.title}</div>}
+              {blk.body && <p style={{ fontSize: 13, lineHeight: 1.85, color: DIM, marginBottom: 10, whiteSpace: 'pre-line' }}>{Array.isArray(blk.body) ? blk.body.join('\n') : blk.body}</p>}
+              {blk.image && (
+                <div style={{ border: `1px solid ${FAINT}`, borderRadius: 4, overflow: 'hidden', marginBottom: blk.videos ? 10 : 0 }} onClick={() => setLightbox(blk.image)}>
+                  <img src={blk.image} alt={blk.title ?? ''} style={{ display: 'block', width: '100%', height: 'auto' }} />
+                </div>
+              )}
+              {blk.images && (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: blk.videos ? 10 : 0 }}>
+                  {blk.images.map((src: string, ii: number) => (
+                    <div key={ii} style={{ border: `1px solid ${FAINT}`, borderRadius: 4, overflow: 'hidden' }} onClick={() => setLightbox(src)}>
+                      <img src={src} alt={`${blk.title ?? ''} ${ii + 1}`} style={{ display: 'block', width: '100%', height: 'auto' }} />
+                    </div>
+                  ))}
+                </div>
+              )}
+              {blk.videos && (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                  {blk.videos.map((src: string, ii: number) => (
+                    <div key={ii} style={{ border: `1px solid ${FAINT}`, borderRadius: 4, overflow: 'hidden' }}>
+                      <video src={src} autoPlay loop muted playsInline style={{ display: 'block', width: '100%', height: 'auto' }} />
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )
+          return (
           <div key={si} style={{ marginBottom: 28 }}>
-            {/* Section label */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
-              <div style={{ width: 4, height: 4, background: `rgba(${RGB},0.5)`, borderRadius: 1, flexShrink: 0 }} />
-              <span style={{ fontSize: 9, letterSpacing: 3, color: LABEL }}>{sec.label}</span>
-              <div style={{ flex: 1, height: 1, background: `linear-gradient(90deg, ${FAINT}, transparent)` }} />
+            {/* Section label + title */}
+            <div style={{ marginBottom: 14 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 16 }}>
+                <span style={{ fontSize: 9, letterSpacing: 2.5, color: LABEL }}>{sec.label}</span>
+                <div style={{ flex: 1, height: 1, background: `linear-gradient(90deg, ${FAINT}, transparent)` }} />
+              </div>
+              {sec.title && <div style={{ fontSize: 16, fontWeight: 700, letterSpacing: -0.3, color: GREEN, lineHeight: 1.25 }}>{sec.title}</div>}
             </div>
 
-            {/* Body */}
-            {sec.body && (
-              <p style={{ fontSize: 13, lineHeight: 1.85, color: DIM, marginBottom: 12, whiteSpace: 'pre-line' }}>
-                {Array.isArray(sec.body) ? sec.body.join('\n') : sec.body}
-              </p>
-            )}
+            {/* Top-level body */}
+            {sec.body && <p style={{ fontSize: 13, lineHeight: 1.85, color: DIM, marginBottom: 12, whiteSpace: 'pre-line' }}>{Array.isArray(sec.body) ? sec.body.join('\n') : sec.body}</p>}
 
             {/* Experience rows */}
             {sec.experience && (
               <div style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
                 {sec.experience.map((exp: { company: string; role: string; period: string }, ei: number, arr: unknown[]) => (
-                  <div key={ei} style={{
-                    display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start',
-                    paddingTop: 12, paddingBottom: 12,
-                    borderBottom: ei < arr.length - 1 ? `1px solid rgba(${RGB},0.08)` : 'none',
-                    gap: 12,
-                  }}>
+                  <div key={ei} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', paddingTop: 12, paddingBottom: 12, borderBottom: ei < arr.length - 1 ? `1px solid rgba(${RGB},0.08)` : 'none', gap: 12 }}>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
                       <span style={{ fontSize: 13, fontWeight: 600, color: DIM }}>{exp.company}</span>
                       <span style={{ fontSize: 11, color: `rgba(${RGB},0.6)` }}>{exp.role}</span>
@@ -168,47 +190,22 @@ function CaseStudy({ index, onClose }: { index: number; onClose: () => void }) {
             {sec.contacts && (
               <div style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
                 {sec.contacts.map((c: { platform: string; handle: string; href: string }, ci: number, arr: unknown[]) => (
-                  <div key={ci} style={{
-                    display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-                    paddingTop: 12, paddingBottom: 12,
-                    borderBottom: ci < arr.length - 1 ? `1px solid rgba(${RGB},0.08)` : 'none',
-                  }}>
+                  <div key={ci} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: 12, paddingBottom: 12, borderBottom: ci < arr.length - 1 ? `1px solid rgba(${RGB},0.08)` : 'none' }}>
                     <span style={{ fontSize: 9, letterSpacing: 2, color: LABEL }}>{c.platform}</span>
-                    <a href={c.href} target="_blank" rel="noopener noreferrer"
-                      style={{ fontSize: 12, color: DIM, textDecoration: 'none' }}>
-                      {c.handle}
-                    </a>
+                    <a href={c.href} target="_blank" rel="noopener noreferrer" style={{ fontSize: 12, color: DIM, textDecoration: 'none' }}>{c.handle}</a>
                   </div>
                 ))}
               </div>
             )}
 
-            {/* Images */}
-            {sec.images && (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: sec.videos ? 12 : 0 }}>
-                {sec.images.map((src: string, ii: number) => (
-                  <div key={ii} style={{ border: `1px solid ${FAINT}`, borderRadius: 4, overflow: 'hidden' }}
-                    onClick={() => setLightbox(src)}>
-                    <img src={src} alt={`${sec.label} ${ii + 1}`}
-                      style={{ display: 'block', width: '100%', height: 'auto' }} />
-                  </div>
-                ))}
-              </div>
-            )}
+            {/* Top-level images/videos (no content blocks) */}
+            {!sec.contents && renderBlock({ images: sec.images, videos: sec.videos }, -1)}
 
-            {/* Videos */}
-            {sec.videos && (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                {sec.videos.map((src: string, ii: number) => (
-                  <div key={ii} style={{ border: `1px solid ${FAINT}`, borderRadius: 4, overflow: 'hidden' }}>
-                    <video src={src} autoPlay loop muted playsInline
-                      style={{ display: 'block', width: '100%', height: 'auto' }} />
-                  </div>
-                ))}
-              </div>
-            )}
+            {/* Multiple content blocks */}
+            {sec.contents && sec.contents.map((blk: Record<string, any>, bi: number) => renderBlock(blk, bi))}
           </div>
-        ))}
+        )})}
+
 
         {/* Contacts at root level (COM-05) */}
         {details.contacts && !details.sections && (
@@ -254,6 +251,8 @@ function CaseStudy({ index, onClose }: { index: number; onClose: () => void }) {
 // ── Card ──────────────────────────────────────────────────
 function SectionCard({ index, onOpen }: { index: number; onOpen: () => void }) {
   const section = SECTIONS[index]
+  const details = SECTION_DETAILS[index]
+  const cover   = (details as Record<string, any>).cover as string | undefined
   const isContact = index === SECTIONS.length - 1
   const cardRef = useRef<HTMLDivElement>(null)
 
@@ -264,16 +263,30 @@ function SectionCard({ index, onOpen }: { index: number; onOpen: () => void }) {
       style={{
         border: `1px solid ${FAINT}`,
         borderRadius: 8,
-        padding: '20px 18px',
+        overflow: 'hidden',
         display: 'flex',
         flexDirection: 'column',
-        gap: 10,
+        gap: 0,
         cursor: isContact ? 'default' : 'pointer',
         background: 'rgba(51,255,102,0.02)',
         WebkitTapHighlightColor: 'transparent',
         userSelect: 'none',
       }}
     >
+      {/* Thumbnail */}
+      {cover && !isContact && (
+        <div style={{ width: '100%', position: 'relative', flexShrink: 0 }}>
+          <img
+            src={cover}
+            alt={section.title}
+            style={{ width: '100%', height: 'auto', maxHeight: 220, objectFit: 'cover', display: 'block', opacity: 0.75, filter: 'saturate(0.7) brightness(0.85)' }}
+          />
+          <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to bottom, transparent 50%, rgba(4,6,8,0.9) 100%)' }} />
+        </div>
+      )}
+
+      {/* Content */}
+      <div style={{ padding: '16px 18px', display: 'flex', flexDirection: 'column', gap: 10 }}>
       {/* ID + tech row */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <span style={{
@@ -297,7 +310,7 @@ function SectionCard({ index, onOpen }: { index: number; onOpen: () => void }) {
       {isContact && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 0, marginTop: 4 }}>
           {[
-            { platform: 'Resume',   handle: 'maa resume',              href: 'https://drive.google.com/file/d/1E8AUWkgri9AAHSLil1fQK9KBzZUQbtnK/view?usp=sharingt' },
+            { platform: 'Resume',   handle: 'maa resume',              href: 'https://drive.google.com/file/d/1E8AUWkgri9AAHSLil1fQK9KBzZUQbtnK/view?usp=sharing' },
             { platform: 'Email',    handle: 'bryanwinata112@gmail.com', href: 'mailto:bryanwinata112@gmail.com' },
             { platform: 'LinkedIn', handle: 'linkedin.com/in/gbryanw',  href: 'https://linkedin.com/in/gbryanw' },
             { platform: 'X',        handle: '@gbryanwt',                href: 'https://x.com/gbryanwt' },
@@ -328,6 +341,7 @@ function SectionCard({ index, onOpen }: { index: number; onOpen: () => void }) {
           TAP TO OPEN
         </div>
       )}
+      </div>
     </div>
   )
 }

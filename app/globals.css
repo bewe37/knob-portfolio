@@ -110,6 +110,17 @@ body {
     0 0 10px 3px rgba(180, 220, 255, 0.90),
     0 0 22px 6px rgba(140, 200, 255, 0.60),
     0 0 40px 8px rgba(100, 170, 255, 0.30);
+  transition: background 0.4s ease, box-shadow 0.4s ease;
+}
+
+.knob-off {
+  filter: brightness(0.38) saturate(0.4);
+  transition: filter 0.5s ease;
+}
+
+.knob-off .knob-indicator {
+  background: linear-gradient(to bottom, #2a2c30 0%, #1a1c20 100%);
+  box-shadow: none;
 }
 
 /* ── Project selector buttons ────────────────────────────── */

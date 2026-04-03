@@ -183,6 +183,13 @@ export default function HardwareBoard() {
   const [bootingUp,         setBootingUp]         = useState(false)
   const [isPolaroidZoomed,  setIsPolaroidZoomed]  = useState(false)
   const [lightboxSrc,       setLightboxSrc]       = useState<string | null>(null)
+  const [tocVisible,        setTocVisible]        = useState(false)
+  const [activeSec,         setActiveSec]         = useState(-1)
+  const crtScrollableRef = useRef<HTMLDivElement>(null)
+  const sectionElsRef    = useRef<(HTMLDivElement | null)[]>([])
+  const metaRowsRef      = useRef<HTMLDivElement>(null)
+  const tocPanelRef      = useRef<HTMLDivElement>(null)
+  const tocContainerRef  = useRef<HTMLDivElement>(null)
 
   const knobRef        = useRef<HTMLDivElement>(null)
   const rotatorRef     = useRef<HTMLDivElement>(null)
@@ -260,6 +267,69 @@ export default function HardwareBoard() {
       if (mainBlackout) gsap.to(mainBlackout, { opacity: 1, duration: 0.12, ease: 'power2.in' })
     }
   }, [isPoweredOn])
+
+  // ── Reset TOC when overlay opens/closes or project changes
+  useEffect(() => {
+    sectionElsRef.current = []
+    setTocVisible(false)
+    setActiveSec(-1)
+    if (isZoomed) {
+      requestAnimationFrame(() => {
+        if (tocContainerRef.current && metaRowsRef.current)
+          gsap.set(tocContainerRef.current, { height: metaRowsRef.current.scrollHeight })
+        if (tocPanelRef.current)
+          gsap.set(tocPanelRef.current, { opacity: 0, y: 8 })
+      })
+    }
+  }, [activeIndex, isZoomed])
+
+  // ── GSAP animate between meta ↔ TOC
+  useEffect(() => {
+    const meta      = metaRowsRef.current
+    const toc       = tocPanelRef.current
+    const container = tocContainerRef.current
+    if (!meta || !toc || !container) return
+    if (tocVisible) {
+      gsap.to(container, { height: toc.scrollHeight, duration: 0.4, ease: 'power3.inOut' })
+      gsap.to(meta, { opacity: 0, y: -8, duration: 0.2, ease: 'power2.in' })
+      gsap.to(toc,  { opacity: 1, y: 0,  duration: 0.35, delay: 0.15, ease: 'power3.out' })
+    } else {
+      gsap.to(container, { height: meta.scrollHeight, duration: 0.4, ease: 'power3.inOut' })
+      gsap.to(toc,  { opacity: 0, y: 8,  duration: 0.2, ease: 'power2.in' })
+      gsap.to(meta, { opacity: 1, y: 0,  duration: 0.35, delay: 0.15, ease: 'power3.out' })
+    }
+  }, [tocVisible])
+
+  // ── TOC scroll tracking
+  useEffect(() => {
+    if (!isZoomed) return
+    const el = crtScrollableRef.current
+    if (!el) return
+    const hasTOC = (details as Record<string,any>).specs?.length > 0
+    const onScroll = () => {
+      setTocVisible(hasTOC && el.scrollTop > 180)
+      // Near bottom → activate last section
+      if (el.scrollTop + el.clientHeight >= el.scrollHeight - 60) {
+        setActiveSec(sectionElsRef.current.length - 1)
+        return
+      }
+      const mid = el.scrollTop + el.clientHeight * 0.4
+      let found = -1
+      sectionElsRef.current.forEach((secEl, i) => {
+        if (secEl && secEl.offsetTop <= mid) found = i
+      })
+      setActiveSec(found)
+    }
+    el.addEventListener('scroll', onScroll, { passive: true })
+    return () => el.removeEventListener('scroll', onScroll)
+  }, [isZoomed, activeIndex])
+
+  const scrollToSection = (i: number) => {
+    const container = crtScrollableRef.current
+    const el = sectionElsRef.current[i]
+    if (!container || !el) return
+    container.scrollTo({ top: el.offsetTop - 16, behavior: 'smooth' })
+  }
 
   // ── Toronto clock
   useEffect(() => {
@@ -810,6 +880,7 @@ export default function HardwareBoard() {
 
             {/* Scrollable content */}
             <div
+              ref={crtScrollableRef}
               className="crt-scrollable crt-flicker"
               style={{
                 color: amber,
@@ -851,16 +922,34 @@ export default function HardwareBoard() {
                     <div style={{ flex:1, height:1, background:`linear-gradient(90deg, ${amberFaint}, transparent)` }} />
                   </div>
 
-                  {/* Meta rows */}
-                  {([
-                    { label:'ROLE', value: details.role },
-                    { label:'YEAR', value: details.year },
-                  ] as {label:string;value:string}[]).map(({ label, value }) => (
-                    <div key={label} style={{ marginBottom:18 }}>
-                      <div style={{ fontSize:10, letterSpacing:2.5, color:amberLabel, marginBottom:5 }}>▪ {label}</div>
-                      <div style={{ fontSize:13, color:amberDim, lineHeight:1.5 }}>{value}</div>
+                  {/* Meta rows / TOC */}
+                  <div ref={tocContainerRef} style={{ position:'relative', overflow:'hidden' }}>
+                    {/* Meta rows */}
+                    <div ref={metaRowsRef} style={{ position:'absolute', top:0, left:0, width:'100%' }}>
+                      {([
+                        { label:'ROLE', value: details.role },
+                        { label:'YEAR', value: details.year },
+                      ] as {label:string;value:string}[]).map(({ label, value }) => (
+                        <div key={label} style={{ marginBottom:18 }}>
+                          <div style={{ fontSize:10, letterSpacing:2.5, color:amberLabel, marginBottom:5 }}>▪ {label}</div>
+                          <div style={{ fontSize:13, color:amberDim, lineHeight:1.5 }}>{value}</div>
+                        </div>
+                      ))}
                     </div>
-                  ))}
+                    {/* TOC */}
+                    <div ref={tocPanelRef} style={{ position:'absolute', top:0, left:0, width:'100%', opacity:0 }}>
+                      {((details as Record<string,any>).sections as Array<{label:string}> | undefined)?.map((sec, i) => (
+                        <div
+                          key={i}
+                          onClick={() => scrollToSection(i)}
+                          style={{ cursor:'pointer', display:'flex', alignItems:'center', gap:8, marginBottom:13 }}
+                        >
+                          <div style={{ width: activeSec === i ? 12 : 4, height:1, flexShrink:0, background: activeSec === i ? amber : `rgba(${modalRGB},0.2)`, transition:'width 0.2s ease, background 0.2s ease' }} />
+                          <span style={{ fontSize: activeSec === i ? 10 : 9, letterSpacing: activeSec === i ? 1.5 : 2, fontWeight: activeSec === i ? 600 : 400, color: activeSec === i ? amber : `rgba(${modalRGB},0.3)`, lineHeight:1.4, transition:'all 0.2s ease' }}>{sec.label}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
 
                   {/* Bottom trace */}
                   <div style={{ marginTop:32, display:'flex', alignItems:'center', gap:6 }}>
@@ -894,7 +983,7 @@ export default function HardwareBoard() {
                   </p>
 
                   {/* 2-col spec cards */}
-                  {details.specs.length > 0 && (
+                  {details.specs?.length > 0 && (
                     <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:8, marginBottom:20 }}>
                       {details.specs.map(({ label, value }: { label: string; value: string }) => (
                         <div key={label} style={{
@@ -910,17 +999,49 @@ export default function HardwareBoard() {
 
                   {/* Custom sections OR default PROCESS + OUTCOMES */}
                   {(details as Record<string,any>).sections ? (
-                    ((details as Record<string,any>).sections as Array<{label:string;body?:string;items?:string[];image?:string;images?:string[];videos?:string[];experience?:{company:string;role:string;period:string}[];contacts?:{platform:string;handle:string;href:string}[]}>).map((sec, si, arr) => (
-                      <div key={si} style={{ marginBottom: si < arr.length - 1 ? 20 : 28 }}>
+                    ((details as Record<string,any>).sections as Array<{label:string;title?:string;body?:string;items?:string[];image?:string;images?:string[];videos?:string[];experience?:{company:string;role:string;period:string}[];contacts?:{platform:string;handle:string;href:string}[];contents?:{title?:string;body?:string;image?:string;images?:string[];videos?:string[]}[]}>).map((sec, si, arr) => {
+                      const renderBlock = (blk: {title?:string;body?:string;image?:string;images?:string[];videos?:string[]}, bi: number) => (
+                        <div key={bi} style={{ marginBottom: 36 }}>
+                          {blk.title && <div style={{ fontSize:16, fontWeight:700, color:amber, marginBottom:8, letterSpacing:-0.3, lineHeight:1.25 }}>{blk.title}</div>}
+                          {blk.body && <p style={{ fontSize:13, lineHeight:1.8, color:amberDim, letterSpacing:0.1, marginBottom:10 }}>{blk.body}</p>}
+                          {blk.image && (
+                            <div style={{ border:`1px solid ${amberFaint}`, borderRadius:4, marginBottom: blk.videos ? 10 : 0, overflow:'hidden', cursor:'zoom-in' }} onClick={() => setLightboxSrc(blk.image!)}>
+                              <img src={blk.image} alt={blk.title ?? ''} style={{ display:'block', width:'100%', height:'auto' }} />
+                            </div>
+                          )}
+                          {blk.images && (
+                            <div style={{ marginBottom: blk.videos ? 10 : 0 }}>
+                              {blk.images.map((src, ii) => (
+                                <div key={ii} style={{ border:`1px solid ${amberFaint}`, borderRadius:4, marginBottom: ii < blk.images!.length - 1 ? 8 : 0, overflow:'hidden', cursor:'zoom-in' }} onClick={() => setLightboxSrc(src)}>
+                                  <img src={src} alt={`${blk.title ?? ''} ${ii+1}`} style={{ display:'block', width:'100%', height:'auto' }} />
+                                </div>
+                              ))}
+                            </div>
+                          )}
+                          {blk.videos && (
+                            <div>
+                              {blk.videos.map((src, ii) => (
+                                <div key={ii} style={{ border:`1px solid ${amberFaint}`, borderRadius:4, marginBottom: ii < blk.videos!.length - 1 ? 8 : 0, overflow:'hidden' }}>
+                                  <video src={src} autoPlay loop muted playsInline style={{ display:'block', width:'100%', height:'auto' }} />
+                                </div>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      )
+                      return (
+                      <div key={si} ref={el => { sectionElsRef.current[si] = el }} style={{ marginBottom: si < arr.length - 1 ? 20 : 28 }}>
 
                         {/* Section header */}
-                        <div style={{ display:'flex', alignItems:'center', gap:8, marginBottom:10 }}>
-                          <div style={{ width:4, height:4, background:`rgba(${modalRGB},0.5)`, borderRadius:1, flexShrink:0 }} />
-                          <span style={{ fontSize:10, letterSpacing:3, color:amberLabel }}>{sec.label}</span>
-                          <div style={{ flex:1, height:1, background:`linear-gradient(90deg, ${amberFaint}, transparent)` }} />
+                        <div style={{ marginBottom:14 }}>
+                          <div style={{ display:'flex', alignItems:'center', gap:12, marginBottom:16 }}>
+                            <span style={{ fontSize:9, letterSpacing:2.5, color:amberLabel }}>{sec.label}</span>
+                            <div style={{ flex:1, height:1, background:`linear-gradient(90deg, ${amberFaint}, transparent)` }} />
+                          </div>
+                          {sec.title && <div style={{ fontSize:16, fontWeight:700, letterSpacing:-0.3, color:amber, lineHeight:1.25 }}>{sec.title}</div>}
                         </div>
 
-                        {/* Body text */}
+                        {/* Top-level body */}
                         {sec.body && (
                           <p style={{ fontSize:13, lineHeight:1.8, color:amberDim, letterSpacing:0.1, marginBottom:12 }}>
                             {sec.body}
@@ -948,17 +1069,11 @@ export default function HardwareBoard() {
                             {sec.contacts.map((c: {platform:string;handle:string;href:string}, ci: number, arr: unknown[]) => (
                               <div key={ci} style={{ display:'flex', alignItems:'center', justifyContent:'space-between', paddingTop:10, paddingBottom:10, borderBottom: ci < arr.length - 1 ? `1px solid rgba(${modalRGB},0.08)` : 'none' }}>
                                 <span style={{ fontSize:10, letterSpacing:2, color:amberLabel }}>{c.platform}</span>
-                                <a
-                                  href={c.href}
-                                  target="_blank"
-                                  rel="noopener noreferrer"
-                                  onClick={e => e.stopPropagation()}
+                                <a href={c.href} target="_blank" rel="noopener noreferrer" onClick={e => e.stopPropagation()}
                                   style={{ fontSize:12, color:amberDim, textDecoration:'none', letterSpacing:0.3, transition:'color 0.15s' }}
                                   onMouseEnter={e => (e.currentTarget.style.color = amber)}
                                   onMouseLeave={e => (e.currentTarget.style.color = amberDim)}
-                                >
-                                  {c.handle}
-                                </a>
+                                >{c.handle}</a>
                               </div>
                             ))}
                           </div>
@@ -976,37 +1091,19 @@ export default function HardwareBoard() {
                           </div>
                         )}
 
-                        {/* Single image */}
-                        {sec.image && !sec.images && (
+                        {/* Top-level images / videos (when no content blocks) */}
+                        {!sec.contents && renderBlock({ body: undefined, images: sec.image && !sec.images ? undefined : sec.images, videos: sec.videos }, -1)}
+                        {sec.image && !sec.images && !sec.contents && (
                           <div style={{ border:`1px solid ${amberFaint}`, borderRadius:4, overflow:'hidden', cursor:'zoom-in' }} onClick={() => setLightboxSrc(sec.image!)}>
                             <img src={sec.image} alt={sec.label} style={{ display:'block', width:'100%', height:'auto' }} />
                           </div>
                         )}
 
-                        {/* Multiple images — stacked */}
-                        {sec.images && (
-                          <div style={{ marginBottom: sec.videos ? 16 : 0 }}>
-                            {sec.images.map((src: string, ii: number) => (
-                              <div key={ii} style={{ border:`1px solid ${amberFaint}`, borderRadius:4, marginBottom: ii < sec.images!.length - 1 ? 8 : 0, overflow:'hidden', cursor:'zoom-in' }} onClick={() => setLightboxSrc(src)}>
-                                <img src={src} alt={`${sec.label} ${ii + 1}`} style={{ display:'block', width:'100%', height:'auto' }} />
-                              </div>
-                            ))}
-                          </div>
-                        )}
-
-                        {/* Multiple videos — stacked */}
-                        {sec.videos && (
-                          <div>
-                            {sec.videos.map((src: string, ii: number) => (
-                              <div key={ii} style={{ border:`1px solid ${amberFaint}`, borderRadius:4, marginBottom: ii < sec.videos!.length - 1 ? 8 : 0, overflow:'hidden' }}>
-                                <video src={src} autoPlay loop muted playsInline style={{ display:'block', width:'100%', height:'auto' }} />
-                              </div>
-                            ))}
-                          </div>
-                        )}
+                        {/* Multiple content blocks */}
+                        {sec.contents && sec.contents.map((blk, bi) => renderBlock(blk, bi))}
 
                       </div>
-                    ))
+                    )})
                   ) : (
                     <>
                       {/* PROCESS */}
@@ -1223,19 +1320,18 @@ export default function HardwareBoard() {
             </div>
 
             {/* Metal knob */}
-            <div ref={knobRef} style={{
+            <div ref={knobRef} className={isPoweredOn ? '' : 'knob-off'} style={{
               width:160, height:160, borderRadius:'50%', position:'relative',
               cursor:'grab', flexShrink:0,
               boxShadow:'10px 14px 30px rgba(0,0,0,0.9), -4px -4px 12px rgba(80,105,130,0.12), 0 0 0 1.5px rgba(255,255,255,0.09), 0 0 0 3px rgba(0,0,0,0.6)',
+              transition:'filter 0.5s ease',
             }}>
-              <canvas ref={metalCanvasRef} style={{ position:'absolute', inset:0, width:'100%', height:'100%', borderRadius:'50%', pointerEvents:'none', opacity: isPoweredOn ? 1 : 0.08, transition:'opacity 0.5s' }} />
+              <canvas ref={metalCanvasRef} style={{ position:'absolute', inset:0, width:'100%', height:'100%', borderRadius:'50%', pointerEvents:'none' }} />
               <div ref={rotatorRef} className="knob-rotator">
                 <div className="knob-grip" />
                 <div className="knob-indicator" />
               </div>
             </div>
-            {/* Power-off overlay — last child so it renders above knob; dims entire assembly */}
-            <div style={{ position:'absolute', inset:0, borderRadius:'50%', pointerEvents:'none', zIndex:20, transition:'opacity 0.5s', opacity: isPoweredOn ? 0 : 0.82, background:'rgba(8,10,12,0.9)' }} />
           </div>
         </div>
 
@@ -1506,7 +1602,6 @@ export default function HardwareBoard() {
             >
               {/* Thumb */}
               <div
-                className={undefined}
                 style={{
                   position:'absolute', top:3, left:3, width:24, height:24, borderRadius:'50%',
                   background: 'radial-gradient(circle at 38% 32%, #2a1014 0%, #160a0c 55%, #0c0608 100%)',

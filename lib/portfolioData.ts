@@ -60,14 +60,17 @@ export const SECTION_DETAILS: SectionDetail[] = [
     sections: [
       {
         label: 'BACKGROUND',
+        title: '',
         body: "Growing up, my dad and I would fix whatever broke around the house. Electrical gadgets, wiring, anything that stopped working. I was mostly just handing him tools, but I was always watching, always curious about what was underneath. That habit of needing to understand how something actually works before touching it never really left me.\n\nIt's probably why I ended up in design, and why I lean into the technical side of it more than most. It's also why this portfolio looks the way it does. At some point it just made sense to build it like a piece of hardware rather than another clean white grid.",
       },
       {
         label: 'WHAT PRODUCT DESIGN IS TO ME',
+        title: '',
         body: "Making things feel obvious. Not by simplifying everything, but by structuring complexity in a way that people don't have to think about it. I'm drawn to systems with many moving parts, where clarity, hierarchy, and flow matter more than decoration.\n\nI care about the decisions behind the interface. Why something is placed a certain way, why a flow works or breaks, and how small details shape the overall experience.",
       },
       {
         label: 'MY EXPERIENCE',
+        title: '',
         experience: [
           { company: 'AMD',           role: 'Product Design Intern', period: "05' — 12' 2025" },
           { company: 'Safe Software', role: 'Product Design Intern', period: "01' — 08' 2024" },
@@ -76,8 +79,9 @@ export const SECTION_DETAILS: SectionDetail[] = [
       },
       {
         label: 'SAY HELLO TO ME!',
+        title: '',
         contacts: [
-          { platform: 'Resume',   handle: 'maa resume',              href: 'https://drive.google.com/file/d/1E8AUWkgri9AAHSLil1fQK9KBzZUQbtnK/view?usp=sharingt' },
+          { platform: 'Resume',   handle: 'maa resume',              href: 'https://drive.google.com/file/d/1E8AUWkgri9AAHSLil1fQK9KBzZUQbtnK/view?usp=sharing' },
           { platform: 'Email',    handle: 'bryanwinata112@gmail.com', href: 'mailto:bryanwinata112@gmail.com' },
           { platform: 'LinkedIn', handle: 'linkedin.com/in/gbryanw',  href: 'https://linkedin.com/in/gbryanw' },
           { platform: 'X',        handle: '@gbryanwt',                href: 'https://x.com/gbryanwt' },
@@ -86,7 +90,7 @@ export const SECTION_DETAILS: SectionDetail[] = [
     ],
   },
   {
-    cover: '/AMDThumbnailTop.jpg',
+    cover: '/amdDSHighlight.png',
     overview: "When I joined AMD's UX team, the product didn't have a shared design foundation. Designers organized files differently, colors were applied inconsistently, and components varied from screen to screen. The team was also preparing for a full software redesign — which meant the inconsistency wasn't just a current problem, it was about to be a much bigger one.\n\nI took on building the design system from the ground up: not as a cleanup effort, but as the structural layer the redesign would be built on top of.",
     role: 'Design System Designer',
     year: '2025',
@@ -96,29 +100,53 @@ export const SECTION_DETAILS: SectionDetail[] = [
     ],
     sections: [
       {
-        label: 'TOKEN ARCHITECTURE',
-        images: ['/Tokens1.png', '/ApplyFoundationalDesignTokens.png', '/ColorStructure.png'],
-        body: 'Defined a two-tier color system using primitive and semantic tokens, so components reference intent rather than raw hex values. Spacing and radius followed the same logic, built on a 4-point scale.',
+        label: 'HIGH-LEVEL AUDIT',
+        title: 'Identifying the problems',
+        images: ['/ColorMismatch.png', '/InconsistentStyling.png'],
+        body: 'Before diving into any design system work, I conducted an audit and found two major issues. Colors were applied inconsistently across teams, leading to unclear states and a broken visual hierarchy. Component styling had the same problem, where buttons alone varied across screens in size, corner radius, spacing, and interaction states, revealing a product that had grown without any visual governance.',
+      },
+      {
+        label: 'DESIGN FOUNDATION',
+        contents: [                         
+          { image: '/primitiveTokens.png', title: 'The push for a better color foundation.', body: 'To keep the design system flexible, I defined primitive tokens as the base color palette and used semantic tokens to apply those colors throughout the components. This allowed components to rely on intent-driven values rather than fixed hex codes.' },
+          { images: ['/Tokens1.png', '/ColorStructure.png'], body: 'Once the primitives were set, I mapped them to semantic tokens named by purpose or state. This ensured components always referenced meaningful, role-based tokens, which made updates much smoother and more consistent.' },
+          { image: '/radius_spacingtokens.png',  title: 'A proper spacing & radius tokens',  body: 'To bring consistency to layouts, I introduced numeric tokens for spacing and radius based on a structured 4-point scale. By defining a predictable set of spacing and radius tokens, layout decisions became clearer, adjustments were safer to make.' },
+          { image: '/TextStyling.png',  title: 'Streamlined text styling',  body: ' I simplified the text-styling by consolidating everything into a single, structured typography scale with clear header and body levels.' },
+        ],
       },
       {
         label: 'COMPONENT LIBRARY',
-        images: ['/CommonComponents.png', '/Slots.jpg'],
-        body: 'Built foundational components starting from buttons and expanded outward as designs were approved. Used a slot-based approach to keep variants flexible without multiplying the component count.',
+        contents: [
+          { images: [ '/ComponentAnatomy.png', '/CommonComponents.png'], title: 'Dissecting the designs', body: 'Before building anything, I went through the approved designs and identified the foundational elements that appeared repeatedly, such as buttons, inputs, tags, toggles. Recognizing these common components early meant I could establish a shared base layer rather than designing each screen in isolation.' },
+          { image: '/Slots.jpg', title: 'Supporting multiple variants', body: 'Instead of creating endless variants that would complicate the system, I chose to use the slot method. By treating slots as flexible placeholders, I gave the components room to adapt their content while still maintaining a consistent and polished appearance.' },
+        ],
       },
       {
         label: 'DOCUMENTATION',
+        title: 'Reducing communication gaps between designers and developers',
         images: ['/guides.png', '/DesignGuides.png'],
         body: "Wrote usage and behavior guidelines for each component. The goal was simple: designers and developers shouldn't have to chase each other down to figure out how something is supposed to work.",
       },
       {
         label: 'OUTCOME',
+        title: 'Consistent & maintainable mockups.',
         images: ['/DesignSystemImpact.png', '/DesignSpecs.png'],
         body: 'By the end of the internship, the team had a working system they could actually build with. Updates propagated cleanly across mockups, designers stopped guessing at spacing values, and the redesign had a consistent foundation to grow from.',
       },
       {
         label: 'HOW IT COMES TOGETHER',
+        title: 'The vibeeee ~',
         images: ['/DSHighlight.png'],
         body: 'Even as the overlay introduces new features, the design system keeps everything consistent and connected. Shared components and patterns make the interface feel cohesive, so the overlay stays lightweight and easy to navigate without adding visual noise.',
+      },
+      {
+        label: 'CONFIDENTIAL',
+        title: 'There\'s more to this.',
+        body: "The overlay feature rework is under NDA and can't be shown here. It's the project the design system was built to support.\n\nIf you'd like to walk through that work, reach out and I'm happy to share more in a conversation.",
+        contacts: [
+          { platform: 'Email',    handle: 'bryanwinata112@gmail.com', href: 'mailto:bryanwinata112@gmail.com' },
+          { platform: 'LinkedIn', handle: 'linkedin.com/in/gbryanw',  href: 'https://linkedin.com/in/gbryanw' },
+        ],
       },
     ],
   },
@@ -134,17 +162,20 @@ export const SECTION_DETAILS: SectionDetail[] = [
     sections: [
       {
         label: 'ICONOGRAPHY REDESIGN',
+        title: '',
         images: ['/IconographRebranding.png', '/IconRebrandingResult.png', '/IconographRebrandingResult2.png'],
         body: "Led the handoff of a comprehensive icon library redesign spanning 47+ icons aligned to FME Platform's modernized visual language. Defined SVG export specifications and integration guidelines coordinated directly with the engineering team, covering stroke normalization, fill rules, and named layer conventions for automation.",
       },
       {
         label: 'FEATURE ENHANCEMENT — ANNOTATION TOOLS',
+        title: '',
         images: ['/AnnotationContainer.png'],
         videos: ['/safedialogannotation.mp4', '/visibilityannotation.mp4'],
         body: "Designed a contextual annotation layer for FME's workspace canvas — enabling users to place notes, grouping labels, and inline documentation directly within complex data transformation pipelines. Prior to this, documentation lived entirely outside the workspace in separate files, creating a context gap for new contributors and making pipeline review sessions slower. The annotation system surfaces context exactly where the work happens, reducing onboarding friction and keeping spatial reasoning intact during reviews.",
       },
       {
         label: 'DESIGN SYSTEM',
+        title: '',
         images: ['/ThumbnailV2.png', '/dsexample.png'],
         videos: ['/DSFME.mp4'],
         body: "The iconography handoff surfaced a systemic problem: without a shared token layer, every component handoff required manual cross-referencing between Figma frames and the engineering codebase — a slow, error-prone process that did not scale. Initiated the FME Design System foundation with semantic tokens for color, spacing, typography, and iconography, each with a 1:1 mapping to CSS custom properties via a lightweight codegen step. The icon token layer connects directly to the iconography redesign work, ensuring that every icon variant is referenceable by name rather than by asset path — eliminating the most common class of handoff errors.",
@@ -152,7 +183,7 @@ export const SECTION_DETAILS: SectionDetail[] = [
     ],
   },
   {
-    cover: '/YUBlueprint.jpg',
+    cover: '/blueprintHighlight.png',
     overview: "Fix the 6ix is a Toronto-based non-profit community that distributes gift cards to people who need them most. But keeping track of those cards has always been a manual process: volunteers submit spreadsheets, coordinators piece together the data, and figuring out what's been used, donated, or sitting idle takes more effort than it should.\n\nReGiftCard is the dashboard built to fix that. It gives the Fix the 6ix team a single place to monitor unused gift cards, follow how each one moves through spending or donation, and spot the gaps before they become problems. Less time wrestling with files, more time focused on the people they're actually trying to help.",
     role: 'Lead Designer',
     year: '2026',
@@ -163,6 +194,7 @@ export const SECTION_DETAILS: SectionDetail[] = [
     sections: [
       {
         label: 'SNEAK PEAK',
+        title: '',
         images: ['/HighlightBlueprint.png'],
         videos: ['/BlueprintSneak.mp4'],
         body: 'ReGiftCard is still in development. Here are some sneak peek :)',
@@ -188,7 +220,7 @@ export const SECTION_DETAILS: SectionDetail[] = [
       { label: 'REMOTE',       value: 'Yes — preferred' },
     ],
     contacts: [
-      { platform: 'Resume',   handle: 'view resume',              href: 'https://drive.google.com/file/d/1E8AUWkgri9AAHSLil1fQK9KBzZUQbtnK/view?usp=sharingt' },
+      { platform: 'Resume',   handle: 'view resume',              href: 'https://drive.google.com/file/d/1E8AUWkgri9AAHSLil1fQK9KBzZUQbtnK/view?usp=sharing' },
       { platform: 'Email',    handle: 'bryanwinata112@gmail.com', href: 'mailto:bryanwinata112@gmail.com' },
       { platform: 'LinkedIn', handle: 'linkedin.com/in/gbryanw',  href: 'https://linkedin.com/in/gbryanw' },
       { platform: 'X',        handle: '@gbryanwt',                href: 'https://x.com/gbryanwt' },
