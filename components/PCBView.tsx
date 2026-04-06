@@ -152,11 +152,21 @@ function ConnH({ style }: { style: React.CSSProperties }) {
   )
 }
 
+type SdCardType = 'ponyo' | 'howls' | null
+
 // ── Main Component ─────────────────────────────────────────────
-export default function PCBView({ onClose, onSdInserted, initialSdInserted }: { onClose: () => void; onSdInserted?: (inserted: boolean) => void; initialSdInserted?: boolean }) {
-  const wrapRef  = useRef<HTMLDivElement>(null)
-  const sdRef    = useRef<HTMLDivElement>(null)
-  const [sdInserted, setSdInserted] = useState(initialSdInserted ?? false)
+export default function PCBView({ onClose, onSdInserted, initialSdCard }: { onClose: () => void; onSdInserted?: (card: SdCardType) => void; initialSdCard?: SdCardType }) {
+  const wrapRef    = useRef<HTMLDivElement>(null)
+  const ponyoRef   = useRef<HTMLDivElement>(null)
+  const howlsRef   = useRef<HTMLDivElement>(null)
+  const [sdCard, setSdCard] = useState<SdCardType>(initialSdCard ?? null)
+
+  // per-card drag state
+  const draggingCard  = useRef<'ponyo' | 'howls' | null>(null)
+  const startPtr      = useRef({ x: 0, y: 0 })
+  const startXY       = useRef({ x: 0, y: 0 })
+  const currentXY     = useRef<Record<string, { x: number; y: number }>>({ ponyo: { x: 0, y: 0 }, howls: { x: 0, y: 0 } })
+  const pcbRef        = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     if (wrapRef.current) {
@@ -175,80 +185,76 @@ export default function PCBView({ onClose, onSdInserted, initialSdInserted }: { 
     })
   }
 
-  const pcbRef       = useRef<HTMLDivElement>(null)
-  const startPtr     = useRef({ x: 0, y: 0 })   // pointer at drag start
-  const startXY      = useRef({ x: 0, y: 0 })   // card translate at drag start
-  const currentXY    = useRef({ x: 0, y: 0 })   // live translate
-  const isDraggingSd = useRef(false)
+  const getCardRef = (card: 'ponyo' | 'howls') => card === 'ponyo' ? ponyoRef : howlsRef
 
-  const onSdPointerDown = useCallback((e: React.PointerEvent) => {
-    if (sdInserted) return
+  const onCardPointerDown = useCallback((e: React.PointerEvent, card: 'ponyo' | 'howls') => {
+    if (sdCard === card) return
     e.preventDefault()
     e.stopPropagation()
-    isDraggingSd.current = true
-    sdRef.current!.setPointerCapture(e.pointerId)
+    draggingCard.current = card
+    const el = getCardRef(card).current!
+    el.setPointerCapture(e.pointerId)
     startPtr.current = { x: e.clientX, y: e.clientY }
-    startXY.current  = { ...currentXY.current }
-    gsap.killTweensOf(sdRef.current)
-  }, [sdInserted])
+    startXY.current  = { ...currentXY.current[card] }
+    gsap.killTweensOf(el)
+  }, [sdCard])
 
-  const onSdPointerMove = useCallback((e: React.PointerEvent) => {
-    if (!isDraggingSd.current) return
+  const onCardPointerMove = useCallback((e: React.PointerEvent) => {
+    const card = draggingCard.current
+    if (!card) return
     const dx = e.clientX - startPtr.current.x + startXY.current.x
     const dy = e.clientY - startPtr.current.y + startXY.current.y
-    currentXY.current = { x: dx, y: dy }
-    gsap.set(sdRef.current, { x: dx, y: dy })
+    currentXY.current[card] = { x: dx, y: dy }
+    gsap.set(getCardRef(card).current, { x: dx, y: dy })
   }, [])
 
-  const onSdPointerUp = useCallback(() => {
-    if (!isDraggingSd.current) return
-    isDraggingSd.current = false
+  const onCardPointerUp = useCallback(() => {
+    const card = draggingCard.current
+    if (!card) return
+    draggingCard.current = null
 
-    const el  = sdRef.current!
+    const el  = getCardRef(card).current!
     const pcb = pcbRef.current!
     const pcbRect = pcb.getBoundingClientRect()
     const elRect  = el.getBoundingClientRect()
 
-    // Card center relative to PCB in %
     const cx = ((elRect.left + elRect.width  / 2) - pcbRect.left) / pcbRect.width  * 100
     const cy = ((elRect.top  + elRect.height / 2) - pcbRect.top)  / pcbRect.height * 100
 
-    // Slot center: storage chip is at left:81%, top:10%-23% → center ~81%+3.75%, 16.5%
     const SLOT_CX = 84.75, SLOT_CY = 16.5
     const dist = Math.hypot(cx - SLOT_CX, cy - SLOT_CY)
 
     if (dist < 10) {
-      // Compute translate needed to land card at slot position
       const slotPixX = pcbRect.left + SLOT_CX / 100 * pcbRect.width  - elRect.width  / 2
       const slotPixY = pcbRect.top  + 10       / 100 * pcbRect.height
-      const snapX = currentXY.current.x + (slotPixX - elRect.left)
-      const snapY = currentXY.current.y + (slotPixY - elRect.top)
+      const snapX = currentXY.current[card].x + (slotPixX - elRect.left)
+      const snapY = currentXY.current[card].y + (slotPixY - elRect.top)
       gsap.to(el, {
         x: snapX, y: snapY, duration: 0.2, ease: 'power3.out',
         onComplete: () => {
-          currentXY.current = { x: snapX, y: snapY }
-          setSdInserted(true)
-          onSdInserted?.(true)
+          currentXY.current[card] = { x: snapX, y: snapY }
+          setSdCard(card)
+          onSdInserted?.(card)
         },
       })
     } else {
-      // Spring back to home (translate 0,0)
       gsap.to(el, {
         x: 0, y: 0, duration: 0.35, ease: 'back.out(1.8)',
-        onComplete: () => { currentXY.current = { x: 0, y: 0 } },
+        onComplete: () => { currentXY.current[card] = { x: 0, y: 0 } },
       })
     }
   }, [onSdInserted])
 
   const handleSdEject = useCallback(() => {
-    if (!sdInserted) return
-    setSdInserted(false)
-    onSdInserted?.(false)
-    gsap.to(sdRef.current, {
+    if (!sdCard) return
+    const el = getCardRef(sdCard).current
+    setSdCard(null)
+    onSdInserted?.(null)
+    if (el) gsap.to(el, {
       x: 0, y: 0, duration: 0.3, ease: 'back.out(1.6)',
-      onComplete: () => { currentXY.current = { x: 0, y: 0 } },
+      onComplete: () => { currentXY.current[sdCard] = { x: 0, y: 0 } },
     })
-  }, [sdInserted, onSdInserted])
+  }, [sdCard, onSdInserted])
 
   return (
     <div
@@ -668,18 +674,50 @@ export default function PCBView({ onClose, onSdInserted, initialSdInserted }: { 
         <div style={{ ...pcbLabel, top: '85%', left: '28%' }}>J15_PWR</div>
         <PinH style={{ top: '80%', left: '28%', width: '7.5%', height: '2%' }} count={7} />
 
-        {/* ── SD Card — draggable, home in empty space below J14_DIAG ── */}
-        {!sdInserted && (
+        {/* ── Sticky note — SD card instructions ── */}
+        <div style={{
+          position: 'absolute', left: '36%', top: '58%', zIndex: 25,
+          width: '13%',
+          background: 'linear-gradient(170deg, #fefce4 0%, #fdf0b0 40%, #fce878 100%)',
+          borderRadius: 2,
+          padding: '10px 10px 8px',
+          transform: 'rotate(2deg)',
+          boxShadow: '2px 3px 6px rgba(0,0,0,0.35), 4px 6px 16px rgba(0,0,0,0.25), inset 0 1px 0 rgba(255,255,255,0.6)',
+          pointerEvents: 'none',
+        }}>
+          <div style={{
+            position: 'absolute', inset: 0, borderRadius: 2, pointerEvents: 'none',
+            backgroundImage: 'repeating-linear-gradient(0deg, transparent, transparent 14px, rgba(120,160,200,0.12) 14px, rgba(120,160,200,0.12) 15px)',
+            backgroundPositionY: '20px',
+          }} />
+          <p style={{
+            fontFamily: 'var(--font-dancing-script, "Segoe Script", cursive)',
+            fontSize: 8, lineHeight: 1.6, color: '#5a4a2a',
+            margin: 0, position: 'relative', zIndex: 1,
+          }}>
+            drag SD card<br />into slot →
+          </p>
+        </div>
+
+        {/* ── SD Cards — two draggable cards, home near bottom-center ── */}
+        {(['ponyo', 'howls'] as const).map((card, i) => (
           <div
-            ref={sdRef}
-            onPointerDown={onSdPointerDown}
-            onPointerMove={onSdPointerMove}
-            onPointerUp={onSdPointerUp}
-            title="Drag into SD slot"
+            key={card}
+            ref={card === 'ponyo' ? ponyoRef : howlsRef}
+            onPointerDown={e => onCardPointerDown(e, card)}
+            onPointerMove={onCardPointerMove}
+            onPointerUp={onCardPointerUp}
+            title={`Drag ${card} SD card into slot`}
             style={{
-              position: 'absolute', left: '67%', top: '30%',
-              width: '6%', zIndex: 30,
-              cursor: 'grab', touchAction: 'none', userSelect: 'none',
+              position: 'absolute',
+              left: `${47 + i * 9}%`,
+              top: '58%',
+              width: '7%', zIndex: 30,
+              cursor: sdCard === card ? 'default' : 'grab',
+              touchAction: 'none', userSelect: 'none',
+              opacity: sdCard === card ? 0 : 1,
+              pointerEvents: sdCard === card ? 'none' : 'auto',
+              transition: 'opacity 0.2s',
             }}
           >
             <div style={{ position: 'relative', width: '100%', paddingBottom: '130%' }}>
@@ -697,21 +735,21 @@ export default function PCBView({ onClose, onSdInserted, initialSdInserted }: { 
                   borderRadius: '2px', border: '0.5px solid #d0ccc4',
                   display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '2px',
                 }}>
-                  <span style={{ fontSize: '5px', fontFamily: 'var(--font-jetbrains-mono), monospace', color: '#6b5e4e', letterSpacing: '0.1em', fontWeight: 700 }}>PONYO</span>
-                  <span style={{ fontSize: '4px', fontFamily: 'var(--font-jetbrains-mono), monospace', color: '#9a8e82', letterSpacing: '0.05em' }}>64GB</span>
+                  <span style={{ fontSize: '6px', fontFamily: 'var(--font-jetbrains-mono), monospace', color: '#6b5e4e', letterSpacing: '0.08em', fontWeight: 700 }}>{card === 'ponyo' ? 'PONYO' : "HOWL'S"}</span>
+                  <span style={{ fontSize: '5px', fontFamily: 'var(--font-jetbrains-mono), monospace', color: '#9a8e82', letterSpacing: '0.05em' }}>64GB</span>
                 </div>
                 <div style={{ position: 'absolute', bottom: 0, left: '4%', right: '4%', height: '26%', display: 'flex', gap: '2px', alignItems: 'flex-end', padding: '0 3px 2px' }}>
-                  {[0,1,2,3,4,5,6].map(i => (
-                    <div key={i} style={{ flex: 1, height: '80%', background: 'linear-gradient(180deg, #d4a843 0%, #b8922e 50%, #d4a843 100%)', borderRadius: '0 0 1px 1px' }} />
+                  {[0,1,2,3,4,5,6].map(j => (
+                    <div key={j} style={{ flex: 1, height: '80%', background: 'linear-gradient(180deg, #d4a843 0%, #b8922e 50%, #d4a843 100%)', borderRadius: '0 0 1px 1px' }} />
                   ))}
                 </div>
               </div>
             </div>
           </div>
-        )}
+        ))}
 
         {/* ── SD inserted indicator — contacts peeking out below slot ── */}
-        {sdInserted && (
+        {sdCard !== null && (
           <div
             onClick={handleSdEject}
             title="Click to eject"

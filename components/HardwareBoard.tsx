@@ -9,8 +9,8 @@ import { SECTIONS, SECTION_DETAILS } from '@/lib/portfolioData'
 
 
 // ── Video URLs ──
-const VIDEO_DEFAULT = '/HowlsVideo.mp4'
-const VIDEO_PONYO   = '/Ponyoo.mp4'
+const VIDEO_HOWLS = '/HowlsVideo.mp4'
+const VIDEO_PONYO = '/Ponyoo.mp4'
 
 const NUM          = SECTIONS.length
 const TOTAL_ARC    = 240
@@ -174,7 +174,7 @@ export default function HardwareBoard() {
   const [clickedBolts,  setClickedBolts]  = useState<Set<string>>(new Set())
   const boltRefs = useRef<Record<string, HTMLDivElement | null>>({ tl: null, tr: null, bl: null, br: null })
   const [showPCB,       setShowPCB]       = useState(false)
-  const [sdInserted,    setSdInserted]    = useState(false)
+  const [sdCard,        setSdCard]        = useState<'ponyo' | 'howls' | null>(null)
   const [torontoTime,   setTorontoTime]   = useState('')
   const [showDog,       setShowDog]       = useState(false)
   const [dogFrame,      setDogFrame]      = useState(0)
@@ -491,6 +491,24 @@ export default function HardwareBoard() {
   // Keep ref in sync so pointer handlers always read current power state
   useEffect(() => { isPoweredOnRef.current = isPoweredOn }, [isPoweredOn])
 
+  // Swap page background only when SD card is inserted and device is on
+  useEffect(() => {
+    if (sdCard !== null && isPoweredOn) {
+      document.body.style.backgroundImage    = "url('/PonyoWallpaper.jpg')"
+      document.body.style.backgroundSize     = 'cover'
+      document.body.style.backgroundPosition = 'center'
+    } else {
+      document.body.style.backgroundImage    = ''
+      document.body.style.backgroundSize     = ''
+      document.body.style.backgroundPosition = ''
+    }
+    return () => {
+      document.body.style.backgroundImage    = ''
+      document.body.style.backgroundSize     = ''
+      document.body.style.backgroundPosition = ''
+    }
+  }, [sdCard, isPoweredOn])
+
   const changeSection = useCallback((idx: number) => {
     if (!isPoweredOnRef.current) return          // block all actions when off
     if (activeIdxRef.current === idx) return
@@ -725,6 +743,7 @@ export default function HardwareBoard() {
         boxShadow: '0 8px 24px rgba(0,0,0,0.7), 0 2px 6px rgba(0,0,0,0.5), inset 0 2px 8px rgba(0,0,0,0.8), inset 0 1px 0 rgba(255,255,255,0.04)',
         position: 'relative',
       }}>
+        {/* ── Hover tooltip — floats above the screen ── */}
         <div
           className="screen-tv"
           onClick={handleZoom}
@@ -793,15 +812,26 @@ export default function HardwareBoard() {
               screenGlow={screenGlow}
             />
           ) : activeIndex === 4 ? (
-            <div key="video" style={{ position:'absolute', inset:0, overflow:'hidden', borderRadius:10, zIndex:0 }}>
-              <video
-                src={sdInserted ? VIDEO_PONYO : VIDEO_DEFAULT}
-                autoPlay loop muted={false} playsInline
-                style={{ position:'absolute', top:'50%', left:0, transform:'translateY(-50%)', width:'100%', height:'115%', objectFit:'cover', objectPosition:'center' }}
-              />
-              <div style={{ position:'absolute', bottom:10, left:12, fontFamily:'var(--font-jetbrains-mono), monospace', fontSize:9, letterSpacing:'0.08em', color:'rgba(255,255,255,0.5)', pointerEvents:'none', zIndex:5 }}>
-                @stvlightss
-              </div>
+            <div key="video" style={{ position:'absolute', inset:0, overflow:'hidden', borderRadius:10, zIndex:0, background:'#000', display:'flex', alignItems:'center', justifyContent:'center' }}>
+              {sdCard ? (
+                <>
+                  <video
+                    src={sdCard === 'ponyo' ? VIDEO_PONYO : VIDEO_HOWLS}
+                    autoPlay loop muted={false} playsInline
+                    style={{ position:'absolute', top:'50%', left:0, transform:'translateY(-50%)', width:'100%', height:'115%', objectFit:'cover', objectPosition:'center' }}
+                  />
+                  <div style={{ position:'absolute', bottom:10, left:12, fontFamily:'var(--font-jetbrains-mono), monospace', fontSize:9, letterSpacing:'0.08em', color:'rgba(255,255,255,0.5)', pointerEvents:'none', zIndex:5 }}>
+                    @stvlightss
+                  </div>
+                </>
+              ) : (
+                <div style={{ textAlign:'center', fontFamily:'var(--font-jetbrains-mono), monospace', pointerEvents:'none' }}>
+                  <div style={{ fontSize:11, letterSpacing:2, color:'rgba(255,255,255,0.25)', marginBottom:8, textTransform:'uppercase' }}>NO MEDIA</div>
+                  <div style={{ fontSize:9, letterSpacing:1.5, color:'rgba(255,255,255,0.15)', lineHeight:1.8, textTransform:'uppercase' }}>
+                    Click the screws to open<br />hardware panel &amp; insert SD card
+                  </div>
+                </div>
+              )}
             </div>
           ) : (
             <>
@@ -851,8 +881,8 @@ export default function HardwareBoard() {
       {showPCB && (
         <PCBView
           onClose={() => { setShowPCB(false); resetBolts() }}
-          onSdInserted={setSdInserted}
-          initialSdInserted={sdInserted}
+          onSdInserted={setSdCard}
+          initialSdCard={sdCard}
         />
       )}
 
@@ -1614,7 +1644,8 @@ export default function HardwareBoard() {
                 }}
               >
                 {/* LED indicator dot */}
-                <div style={{
+                {/* LED indicator dot */}
+                <div className={isPoweredOn ? '' : 'led-standby'} style={{
                   width: 7, height: 7, borderRadius: '50%',
                   background: isPoweredOn
                     ? 'radial-gradient(circle at 35% 30%, #ff6666 0%, #ee1122 45%, #aa0010 100%)'

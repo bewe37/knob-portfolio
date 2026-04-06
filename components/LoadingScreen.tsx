@@ -1,37 +1,7 @@
 'use client'
 
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef } from 'react'
 import { gsap } from 'gsap'
-
-const RAMP = ' .,:;i1tfLCG08@#'
-const COLS = 38
-const ROWS = 22
-
-function imgToAscii(img: HTMLImageElement): string[] {
-  const canvas  = document.createElement('canvas')
-  canvas.width  = COLS
-  canvas.height = ROWS
-  const ctx = canvas.getContext('2d')!
-  ctx.drawImage(img, 0, 0, COLS, ROWS)
-  const { data } = ctx.getImageData(0, 0, COLS, ROWS)
-  const lines: string[] = []
-  for (let row = 0; row < ROWS; row++) {
-    let line = ''
-    for (let col = 0; col < COLS; col++) {
-      const i     = (row * COLS + col) * 4
-      const alpha = data[i + 3]
-      const lum   = 0.299 * data[i] + 0.587 * data[i + 1] + 0.114 * data[i + 2]
-      if (alpha < 80 || lum > 210) {
-        line += ' '
-        continue
-      }
-      const inverted = 255 - lum
-      line += RAMP[Math.floor((inverted / 255) * (RAMP.length - 1))]
-    }
-    lines.push(line)
-  }
-  return lines
-}
 
 interface Props {
   onDone: () => void
@@ -39,162 +9,123 @@ interface Props {
   screenGlow: string
 }
 
+const TARGET = 'BOOTING'
+const CHARS  = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!#$%&@?'
+const rand   = () => CHARS[Math.floor(Math.random() * CHARS.length)]
+
 export function LoadingScreen({ onDone, screenColor, screenGlow }: Props) {
   const wrapRef      = useRef<HTMLDivElement>(null)
   const scanRef      = useRef<HTMLDivElement>(null)
   const containerRef = useRef<HTMLDivElement>(null)
+  const textRef      = useRef<HTMLDivElement>(null)
   const onDoneRef    = useRef(onDone)
   onDoneRef.current  = onDone
 
-  const [ascii, setAscii] = useState<string[]>([])
-  const didAnimate = useRef(false)
-
   useEffect(() => {
-    const img   = new Image()
-    img.src     = '/paw.jpg'
-    img.onerror = () => onDoneRef.current()
-    img.onload  = () => setAscii(imgToAscii(img))
-  }, [])
-
-  useEffect(() => {
-    if (!ascii.length || didAnimate.current) return
-    if (!containerRef.current || !scanRef.current || !wrapRef.current) return
-    didAnimate.current = true
-
-    const chars   = Array.from(containerRef.current.querySelectorAll<HTMLElement>('.asc-char'))
-    const scan    = scanRef.current
-    const wrap    = wrapRef.current
-    const totalW  = containerRef.current.offsetWidth
-    const SCAN_DUR = 1.8
-    const colDelay = SCAN_DUR / COLS
-
-    gsap.set(chars, { opacity: 0 })
-    gsap.set(scan, { opacity: 1, left: 0 })
-
-    const tweens: gsap.core.Tween[] = []
-
-    chars.forEach((span) => {
-      const col       = parseInt(span.dataset.col ?? '0')
-      const finalChar = span.dataset.char ?? ' '
-      const delay     = col * colDelay
-      const proxy     = { t: 0 }
-
-      const tw = gsap.to(proxy, {
-        t: 1,
-        duration: 0.45,
-        delay,
-        ease: 'power1.out',
-        onStart() { gsap.set(span, { opacity: 1 }) },
-        onUpdate() {
-          span.textContent = proxy.t < 0.65
-            ? RAMP[Math.floor(Math.random() * RAMP.length)]
-            : finalChar
-        },
-        onComplete() { span.textContent = finalChar },
-      })
-      tweens.push(tw)
-    })
-
     const cont = containerRef.current
-    gsap.set(cont, { transformOrigin: 'bottom center' })
+    const scan = scanRef.current
+    const wrap = wrapRef.current
+    const text = textRef.current
+    if (!cont || !scan || !wrap || !text) return
 
-    const tl = gsap.timeline({
-      onComplete: () => {
-        gsap.to(wrap, {
-          opacity: 0,
-          duration: 0.4,
-          ease: 'power1.in',
-          onComplete: () => { onDoneRef.current() },
-        })
-      },
-    })
+    // Start fully scrambled
+    const current = Array.from({ length: TARGET.length }, rand)
+    text.textContent = current.join('')
+    gsap.set(cont, { rotation: -20, transformOrigin: 'center center' })
+    gsap.set(scan, { opacity: 0 })
 
-    tl.to(scan, { left: totalW, duration: SCAN_DUR, ease: 'none' }, 0)
-    // Wave left → right after scan finishes
-    tl.to(cont, { rotation:  14, duration: 0.22, ease: 'power2.out' })
-    tl.to(cont, { rotation: -12, duration: 0.28, ease: 'sine.inOut' })
-    tl.to(cont, { rotation:  10, duration: 0.26, ease: 'sine.inOut' })
-    tl.to(cont, { rotation:  -7, duration: 0.24, ease: 'sine.inOut' })
-    tl.to(cont, { rotation:   4, duration: 0.22, ease: 'sine.inOut' })
-    tl.to(cont, { rotation:   0, duration: 0.35, ease: 'elastic.out(1, 0.45)' })
-    tl.to({}, { duration: 0.3 })
+    // Phase 1: scramble, locking letters left-to-right
+    const locked   = new Array(TARGET.length).fill(false)
+    let lockedCount = 0
+    let frame       = 0
+    const FRAMES_PER_LOCK = 4 // lock one letter every 4 ticks (~200ms)
+
+    const scramble = setInterval(() => {
+      frame++
+      for (let i = 0; i < TARGET.length; i++) {
+        current[i] = locked[i] ? TARGET[i] : rand()
+      }
+      text.textContent = current.join('')
+
+      if (frame % FRAMES_PER_LOCK === 0 && lockedCount < TARGET.length) {
+        locked[lockedCount] = true
+        lockedCount++
+      }
+
+      if (lockedCount === TARGET.length) {
+        clearInterval(scramble)
+        text.textContent = TARGET
+        startScanPhase()
+      }
+    }, 50)
+
+    function startScanPhase() {
+      const totalW = cont!.offsetWidth
+      gsap.set(scan, { opacity: 1, left: 0 })
+
+      const tl = gsap.timeline({
+        onComplete: () => {
+          gsap.to(wrap, {
+            opacity: 0, duration: 0.45, ease: 'power1.in',
+            onComplete: () => onDoneRef.current(),
+          })
+        },
+      })
+
+      // Scan sweeps across crooked text
+      tl.to(scan, { left: totalW, duration: 1.8, ease: 'none' }, 0)
+
+      // First attempt — almost makes it, violently snaps back
+      tl.to(cont, { rotation: -2,  duration: 0.3,  ease: 'power3.out' })
+      tl.to(cont, { rotation: -17, duration: 0.35, ease: 'elastic.out(1.2, 0.4)' })
+
+      // Dramatic hesitation
+      tl.to({}, { duration: 0.35 })
+
+      // Second attempt — full 360 spin, slams straight
+      tl.to(cont, { rotation: 360, duration: 0.75, ease: 'power2.inOut' })
+      tl.set(cont, { rotation: 0 })
+
+      // Pause then fade
+      tl.to({}, { duration: 0.65 })
+    }
 
     return () => {
-      tl.kill()
-      tweens.forEach(tw => tw.kill())
+      clearInterval(scramble)
+      gsap.killTweensOf([cont, scan, wrap])
     }
-  }, [ascii])
+  }, [])
 
   return (
     <div
       ref={wrapRef}
       style={{
-        position:       'absolute',
-        inset:          0,
-        zIndex:         5,
-        display:        'flex',
-        flexDirection:  'column',
-        alignItems:     'center',
-        justifyContent: 'center',
-        gap:            10,
-        background:     'transparent',
+        position: 'absolute', inset: 0, zIndex: 5,
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        background: 'transparent',
       }}
     >
-      <div ref={containerRef} style={{ position: 'relative' }}>
-        {/* Neon scan bar — vertical, sweeps left → right */}
+      <div ref={containerRef} style={{ position: 'relative', display: 'inline-block' }}>
+        {/* Scan bar */}
         <div
           ref={scanRef}
           style={{
-            position:      'absolute',
-            top:           -4,
-            bottom:        -4,
-            left:          0,
-            width:         2,
-            opacity:       0,
-            background:    screenColor,
-            boxShadow:     `0 0 6px 3px ${screenGlow}, 0 0 18px 7px ${screenGlow}`,
-            zIndex:        2,
-            pointerEvents: 'none',
+            position: 'absolute', top: -6, bottom: -6, left: 0, width: 2,
+            opacity: 0, background: screenColor,
+            boxShadow: `0 0 6px 3px ${screenGlow}, 0 0 18px 7px ${screenGlow}`,
+            zIndex: 2, pointerEvents: 'none',
           }}
         />
-        <pre
+        <div
+          ref={textRef}
           style={{
-            fontFamily:    'var(--font-jetbrains-mono), "JetBrains Mono", monospace',
-            fontSize:      '8px',
-            lineHeight:    '1.15',
-            letterSpacing: '0.06em',
-            color:         screenColor,
-            textShadow:    `0 0 6px ${screenGlow}`,
-            userSelect:    'none',
-            margin:        0,
-            opacity:       0.8,
+            fontFamily: 'var(--font-jetbrains-mono), "JetBrains Mono", monospace',
+            fontSize: '28px', fontWeight: 700, letterSpacing: '0.18em',
+            color: screenColor,
+            textShadow: `0 0 12px ${screenGlow}, 0 0 32px ${screenGlow}`,
+            userSelect: 'none',
           }}
-        >
-          {ascii.map((line, row) => (
-            <div key={row} className="asc-row">
-              {Array.from(line).map((ch, col) => (
-                <span
-                  key={col}
-                  className="asc-char"
-                  data-col={String(col)}
-                  data-char={ch}
-                >{ch}</span>
-              ))}
-            </div>
-          ))}
-        </pre>
-      </div>
-
-      <div style={{
-        fontFamily:    'var(--font-jetbrains-mono), "JetBrains Mono", monospace',
-        fontSize:      '8px',
-        letterSpacing: '0.28em',
-        color:         screenColor,
-        textShadow:    `0 0 6px ${screenGlow}`,
-        opacity:       0.5,
-        textTransform: 'uppercase',
-      }}>
-        BOOTING . . .
+        />
       </div>
     </div>
   )

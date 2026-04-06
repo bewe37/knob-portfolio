@@ -25,6 +25,7 @@ body {
   height: 100%;
 }
 
+
 body {
   /* Skeuomorphic surface — linen texture + center lighting + corner vignette */
   background-color: #bec9d2;
@@ -114,14 +115,23 @@ body {
 }
 
 .knob-off {
-  filter: brightness(0.38) saturate(0.4);
   transition: filter 0.5s ease;
+}
+
+@keyframes led-standby {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.2; }
+}
+
+.led-standby {
+  animation: led-standby 1s ease-in-out infinite;
 }
 
 .knob-off .knob-indicator {
   background: linear-gradient(to bottom, #2a2c30 0%, #1a1c20 100%);
   box-shadow: none;
 }
+
 
 /* ── Project selector buttons ────────────────────────────── */
 .proj-btn {
