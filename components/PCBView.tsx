@@ -676,30 +676,70 @@ export default function PCBView({ onClose, onSdInserted, initialSdCard }: { onCl
 
         {/* ── Sticky note — SD card instructions ── */}
         <div style={{
-          position: 'absolute', left: '36%', top: '58%', zIndex: 25,
-          width: '13%',
-          background: 'linear-gradient(170deg, #fefce4 0%, #fdf0b0 40%, #fce878 100%)',
+          position: 'absolute', left: '40%', top: '17%', zIndex: 25,
+          width: '16%',
+          background: 'linear-gradient(165deg, #fffde6 0%, #fff59c 38%, #fdd835 100%)',
           borderRadius: 2,
-          padding: '10px 10px 8px',
-          transform: 'rotate(2deg)',
-          boxShadow: '2px 3px 6px rgba(0,0,0,0.35), 4px 6px 16px rgba(0,0,0,0.25), inset 0 1px 0 rgba(255,255,255,0.6)',
+          padding: '20px 12px 14px',
+          transform: 'rotate(-2deg)',
+          boxShadow: [
+            '1px 2px 2px rgba(0,0,0,0.12)',
+            '3px 6px 12px rgba(0,0,0,0.22)',
+            '7px 14px 28px rgba(0,0,0,0.14)',
+            'inset 0 1px 0 rgba(255,255,255,0.70)',
+            'inset 1px 0 0 rgba(255,255,255,0.45)',
+          ].join(', '),
           pointerEvents: 'none',
         }}>
+          {/* Adhesive strip — slightly darker/glossy top band */}
+          <div style={{
+            position: 'absolute', top: 0, left: 0, right: 0, height: '30%',
+            background: 'linear-gradient(to bottom, rgba(160,130,0,0.16) 0%, rgba(160,130,0,0.04) 100%)',
+            borderRadius: '2px 2px 0 0', pointerEvents: 'none',
+          }} />
+          {/* Ruled lines */}
           <div style={{
             position: 'absolute', inset: 0, borderRadius: 2, pointerEvents: 'none',
-            backgroundImage: 'repeating-linear-gradient(0deg, transparent, transparent 14px, rgba(120,160,200,0.12) 14px, rgba(120,160,200,0.12) 15px)',
-            backgroundPositionY: '20px',
+            backgroundImage: 'repeating-linear-gradient(0deg, transparent, transparent 17px, rgba(100,140,190,0.11) 17px, rgba(100,140,190,0.11) 18px)',
+            backgroundPositionY: '26px',
           }} />
+          {/* Diagonal crease */}
+          <div style={{
+            position: 'absolute', inset: 0, borderRadius: 2, pointerEvents: 'none',
+            background: [
+              'linear-gradient(138deg, transparent 32%, rgba(0,0,0,0.04) 36%, transparent 39%)',
+              'linear-gradient(138deg, transparent 36%, rgba(255,255,255,0.16) 39%, transparent 42%)',
+            ].join(', '),
+          }} />
+          {/* Corner curl */}
+          <div style={{
+            position: 'absolute', bottom: 0, right: 0,
+            width: 24, height: 24,
+            background: 'linear-gradient(225deg, rgba(0,0,0,0.16) 0%, transparent 62%)',
+            borderRadius: '0 0 2px 0', pointerEvents: 'none',
+          }} />
+          {/* Tape */}
+          <div style={{
+            position: 'absolute', top: -10, left: '50%', transform: 'translateX(-50%) rotate(1.2deg)',
+            width: 38, height: 17,
+            background: 'linear-gradient(180deg, rgba(255,255,255,0.50) 0%, rgba(236,232,198,0.42) 100%)',
+            backdropFilter: 'blur(2px)',
+            borderRadius: 2,
+            boxShadow: '0 1px 3px rgba(0,0,0,0.10), inset 0 1px 1px rgba(255,255,255,0.75)',
+          }} />
+          {/* Text */}
           <p style={{
-            fontFamily: 'var(--font-dancing-script, "Segoe Script", cursive)',
-            fontSize: 8, lineHeight: 1.6, color: '#5a4a2a',
+            fontFamily: '"Shelter Coffee", cursive',
+            fontSize: 15, lineHeight: 1.55, color: '#5a4e2e',
             margin: 0, position: 'relative', zIndex: 1,
+            fontWeight: 400,
+            textShadow: '0.3px 0.5px 0 rgba(20,15,0,0.14)',
           }}>
             drag SD card<br />into slot →
           </p>
         </div>
 
-        {/* ── SD Cards — two draggable cards, home near bottom-center ── */}
+        {/* ── SD Cards — two draggable cards, home near SD slot ── */}
         {(['ponyo', 'howls'] as const).map((card, i) => (
           <div
             key={card}
@@ -710,8 +750,8 @@ export default function PCBView({ onClose, onSdInserted, initialSdCard }: { onCl
             title={`Drag ${card} SD card into slot`}
             style={{
               position: 'absolute',
-              left: `${47 + i * 9}%`,
-              top: '58%',
+              left: `${58 + i * 9}%`,
+              top: '17%',
               width: '7%', zIndex: 30,
               cursor: sdCard === card ? 'default' : 'grab',
               touchAction: 'none', userSelect: 'none',
@@ -731,12 +771,11 @@ export default function PCBView({ onClose, onSdInserted, initialSdCard }: { onCl
                 <div style={{ position: 'absolute', top: 0, right: 0, width: '28%', height: '22%', background: 'linear-gradient(135deg, transparent 50%, #9aa0a6 50%)' }} />
                 <div style={{
                   position: 'absolute', top: '8%', left: '8%', right: '8%', bottom: '30%',
-                  background: 'linear-gradient(160deg, #f5f5f0 0%, #e8e4dc 100%)',
-                  borderRadius: '2px', border: '0.5px solid #d0ccc4',
+                  background: 'linear-gradient(160deg, #f0f0eb 0%, #e0ddd6 100%)',
+                  borderRadius: '2px', border: '0.5px solid #c8c4bc',
                   display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '2px',
                 }}>
-                  <span style={{ fontSize: '6px', fontFamily: 'var(--font-jetbrains-mono), monospace', color: '#6b5e4e', letterSpacing: '0.08em', fontWeight: 700 }}>{card === 'ponyo' ? 'PONYO' : "HOWL'S"}</span>
-                  <span style={{ fontSize: '5px', fontFamily: 'var(--font-jetbrains-mono), monospace', color: '#9a8e82', letterSpacing: '0.05em' }}>64GB</span>
+                  <span style={{ fontSize: '9px', fontFamily: 'var(--font-jetbrains-mono), monospace', color: '#5a5248', letterSpacing: '0.10em', fontWeight: 700 }}>{card === 'ponyo' ? 'SD1' : 'SD2'}</span>
                 </div>
                 <div style={{ position: 'absolute', bottom: 0, left: '4%', right: '4%', height: '26%', display: 'flex', gap: '2px', alignItems: 'flex-end', padding: '0 3px 2px' }}>
                   {[0,1,2,3,4,5,6].map(j => (

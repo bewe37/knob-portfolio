@@ -24,15 +24,22 @@ const CHAIN_W   = BALL_R * 2 + 6
 const CHAIN_H   = NUM_BALLS * LINK_UNIT + BALL_R * 2
 const FIGURE_PX = 96
 
-export default function SmiskiKeychain() {
+export default function SmiskiKeychain({ isDark = false }: { isDark?: boolean }) {
   const swingRef   = useRef<HTMLDivElement>(null)
   const isDragging = useRef(false)
   const lastX      = useRef(0)
   const velX       = useRef(0)
   const idleTl     = useRef<gsap.core.Timeline | null>(null)
-  const [quote, setQuote]   = useState<string | null>(null)
-  const tooltipRef          = useRef<HTMLDivElement>(null)
-  const quoteIndexRef       = useRef(0)
+  const [quote, setQuote]               = useState<string | null>(null)
+  const tooltipRef                      = useRef<HTMLDivElement>(null)
+  const quoteIndexRef                   = useRef(0)
+  const [interactCount, setInteractCount] = useState(0)
+  const isGlowing = isDark && interactCount >= 2
+
+  // Reset glow when dark mode turns off
+  useEffect(() => {
+    if (!isDark) setInteractCount(0)
+  }, [isDark])
 
   // ── Idle pendulum ────────────────────────────────────────
   const startIdle = useCallback(() => {
@@ -90,6 +97,7 @@ export default function SmiskiKeychain() {
     velX.current  = 0
     swingRef.current!.setPointerCapture(e.pointerId)
     showQuote()
+    setInteractCount(c => Math.min(c + 1, 2))
   }, [stopIdle, showQuote])
 
   const onPointerMove = useCallback((e: React.PointerEvent) => {
@@ -241,6 +249,7 @@ export default function SmiskiKeychain() {
         <img
           src="/smik.png"
           alt="Smiski"
+          className={isGlowing ? 'smiski-glowing' : undefined}
           style={{
             width: FIGURE_PX,
             display: 'block',

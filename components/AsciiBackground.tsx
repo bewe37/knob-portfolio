@@ -22,8 +22,10 @@ interface Ripple {
   x: number; y: number; r: number; maxR: number; speed: number
 }
 
-export default function AsciiBackground() {
+export default function AsciiBackground({ isDark = false }: { isDark?: boolean }) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
+  const isDarkRef = useRef(isDark)
+  useEffect(() => { isDarkRef.current = isDark }, [isDark])
 
   useEffect(() => {
     const canvas = canvasRef.current
@@ -202,7 +204,9 @@ export default function AsciiBackground() {
         }
 
         // ── Pass 1: cold cells ──────────────────────────────
-        ctx.fillStyle = `rgba(80,100,115,${BASE_OPACITY * alpha1t})`
+        const baseRgb = isDarkRef.current ? '110,140,170' : '80,100,115'
+        const baseOp  = isDarkRef.current ? BASE_OPACITY * 1.8 : BASE_OPACITY
+        ctx.fillStyle = `rgba(${baseRgb},${baseOp * alpha1t})`
         for (let r = 0; r < rows; r++) {
           for (let c = 0; c < cols; c++) {
             if (heat[r * cols + c] > 0.01) continue
@@ -216,9 +220,9 @@ export default function AsciiBackground() {
             const idx = r * cols + c
             const h   = heat[idx]
             if (h <= 0.01) continue
-            const a       = (BASE_OPACITY + h * (PEAK_OPACITY - BASE_OPACITY)) * alpha1t
+            const a       = (baseOp + h * (PEAK_OPACITY - baseOp)) * alpha1t
             const charIdx = Math.min(LEVELS.length - 1, base[idx] + Math.round(h * (LEVELS.length - 2)))
-            ctx.fillStyle = `rgba(80,100,115,${a})`
+            ctx.fillStyle = `rgba(${baseRgb},${a})`
             ctx.fillText(LEVELS[charIdx], c * CELL + CELL / 2, r * CELL + CELL / 2)
           }
         }

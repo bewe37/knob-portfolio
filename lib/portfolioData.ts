@@ -19,34 +19,34 @@ export const SECTIONS: Section[] = [
   },
   {
     id: 'PRJ-01',
+    title: 'AMD | Conversational AI',
+    tech: 'PRODUCT DESIGN',
+    desc: 'Designing a conversational AI overlay to simplify feature access and system control for all user types.',
+  },
+  {
+    id: 'PRJ-02',
     title: 'AMD | Design System',
     tech: 'DESIGN SYSTEM DESIGNER',
     desc: 'Built a scalable design system foundation to support major redesign initiative and ensure long-term consistency across products.',
   },
   {
-    id: 'PRJ-02',
-    title: 'Safe Software | Platform Modernization',
+    id: 'PRJ-03',
+    title: 'Safe Software | Annotation Tools',
     tech: 'PRODUCT DESIGN',
-    desc: 'Modernizing FME Form through icon system redesign, annotation tools, and a shared design foundation.',
+    desc: 'Redesigning how annotations work in FME. Collapsible, embedded, and always in reach without cluttering the canvas.',
   },
   {
-    id: 'PRJ-03',
+    id: 'PRJ-04',
     title: 'ReGiftCard',
     tech: 'PRODUCT DESIGN',
     desc: 'A dashboard for non-profits to track unused gift cards and replace manual spreadsheet submissions.',
   },
   {
-    id: 'PRJ-04',
+    id: 'PRJ-05',
     title: 'SPATIAL UI',
     tech: 'THREE.JS / REACT / GSAP',
     desc: 'Immersive 3D spatial interface for a data exploration platform. Real-time orbital simulations, procedural geometry, and gesture-driven navigation.',
     desktopOnly: true,
-  },
-  {
-    id: 'COM-05',
-    title: 'Thanks for visiting',
-    tech: 'STILL ALIVE & AVAILABLE',
-    desc: "You made it to the end. Respect.\nI'm open to full-time roles and fun side projects — if your idea is weird enough, even better.",
   },
 ]
 
@@ -87,6 +87,21 @@ export const SECTION_DETAILS: SectionDetail[] = [
           { platform: 'X',        handle: '@gbryanwt',                href: 'https://x.com/gbryanwt' },
         ],
       },
+    ],
+  },
+  {
+    cover: '/AMDThumbnail.png',
+    password: 'amdx', // change this to your preferred password
+    overview: "Designed the conversational AI feature for AMD Software, an AI assistant embedded within the Adrenalin overlay that lets users control settings, get recommendations, and troubleshoot through natural language. The work covered interaction design, conversation flows, and the UI layer that sits between the user and the model.",
+    role: 'Product Design Intern',
+    year: '2025',
+    specs: [
+      { label: 'SCOPE',    value: 'Feature Design — Conversational AI' },
+      { label: 'DURATION', value: 'May - December 2025' },
+    ],
+    sections: [],
+    lockedSections: [
+      // Add full case study sections here after NDA clearance
     ],
   },
   {
@@ -151,34 +166,99 @@ export const SECTION_DETAILS: SectionDetail[] = [
     ],
   },
   {
-    cover: '/SafeThumbnailCover.jpg',
-    overview: "Contributed to Safe Software's product modernization initiative. Evaluating and refining the redesigned FME Platform after UI components were shipped by engineering. Work spanned icon library handoff, annotation feature design, and laying the foundation for a formal design system that emerged directly from the pain of doing handoff without one.",
-    role: 'Product Designer',
-    year: '2024',
+    cover: '/SafeThumbnails.png',
+    overview: "During my internship at Safe Software, I led the end-to-end redesign of the annotation experience in FME Form, a data integration platform used to build complex spatial workflows.\n\nAnnotations play a key role in helping users document logic, explain decisions, and maintain clarity across workflows. However, as workflows grew in complexity, annotations began to introduce more problems than they solved — cluttering the canvas, reducing readability, and making navigation more difficult.",
+    role: 'Product Design Intern',
+    year: '2025',
     specs: [
-      { label: 'SCOPE',    value: 'End-to-end Feature Rework & Design System' },
-      { label: 'DURATION', value: 'Jan — Aug 2024' },
+      { label: 'TEAM',     value: '4 Members' },
+      { label: 'DURATION', value: 'April — September 2025' },
     ],
     sections: [
       {
-        label: 'ICONOGRAPHY REDESIGN',
+        label: 'THE IMPACT',
         title: '',
-        images: ['/IconographRebranding.png', '/IconRebrandingResult.png', '/IconographRebrandingResult2.png'],
-        body: "Led the handoff of a comprehensive icon library redesign spanning 47+ icons aligned to FME Platform's modernized visual language. Defined SVG export specifications and integration guidelines coordinated directly with the engineering team, covering stroke normalization, fill rules, and named layer conventions for automation.",
+        body: 'The enhanced annotation feature reduced visible canvas clutter by 57%, improving workflow readability and navigation across complex workflows.',
       },
       {
-        label: 'FEATURE ENHANCEMENT — ANNOTATION TOOLS',
-        title: '',
-        images: ['/AnnotationContainer.png'],
-        videos: ['/safedialogannotation.mp4', '/visibilityannotation.mp4'],
-        body: "Designed a contextual annotation layer for FME's workspace canvas — enabling users to place notes, grouping labels, and inline documentation directly within complex data transformation pipelines. Prior to this, documentation lived entirely outside the workspace in separate files, creating a context gap for new contributors and making pipeline review sessions slower. The annotation system surfaces context exactly where the work happens, reducing onboarding friction and keeping spatial reasoning intact during reviews.",
+        label: 'PROBLEM SPACE',
+        contents: [
+          {
+            title: 'No visibility controls.',
+            body: "Annotations were essential for adding context, but created significant visual clutter and reduced workflow readability. Users had no way to control visibility, leading to overloaded canvases.",
+            image: '/ProblemSpace2.png',
+          },
+          {
+            title: 'Lack of customizability & details.',
+            body: "Summary annotations don't go deep enough. They describe what an object does, but not why it's configured a certain way. Users end up writing their own custom annotations just to fill in the gaps, adding friction to an already complex workflow.",
+            image: '/ProblemSpace1.png',
+          },
+        ],
       },
       {
-        label: 'DESIGN SYSTEM',
-        title: '',
-        images: ['/ThumbnailV2.png', '/dsexample.png'],
-        videos: ['/DSFME.mp4'],
-        body: "The iconography handoff surfaced a systemic problem: without a shared token layer, every component handoff required manual cross-referencing between Figma frames and the engineering codebase — a slow, error-prone process that did not scale. Initiated the FME Design System foundation with semantic tokens for color, spacing, typography, and iconography, each with a 1:1 mapping to CSS custom properties via a lightweight codegen step. The icon token layer connects directly to the iconography redesign work, ensuring that every icon variant is referenceable by name rather than by asset path — eliminating the most common class of handoff errors.",
+        label: 'USER RESEARCH',
+        title: 'Understanding what users actually want.',
+        body: "To validate our hypothesis, we pulled feedback from the FME Community platform and conducted user interviews. A recurring theme emerged: users wanted annotations to be collapsible and available directly inside the parameter dialog, so context stays visible exactly where configuration decisions are made.\n\nWe also found users tucking annotations into bookmarks just to collapse and hide them; a workaround that kept things tidier but added friction and stripped away context.",
+        image: '/WhatUserSaid.png',
+        videos: ['/Workaround.mp4'],
+      },
+      {
+        label: 'PROJECT DIRECTION',
+        title: 'Creating a more comprehensive annotations.',
+        body: 'Following our hypothesis on the problem space, the team identified three potential solutions.',
+        cards: [
+          { icon: '⊕', title: 'Dynamic Visibility',               body: 'Allow users to toggle annotations between expanded and minimized states.' },
+          { icon: '⊡', title: 'Annotation in Parameter Dialog',   body: 'Allow users to embed notes within parameter editor dialogs, where they are defining logic and making decisions that impact the outcomes.' },        ],
+      },
+      {
+        label: 'SOLUTION — ANNOTATION VISIBILITY',
+        contents: [
+          {
+            title: 'Right click menu as access point.',
+            body: "We introduced collapsible annotations to reduce visual clutter while preserving access to context. Annotations can be minimized into an icon on the object header, with controls available via right-click and the toolbar for flexible interaction.",
+            videos: ['/visibilityannotation.mp4'],
+          },
+          {
+            title: 'Side window as annotation container.',
+            body: "When annotations are hidden, they needed somewhere logical to go. I grouped them under a single container, keeping the canvas clean while making sure users could still navigate between them quickly without losing context.",
+            image: '/AnnotationContainer.png',
+          },
+        ],
+      },
+      {
+        label: 'SOLUTION — PARAMETER DIALOG',
+        contents: [
+          {
+            title: 'Adding in-line annotation.',
+            body: "Users were constantly switching between the canvas and parameter dialogs to reference their notes. To solve this, I brought annotations directly into the dialog, so context lives right where decisions are being made.",
+            videos: ['/safedialogannotation.mp4'],
+          },
+          {
+            title: 'Multi-level visibility.',
+            body: "Annotations are accessible across the canvas, and navigator levels, so users can always find context no matter where they're working in a complex workflow.",
+            images: ['/AnnotationCanvas.png','/AnnotationNavigator.png']
+          },
+        ],
+      },
+      {
+        label: 'IMPLEMENTATION',
+        title: "What made it to release and what didn't.",
+        body: "The annotation in the parameter dialog has been released and is now available to users. However, the annotation visibility feature is on hold due to capacity constraints, though it has been prioritized for future development and remains on the Product Planning page.",
+        image: '/linkedInComments.png',
+        stat: { value: '57%', label: 'reduction in visible canvas clutter', body: 'The enhanced annotation feature improved workflow readability and navigation across complex workflows.' },
+      },
+      {
+        label: 'RETROSPECTIVE',
+        contents: [
+          {
+            title: 'Collaboration and communication is key.',
+            body: "Worked closely with project managers, developers, and designers from the start to keep the project aligned with its goals.",
+          },
+          {
+            title: 'Always consider having backup ideas.',
+            body: "Maintaining a bank of ideas enabled the team to adapt efficiently to any changes in project direction and facilitated smoother negotiations with developers.",
+          },
+        ],
       },
     ],
   },
@@ -202,28 +282,11 @@ export const SECTION_DETAILS: SectionDetail[] = [
     ],
   },
   {
-    // PRJ-04 — desktop only, renders as video screen (no overlay content)
+    // PRJ-05 — desktop only, renders as video screen (no overlay content)
     overview: 'Immersive 3D spatial interface built for a scientific data exploration platform. Procedurally generated geometry, real-time orbital mechanics, and a gesture-first navigation model — all running at 60fps in-browser with Three.js.',
     role: 'Solo Developer',
     year: '2025',
     specs: [],
     sections: [],
-  },
-  {
-    overview: 'Open for full-time and contract engagements in product design and frontend engineering. Experienced with early-stage startups moving fast and established product teams managing complex systems at scale.',
-    role: 'Open to Offers',
-    year: '2026',
-    specs: [
-      { label: 'AVAILABILITY', value: 'Immediate' },
-      { label: 'ENGAGEMENT',   value: 'Full-time / Contract' },
-      { label: 'TIMEZONE',     value: 'UTC+8  (flex overlap)' },
-      { label: 'REMOTE',       value: 'Yes — preferred' },
-    ],
-    contacts: [
-      { platform: 'Resume',   handle: 'view resume',              href: 'https://drive.google.com/file/d/1E8AUWkgri9AAHSLil1fQK9KBzZUQbtnK/view?usp=sharing' },
-      { platform: 'Email',    handle: 'bryanwinata112@gmail.com', href: 'mailto:bryanwinata112@gmail.com' },
-      { platform: 'LinkedIn', handle: 'linkedin.com/in/gbryanw',  href: 'https://linkedin.com/in/gbryanw' },
-      { platform: 'X',        handle: '@gbryanwt',                href: 'https://x.com/gbryanwt' },
-    ],
   },
 ]

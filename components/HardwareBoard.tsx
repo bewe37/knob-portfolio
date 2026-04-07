@@ -167,7 +167,7 @@ const Bolt = React.forwardRef<HTMLDivElement, { style: React.CSSProperties; onCl
 )
 
 // ── Component ─────────────────────────────────────────────
-export default function HardwareBoard() {
+export default function HardwareBoard({ isDark = false, onOverlayChange }: { isDark?: boolean; onOverlayChange?: (open: boolean) => void }) {
   const [activeIndex,   setActiveIndex]   = useState(0)
   const [phosphorGreen, setPhosphorGreen] = useState(true)
   const [isZoomed,      setIsZoomed]      = useState(false)
@@ -183,8 +183,15 @@ export default function HardwareBoard() {
   const [bootingUp,         setBootingUp]         = useState(false)
   const [isPolaroidZoomed,  setIsPolaroidZoomed]  = useState(false)
   const [lightboxSrc,       setLightboxSrc]       = useState<string | null>(null)
+
+  useEffect(() => {
+    onOverlayChange?.(isZoomed || lightboxSrc !== null)
+  }, [isZoomed, lightboxSrc, onOverlayChange])
   const [tocVisible,        setTocVisible]        = useState(false)
   const [activeSec,         setActiveSec]         = useState(-1)
+  const [unlockedSet,       setUnlockedSet]       = useState<Set<number>>(new Set())
+  const [pwInput,           setPwInput]           = useState('')
+  const [pwError,           setPwError]           = useState(false)
   const crtScrollableRef = useRef<HTMLDivElement>(null)
   const sectionElsRef    = useRef<(HTMLDivElement | null)[]>([])
   const metaRowsRef      = useRef<HTMLDivElement>(null)
@@ -209,6 +216,7 @@ export default function HardwareBoard() {
   const ledRingRef            = useRef<HTMLDivElement>(null)
   const mainScreenBlackoutRef = useRef<HTMLDivElement>(null)
   const isPoweredOnRef        = useRef(false)
+  const sdCardRef             = useRef<'ponyo' | 'howls' | null>(null)
   const hasBootedRef          = useRef(false)  // corgi boot plays once only
   const polaroidRef           = useRef<HTMLDivElement>(null)
   const polaroidOverlayRef    = useRef<HTMLDivElement>(null)
@@ -265,6 +273,7 @@ export default function HardwareBoard() {
       if (mainBlackout) gsap.killTweensOf(mainBlackout)
       gsap.to(blackout,     { opacity: 1, duration: 0.12, ease: 'power2.in' })
       if (mainBlackout) gsap.to(mainBlackout, { opacity: 1, duration: 0.12, ease: 'power2.in' })
+      if (activeIdxRef.current === 5) window.dispatchEvent(new Event('video-inactive'))
     }
   }, [isPoweredOn])
 
@@ -273,6 +282,8 @@ export default function HardwareBoard() {
     sectionElsRef.current = []
     setTocVisible(false)
     setActiveSec(-1)
+    setPwInput('')
+    setPwError(false)
     if (isZoomed) {
       requestAnimationFrame(() => {
         if (tocContainerRef.current && metaRowsRef.current)
@@ -393,7 +404,7 @@ export default function HardwareBoard() {
   }, [lightboxSrc])
 
   const handleZoom = useCallback(() => {
-    if (activeIdxRef.current === 4) return
+    if (activeIdxRef.current === 5) return
     if (activeIdxRef.current === SECTIONS.length - 1) return
     setIsZoomed(true)
   }, [])
@@ -488,26 +499,19 @@ export default function HardwareBoard() {
     })
   }, [])
 
-  // Keep ref in sync so pointer handlers always read current power state
+  // Keep refs in sync so callbacks always read current state
   useEffect(() => { isPoweredOnRef.current = isPoweredOn }, [isPoweredOn])
+  useEffect(() => { sdCardRef.current = sdCard }, [sdCard])
 
-  // Swap page background only when SD card is inserted and device is on
+  // Fire video-active/inactive when card is inserted or removed while already on section 4
   useEffect(() => {
-    if (sdCard !== null && isPoweredOn) {
-      document.body.style.backgroundImage    = "url('/PonyoWallpaper.jpg')"
-      document.body.style.backgroundSize     = 'cover'
-      document.body.style.backgroundPosition = 'center'
+    if (activeIndex !== 5 || !isPoweredOnRef.current) return
+    if (sdCard !== null) {
+      window.dispatchEvent(new Event('video-active'))
     } else {
-      document.body.style.backgroundImage    = ''
-      document.body.style.backgroundSize     = ''
-      document.body.style.backgroundPosition = ''
+      window.dispatchEvent(new Event('video-inactive'))
     }
-    return () => {
-      document.body.style.backgroundImage    = ''
-      document.body.style.backgroundSize     = ''
-      document.body.style.backgroundPosition = ''
-    }
-  }, [sdCard, isPoweredOn])
+  }, [sdCard])
 
   const changeSection = useCallback((idx: number) => {
     if (!isPoweredOnRef.current) return          // block all actions when off
@@ -517,8 +521,8 @@ export default function HardwareBoard() {
     setActiveIndex(idx)
     animateAudioBars()
     animKey.current++
-    if (idx  === 4) window.dispatchEvent(new Event('video-active'))
-    if (prev === 4) window.dispatchEvent(new Event('video-inactive'))
+    if (idx  === 5 && sdCardRef.current !== null) window.dispatchEvent(new Event('video-active'))
+    if (prev === 5) window.dispatchEvent(new Event('video-inactive'))
   }, [animateAudioBars])
 
   const snapToIndex = useCallback((idx: number) => {
@@ -668,6 +672,17 @@ export default function HardwareBoard() {
     })
   }, [])
 
+  const handlePasswordSubmit = useCallback(() => {
+    if (pwInput === (SECTION_DETAILS[activeIndex] as any).password) {
+      setUnlockedSet(prev => new Set([...prev, activeIndex]))
+      setPwInput('')
+      setPwError(false)
+    } else {
+      setPwError(true)
+      setPwInput('')
+    }
+  }, [pwInput, activeIndex])
+
   // Modal colors — same phosphor tint as the main CRT screen
   const modalRGB   = phosphorGreen ? '51,255,102' : '192,126,24'
   const amber      = screenColor
@@ -679,24 +694,30 @@ export default function HardwareBoard() {
     <div style={{
       width: 920, height: 640,
       /* Dark anodized aluminum — space grey, matches knob + bezel tones */
-      background: 'linear-gradient(175deg, #3e4650 0%, #30383e 30%, #262e34 58%, #1e252c 100%)',
+      background: 'linear-gradient(168deg, #404a56 0%, #30393f 28%, #242c33 56%, #181e25 100%)',
       borderRadius: 24,
-      boxShadow: '40px 50px 80px rgba(0,0,0,0.82), 0 0 0 1px rgba(0,0,0,0.85), inset 0 1px 0 rgba(255,255,255,0.12), inset 0 -1px 0 rgba(0,0,0,0.55)',
+      boxShadow: isDark
+        ? '40px 55px 90px rgba(0,0,0,0.95), 0 0 0 1px rgba(255,255,255,0.07), 0 0 80px rgba(30,50,70,0.18), inset 0 1px 0 rgba(255,255,255,0.14), inset 0 -2px 0 rgba(0,0,0,0.65), inset 1px 0 0 rgba(255,255,255,0.05), inset -1px 0 0 rgba(0,0,0,0.3)'
+        : '40px 55px 90px rgba(0,0,0,0.88), 0 0 0 1px rgba(0,0,0,0.9), inset 0 1px 0 rgba(255,255,255,0.14), inset 0 -2px 0 rgba(0,0,0,0.65), inset 1px 0 0 rgba(255,255,255,0.05), inset -1px 0 0 rgba(0,0,0,0.3)',
       display: 'grid',
       gridTemplateRows: 'auto 1fr',
       padding: 40,
       gap: 32,
       position: 'relative',
     }}>
-      {/* ── Subtle horizontal brush striation — texture not lines */}
+      {/* ── Brushed horizontal grain — fine anisotropic texture ── */}
       <div style={{
         position: 'absolute', inset: 0, borderRadius: 24, overflow: 'hidden',
         backgroundImage: [
           'repeating-linear-gradient(to bottom,',
-          '  rgba(255,255,255,0.032) 0px,',
-          '  rgba(255,255,255,0.032) 1px,',
-          '  rgba(0,0,0,0.032) 1px,',
-          '  rgba(0,0,0,0.032) 2px',
+          '  rgba(255,255,255,0.028) 0px,',
+          '  rgba(255,255,255,0.028) 1px,',
+          '  transparent 1px,',
+          '  transparent 3px,',
+          '  rgba(0,0,0,0.022) 3px,',
+          '  rgba(0,0,0,0.022) 4px,',
+          '  transparent 4px,',
+          '  transparent 6px',
           ')',
         ].join(''),
         pointerEvents: 'none', zIndex: 0,
@@ -704,31 +725,37 @@ export default function HardwareBoard() {
       {/* ── Micro-noise — surface roughness ─────────────────── */}
       <div style={{
         position: 'absolute', inset: 0, borderRadius: 24, overflow: 'hidden',
-        backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.78' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")`,
-        opacity: 0.065,
+        backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.62' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")`,
+        opacity: 0.092,
         mixBlendMode: 'overlay',
         pointerEvents: 'none', zIndex: 0,
       }} />
       {/* ── Upper catchlight — diffuse overhead light on metal ── */}
       <div style={{
         position: 'absolute', inset: 0, borderRadius: 24,
-        background: 'radial-gradient(ellipse 80% 50% at 50% 0%, rgba(255,255,255,0.09) 0%, transparent 70%)',
+        background: 'radial-gradient(ellipse 90% 45% at 50% 0%, rgba(255,255,255,0.11) 0%, transparent 70%)',
+        pointerEvents: 'none', zIndex: 0,
+      }} />
+      {/* ── Left-edge specular — directional light catch ─────── */}
+      <div style={{
+        position: 'absolute', inset: 0, borderRadius: 24,
+        background: 'linear-gradient(to right, rgba(255,255,255,0.055) 0px, rgba(255,255,255,0.018) 2px, transparent 24px)',
         pointerEvents: 'none', zIndex: 0,
       }} />
       {/* ── Top bevel — machined chamfer ─────────────────────── */}
       <div style={{
         position: 'absolute', inset: 0, borderRadius: 24,
-        background: 'linear-gradient(to bottom, rgba(255,255,255,0.22) 0px, rgba(255,255,255,0.06) 1px, transparent 10px)',
+        background: 'linear-gradient(to bottom, rgba(255,255,255,0.26) 0px, rgba(255,255,255,0.07) 1px, transparent 12px)',
         pointerEvents: 'none', zIndex: 0,
       }} />
       {/* ── Bottom AO ────────────────────────────────────────── */}
       <div style={{
         position: 'absolute', inset: 0, borderRadius: 24,
-        background: 'linear-gradient(to top, rgba(0,0,0,0.3) 0px, transparent 80px)',
+        background: 'linear-gradient(to top, rgba(0,0,0,0.38) 0px, transparent 90px)',
         pointerEvents: 'none', zIndex: 0,
       }} />
       {/* ── Smiski keychain — hangs below bottom-right ──────── */}
-      <SmiskiKeychain />
+      <SmiskiKeychain isDark={isDark} />
 
       {/* Corner bolts — click all 4 to open housing */}
       <Bolt ref={el => { boltRefs.current.tl = el }} style={{ top: 18, left: 18 }}   active={clickedBolts.has('tl')} onClick={() => handleBoltClick('tl')} />
@@ -811,9 +838,9 @@ export default function HardwareBoard() {
               screenColor={screenColor}
               screenGlow={screenGlow}
             />
-          ) : activeIndex === 4 ? (
-            <div key="video" style={{ position:'absolute', inset:0, overflow:'hidden', borderRadius:10, zIndex:0, background:'#000', display:'flex', alignItems:'center', justifyContent:'center' }}>
-              {sdCard ? (
+          ) : activeIndex === 5 ? (
+            <div key={animKey.current} className="screen-fade" style={{ position:'absolute', inset:0, overflow:'hidden', borderRadius:10, zIndex:0, background:'#000', display:'flex', alignItems:'center', justifyContent:'center' }}>
+              {sdCard && isPoweredOn ? (
                 <>
                   <video
                     src={sdCard === 'ponyo' ? VIDEO_PONYO : VIDEO_HOWLS}
@@ -826,8 +853,8 @@ export default function HardwareBoard() {
                 </>
               ) : (
                 <div style={{ textAlign:'center', fontFamily:'var(--font-jetbrains-mono), monospace', pointerEvents:'none' }}>
-                  <div style={{ fontSize:11, letterSpacing:2, color:'rgba(255,255,255,0.25)', marginBottom:8, textTransform:'uppercase' }}>NO MEDIA</div>
-                  <div style={{ fontSize:9, letterSpacing:1.5, color:'rgba(255,255,255,0.15)', lineHeight:1.8, textTransform:'uppercase' }}>
+                  <div style={{ fontSize:13, letterSpacing:3, color:screenColor, opacity:0.75, marginBottom:10, textTransform:'uppercase', textShadow:`0 0 10px ${screenGlow}` }}>NO MEDIA</div>
+                  <div style={{ fontSize:10, letterSpacing:2, color:screenColor, opacity:0.45, lineHeight:1.9, textTransform:'uppercase', textShadow:`0 0 6px ${screenGlow}` }}>
                     Click the screws to open<br />hardware panel &amp; insert SD card
                   </div>
                 </div>
@@ -1029,7 +1056,7 @@ export default function HardwareBoard() {
 
                   {/* Custom sections OR default PROCESS + OUTCOMES */}
                   {(details as Record<string,any>).sections ? (
-                    ((details as Record<string,any>).sections as Array<{label:string;title?:string;body?:string;items?:string[];image?:string;images?:string[];videos?:string[];experience?:{company:string;role:string;period:string}[];contacts?:{platform:string;handle:string;href:string}[];contents?:{title?:string;body?:string;image?:string;images?:string[];videos?:string[]}[]}>).map((sec, si, arr) => {
+                    ((details as Record<string,any>).sections as Array<{label:string;title?:string;body?:string;items?:string[];image?:string;images?:string[];videos?:string[];experience?:{company:string;role:string;period:string}[];contacts?:{platform:string;handle:string;href:string}[];contents?:{title?:string;body?:string;image?:string;images?:string[];videos?:string[]}[];cards?:{icon:string;title:string;body:string}[];stat?:{value:string;label:string;body:string}}>).map((sec, si, arr) => {
                       const renderBlock = (blk: {title?:string;body?:string;image?:string;images?:string[];videos?:string[]}, bi: number) => (
                         <div key={bi} style={{ marginBottom: 36 }}>
                           {blk.title && <div style={{ fontSize:16, fontWeight:700, color:amber, marginBottom:8, letterSpacing:-0.3, lineHeight:1.25 }}>{blk.title}</div>}
@@ -1071,6 +1098,15 @@ export default function HardwareBoard() {
                           {sec.title && <div style={{ fontSize:16, fontWeight:700, letterSpacing:-0.3, color:amber, lineHeight:1.25 }}>{sec.title}</div>}
                         </div>
 
+                        {/* Stat callout */}
+                        {sec.stat && (
+                          <div style={{ margin:'0 0 16px', padding:'16px', border:`1px solid ${amberFaint}`, borderRadius:4, background:`rgba(${modalRGB},0.025)` }}>
+                            <div style={{ fontSize:36, fontWeight:700, color:amber, letterSpacing:-1, lineHeight:1 }}>{sec.stat.value}</div>
+                            <div style={{ fontSize:9, letterSpacing:2.5, color:amberLabel, marginTop:4, marginBottom:8, textTransform:'uppercase' }}>{sec.stat.label}</div>
+                            <p style={{ fontSize:12, lineHeight:1.7, color:amberDim, letterSpacing:0.1, margin:0 }}>{sec.stat.body}</p>
+                          </div>
+                        )}
+
                         {/* Top-level body */}
                         {sec.body && (
                           <p style={{ fontSize:13, lineHeight:1.8, color:amberDim, letterSpacing:0.1, marginBottom:12 }}>
@@ -1088,6 +1124,26 @@ export default function HardwareBoard() {
                                   <span style={{ fontSize:11, color:`rgba(${modalRGB},0.6)`, letterSpacing:0.5 }}>{exp.role}</span>
                                 </div>
                                 <span style={{ fontSize:11, fontFamily:'monospace', color:`rgba(${modalRGB},0.55)`, letterSpacing:0.5, flexShrink:0, marginLeft:16 }}>{exp.period}</span>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+
+                        {/* Feature cards */}
+                        {sec.cards && (
+                          <div style={{ display:'flex', flexDirection:'column', gap:8, marginBottom:12 }}>
+                            {sec.cards.map((card: {icon:string;title:string;body:string}, ci: number) => (
+                              <div key={ci} style={{
+                                border:`1px solid ${amberFaint}`,
+                                borderRadius:4,
+                                padding:'14px 16px',
+                                background:`rgba(${modalRGB},0.025)`,
+                              }}>
+                                <div style={{ display:'flex', alignItems:'center', gap:8, marginBottom:6 }}>
+                                  <span style={{ fontSize:12, color:amber, opacity:0.7 }}>{card.icon}</span>
+                                  <span style={{ fontSize:12, fontWeight:600, color:amber, letterSpacing:0.3 }}>{card.title}</span>
+                                </div>
+                                <p style={{ fontSize:12, lineHeight:1.7, color:amberDim, letterSpacing:0.1, margin:0 }}>{card.body}</p>
                               </div>
                             ))}
                           </div>
@@ -1166,6 +1222,71 @@ export default function HardwareBoard() {
                     </>
                   )}
 
+                  {/* ── Password gate */}
+                  {(details as any).password && !unlockedSet.has(activeIndex) && (
+                    <div style={{ marginTop: 8, marginBottom: 32 }}>
+                      <div style={{ display:'flex', alignItems:'center', gap:10, marginBottom:20 }}>
+                        <div style={{ width:4, height:4, background:`rgba(${modalRGB},0.5)`, borderRadius:1, flexShrink:0 }} />
+                        <span style={{ fontSize:9, letterSpacing:2.5, color:amberLabel }}>NDA — ENTER PASSWORD TO UNLOCK</span>
+                        <div style={{ flex:1, height:1, background:`linear-gradient(90deg, ${amberFaint}, transparent)` }} />
+                      </div>
+                      <div style={{ display:'flex', gap:10, alignItems:'center' }}>
+                        <input
+                          type="password"
+                          value={pwInput}
+                          onChange={e => { setPwInput(e.target.value); setPwError(false) }}
+                          onKeyDown={e => e.key === 'Enter' && handlePasswordSubmit()}
+                          placeholder="••••••••"
+                          style={{
+                            background: 'transparent',
+                            border: `1px solid ${pwError ? 'rgba(255,70,50,0.7)' : amberFaint}`,
+                            borderRadius: 3, padding: '8px 14px',
+                            color: amber,
+                            fontFamily: 'var(--font-jetbrains-mono), monospace',
+                            fontSize: 13, letterSpacing: 3,
+                            outline: 'none', width: 200,
+                            transition: 'border-color 0.2s',
+                          }}
+                        />
+                        <button
+                          onClick={handlePasswordSubmit}
+                          style={{
+                            background: `rgba(${modalRGB},0.07)`,
+                            border: `1px solid ${amberFaint}`,
+                            borderRadius: 3, padding: '8px 16px',
+                            color: amber,
+                            fontFamily: 'var(--font-jetbrains-mono), monospace',
+                            fontSize: 9, letterSpacing: 2.5,
+                            cursor: 'pointer',
+                          }}
+                        >
+                          UNLOCK
+                        </button>
+                      </div>
+                      {pwError && (
+                        <div style={{ marginTop: 10, fontSize: 10, letterSpacing: 1.5, color: 'rgba(255,70,50,0.85)' }}>
+                          ACCESS DENIED
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  {/* ── Locked sections — shown after correct password */}
+                  {(details as any).password && unlockedSet.has(activeIndex) && (
+                    ((details as any).lockedSections as Array<any>)?.map((sec: any, si: number, arr: any[]) => (
+                      <div key={`locked-${si}`} style={{ marginBottom: si < arr.length - 1 ? 20 : 28 }}>
+                        <div style={{ marginBottom:14 }}>
+                          <div style={{ display:'flex', alignItems:'center', gap:12, marginBottom:16 }}>
+                            <span style={{ fontSize:9, letterSpacing:2.5, color:amberLabel }}>{sec.label}</span>
+                            <div style={{ flex:1, height:1, background:`linear-gradient(90deg, ${amberFaint}, transparent)` }} />
+                          </div>
+                          {sec.title && <div style={{ fontSize:16, fontWeight:700, letterSpacing:-0.3, color:amber, lineHeight:1.25 }}>{sec.title}</div>}
+                        </div>
+                        {sec.body && <p style={{ fontSize:13, lineHeight:1.8, color:amberDim, letterSpacing:0.1, marginBottom:12 }}>{sec.body}</p>}
+                      </div>
+                    ))
+                  )}
+
                   {/* Footer */}
                   <div style={{ borderTop:`1px solid ${amberFaint}`, paddingTop:20, display:'flex', justifyContent:'space-between' }}>
                     <span style={{ fontSize:9, letterSpacing:2.5, color:amberLabel }}>SYS.PORTFOLIO.OS — {section.id}</span>
@@ -1212,6 +1333,8 @@ export default function HardwareBoard() {
                       transformPerspective: 700,
                       duration: 0.28, ease: 'power2.out',
                     })
+                    const flash = e.currentTarget.querySelector<HTMLDivElement>('.polaroid-flash')
+                    if (flash) flash.style.opacity = '1'
                   }}
                   onMouseMove={e => {
                     const rect = e.currentTarget.getBoundingClientRect()
@@ -1223,6 +1346,12 @@ export default function HardwareBoard() {
                       transformPerspective: 700,
                       duration: 0.4, ease: 'power3.out',
                     })
+                    const flash = e.currentTarget.querySelector<HTMLDivElement>('.polaroid-flash')
+                    if (flash) {
+                      const x = ((e.clientX - rect.left) / rect.width)  * 100
+                      const y = ((e.clientY - rect.top)  / rect.height) * 100
+                      flash.style.background = `radial-gradient(circle 110px at ${x}% ${y}%, rgba(255,248,215,0.20) 0%, transparent 68%)`
+                    }
                   }}
                   onMouseLeave={e => {
                     gsap.to(e.currentTarget, {
@@ -1232,6 +1361,8 @@ export default function HardwareBoard() {
                       transformPerspective: 700,
                       duration: 0.55, ease: 'elastic.out(1, 0.6)',
                     })
+                    const flash = e.currentTarget.querySelector<HTMLDivElement>('.polaroid-flash')
+                    if (flash) flash.style.opacity = '0'
                   }}
                   style={{
                     width: 200,
@@ -1249,16 +1380,22 @@ export default function HardwareBoard() {
                     <img src={src} alt={caption} style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center', display: 'block', filter }} />
                     <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none', background: 'radial-gradient(ellipse 88% 82% at 50% 50%, transparent 45%, rgba(30,20,10,0.38) 100%)' }} />
                   </div>
-                  <div style={{ marginTop: 10, textAlign: 'center', fontFamily: 'var(--font-caveat), "Caveat", cursive', fontWeight: 600, color: '#3a3020' }}>
-                    <div style={{ fontSize: 18, lineHeight: 1.2 }}>{caption}</div>
-                    <div style={{ fontSize: 14, opacity: 0.62, marginTop: 2 }}>{sub}</div>
+                  <div style={{ marginTop: 10, textAlign: 'center', fontFamily: '"Shelter Coffee", cursive', fontWeight: 600, color: '#3a3020' }}>
+                    <div style={{ fontSize: 15, lineHeight: 1.2 }}>{caption}</div>
+                    <div style={{ fontSize: 13, opacity: 0.62, marginTop: 2 }}>{sub}</div>
                   </div>
+                  <div className="polaroid-flash" style={{
+                    position: 'absolute', inset: 0,
+                    pointerEvents: 'none', zIndex: 7, opacity: 0,
+                    transition: 'opacity 0.3s ease',
+                    mixBlendMode: 'screen',
+                  }} />
                 </div>
               ))}
             </div>
             <div style={{
               fontFamily: 'var(--font-jetbrains-mono), monospace',
-              fontSize: 10, letterSpacing: 2, color: 'rgba(255,255,255,0.28)',
+              fontSize: 10, letterSpacing: 3, color: 'rgba(255,255,255,0.55)',
             }}>
               CLICK ANYWHERE TO CLOSE
             </div>
@@ -1354,7 +1491,6 @@ export default function HardwareBoard() {
               width:160, height:160, borderRadius:'50%', position:'relative',
               cursor:'grab', flexShrink:0,
               boxShadow:'10px 14px 30px rgba(0,0,0,0.9), -4px -4px 12px rgba(80,105,130,0.12), 0 0 0 1.5px rgba(255,255,255,0.09), 0 0 0 3px rgba(0,0,0,0.6)',
-              transition:'filter 0.5s ease',
             }}>
               <canvas ref={metalCanvasRef} style={{ position:'absolute', inset:0, width:'100%', height:'100%', borderRadius:'50%', pointerEvents:'none' }} />
               <div ref={rotatorRef} className="knob-rotator">
@@ -1370,34 +1506,39 @@ export default function HardwareBoard() {
           <div style={{
             position: 'relative',
             width: 152,
-            background: 'linear-gradient(170deg, #fefce4 0%, #fdf0b0 40%, #fce878 100%)',
+            background: 'linear-gradient(165deg, #fffde6 0%, #fff59c 38%, #fdd835 100%)',
             borderRadius: 2,
             padding: '24px 15px 18px',
             transform: 'rotate(-4deg) translateY(14px)',
             boxShadow: [
-              '2px 3px 6px rgba(0,0,0,0.18)',
-              '5px 8px 20px rgba(0,0,0,0.15)',
-              'inset 0 1px 0 rgba(255,255,255,0.60)',
-              'inset 1px 0 0 rgba(255,255,255,0.35)',
+              '1px 2px 3px rgba(0,0,0,0.13)',
+              '4px 7px 18px rgba(0,0,0,0.18)',
+              '8px 16px 32px rgba(0,0,0,0.12)',
+              'inset 0 1px 0 rgba(255,255,255,0.72)',
+              'inset 1px 0 0 rgba(255,255,255,0.45)',
             ].join(', '),
           }}>
+            {/* Adhesive strip */}
+            <div style={{
+              position: 'absolute', top: 0, left: 0, right: 0, height: '26%',
+              background: 'linear-gradient(to bottom, rgba(160,130,0,0.17) 0%, rgba(160,130,0,0.04) 100%)',
+              borderRadius: '2px 2px 0 0', pointerEvents: 'none', zIndex: 0,
+            }} />
             {/* Ruled lines */}
             <div style={{
               position: 'absolute', inset: 0, borderRadius: 2, pointerEvents: 'none', zIndex: 0,
-              backgroundImage: 'repeating-linear-gradient(0deg, transparent, transparent 20px, rgba(120,160,200,0.10) 20px, rgba(120,160,200,0.10) 21px)',
+              backgroundImage: 'repeating-linear-gradient(0deg, transparent, transparent 20px, rgba(100,140,190,0.11) 20px, rgba(100,140,190,0.11) 21px)',
               backgroundPositionY: '30px',
             }} />
-            {/* Wrinkle 1 — diagonal crease upper-left to mid */}
+            {/* Wrinkle 1 — diagonal crease */}
             <div style={{
               position: 'absolute', inset: 0, borderRadius: 2, pointerEvents: 'none', zIndex: 1,
               background: [
-                /* shadow side of crease */
                 'linear-gradient(128deg, transparent 28%, rgba(0,0,0,0.045) 33%, transparent 36%)',
-                /* highlight side of crease */
                 'linear-gradient(128deg, transparent 33%, rgba(255,255,255,0.18) 36%, transparent 39%)',
               ].join(', '),
             }} />
-            {/* Wrinkle 2 — shallow horizontal crease near bottom third */}
+            {/* Wrinkle 2 — shallow horizontal crease */}
             <div style={{
               position: 'absolute', inset: 0, borderRadius: 2, pointerEvents: 'none', zIndex: 1,
               background: [
@@ -1405,33 +1546,33 @@ export default function HardwareBoard() {
                 'linear-gradient(182deg, transparent 65%, rgba(255,255,255,0.13) 67%, transparent 69%)',
               ].join(', '),
             }} />
-            {/* Corner curl shadow */}
+            {/* Corner curl */}
             <div style={{
               position: 'absolute', bottom: 0, right: 0,
               width: 32, height: 32,
-              background: 'linear-gradient(225deg, rgba(0,0,0,0.12) 0%, transparent 65%)',
+              background: 'linear-gradient(225deg, rgba(0,0,0,0.14) 0%, transparent 62%)',
               borderRadius: '0 0 2px 0',
               pointerEvents: 'none', zIndex: 3,
             }} />
             {/* Tape */}
             <div style={{
               position: 'absolute', top: -12, left: '50%', transform: 'translateX(-50%) rotate(0.8deg)',
-              width: 52, height: 23,
-              background: 'linear-gradient(180deg, rgba(255,255,255,0.50) 0%, rgba(238,235,205,0.42) 100%)',
+              width: 52, height: 22,
+              background: 'linear-gradient(180deg, rgba(255,255,255,0.52) 0%, rgba(236,232,198,0.42) 100%)',
               backdropFilter: 'blur(2px)',
               borderRadius: 2,
-              boxShadow: '0 1px 4px rgba(0,0,0,0.12), inset 0 1px 1px rgba(255,255,255,0.75)',
+              boxShadow: '0 1px 4px rgba(0,0,0,0.10), inset 0 1px 1px rgba(255,255,255,0.80)',
               zIndex: 4,
             }} />
             {/* Text */}
             <div style={{ position: 'relative', zIndex: 2, textAlign: 'center' }}>
               <div style={{
-                fontFamily: 'var(--font-caveat), "Caveat", cursive',
-                fontSize: 18,
+                fontFamily: '"Shelter Coffee", cursive',
+                fontSize: 16,
                 lineHeight: 1.45,
-                color: '#2e2510',
-                fontWeight: 600,
-                textShadow: '0.4px 0.5px 0 rgba(30,20,5,0.15)',
+                color: '#5a4e2e',
+                fontWeight: 400,
+                textShadow: '0.4px 0.6px 0 rgba(20,15,0,0.16)',
               }}>
                 Rotate dial to<br />browse projects
               </div>
@@ -1466,7 +1607,7 @@ export default function HardwareBoard() {
                 <img src="/korea.jpg" alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', filter: 'sepia(0.5) saturate(0.6) brightness(0.8)' }} />
                 <div style={{ position: 'absolute', inset: 0, background: 'radial-gradient(ellipse 88% 82% at 50% 50%, transparent 45%, rgba(30,20,10,0.38) 100%)' }} />
               </div>
-              <div style={{ marginTop: 6, textAlign: 'center', fontFamily: 'var(--font-caveat), "Caveat", cursive', fontWeight: 600, color: '#3a3020', fontSize: 14 }}>
+              <div style={{ marginTop: 6, textAlign: 'center', fontFamily: '"Shelter Coffee", cursive', fontWeight: 600, color: '#3a3020', fontSize: 13 }}>
                 toronto, on
               </div>
             </div>
@@ -1484,7 +1625,7 @@ export default function HardwareBoard() {
                 <img src="/austria.jpg" alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', filter: 'sepia(0.2) saturate(0.85) brightness(0.88)' }} />
                 <div style={{ position: 'absolute', inset: 0, background: 'radial-gradient(ellipse 88% 82% at 50% 50%, transparent 45%, rgba(30,20,10,0.38) 100%)' }} />
               </div>
-              <div style={{ marginTop: 6, textAlign: 'center', fontFamily: 'var(--font-caveat), "Caveat", cursive', fontWeight: 600, color: '#3a3020', fontSize: 14 }}>
+              <div style={{ marginTop: 6, textAlign: 'center', fontFamily: '"Shelter Coffee", cursive', fontWeight: 600, color: '#3a3020', fontSize: 13 }}>
                 good boi
               </div>
             </div>
@@ -1513,9 +1654,9 @@ export default function HardwareBoard() {
                 <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none', background: 'radial-gradient(ellipse 88% 82% at 50% 50%, transparent 45%, rgba(30,20,10,0.38) 100%)' }} />
                 <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none', background: 'rgba(210,180,120,0.10)', mixBlendMode: 'multiply' }} />
               </div>
-              <div style={{ marginTop: 6, textAlign: 'center', fontFamily: 'var(--font-caveat), "Caveat", cursive', fontWeight: 600, color: '#3a3020', textShadow: '0.3px 0.3px 0 rgba(20,12,0,0.12)' }}>
-                <div style={{ fontSize: 17, letterSpacing: '0.2px', lineHeight: 1.2 }}>nyc – employees only</div>
-                <div style={{ fontSize: 13, opacity: 0.62, marginTop: 2, letterSpacing: '0.3px' }}>summer 2025</div>
+              <div style={{ marginTop: 6, textAlign: 'center', fontFamily: '"Shelter Coffee", cursive', fontWeight: 600, color: '#3a3020', textShadow: '0.3px 0.3px 0 rgba(20,12,0,0.12)' }}>
+                <div style={{ fontSize: 15, letterSpacing: '0.2px', lineHeight: 1.2 }}>nyc – employees only</div>
+                <div style={{ fontSize: 12, opacity: 0.62, marginTop: 2, letterSpacing: '0.3px' }}>summer 2025</div>
               </div>
             </div>
           </div>
@@ -1646,14 +1787,14 @@ export default function HardwareBoard() {
                 {/* LED indicator dot */}
                 {/* LED indicator dot */}
                 <div className={isPoweredOn ? '' : 'led-standby'} style={{
-                  width: 7, height: 7, borderRadius: '50%',
+                  width: 9, height: 9, borderRadius: '50%',
                   background: isPoweredOn
                     ? 'radial-gradient(circle at 35% 30%, #ff6666 0%, #ee1122 45%, #aa0010 100%)'
-                    : 'radial-gradient(circle at 35% 30%, #6b1a1e 0%, #3d0c0f 55%, #220608 100%)',
+                    : 'radial-gradient(circle at 35% 30%, #c82030 0%, #8a1018 55%, #4a0008 100%)',
                   boxShadow: isPoweredOn
                     ? '0 0 4px 1px rgba(255,30,40,0.9), 0 0 10px 3px rgba(200,10,20,0.55), inset 0 1px 1px rgba(255,140,140,0.5)'
-                    : 'inset 0 1px 2px rgba(0,0,0,0.6), inset 0 -1px 1px rgba(255,60,60,0.08)',
-                  transition: 'background 0.35s, box-shadow 0.35s',
+                    : undefined,
+                  transition: 'background 0.35s',
                   flexShrink: 0,
                 }} />
               </div>
