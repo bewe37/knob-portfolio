@@ -393,7 +393,7 @@ export default function HardwareBoard({ isDark = false, onOverlayChange }: { isD
     const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') handleUnzoom() }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
-  }, [isZoomed])
+  }, [isZoomed]) // eslint-disable-line react-hooks/exhaustive-deps -- handleUnzoom is stable (useCallback [])
 
   // ── Escape key to close lightbox
   useEffect(() => {
@@ -458,7 +458,7 @@ export default function HardwareBoard({ isDark = false, onOverlayChange }: { isD
     const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') handlePolaroidUnzoom() }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
-  }, [isPolaroidZoomed])
+  }, [isPolaroidZoomed]) // eslint-disable-line react-hooks/exhaustive-deps -- handlePolaroidUnzoom is stable (useCallback [])
 
   const handlePolaroidZoom = useCallback(() => setIsPolaroidZoomed(true), [])
 
