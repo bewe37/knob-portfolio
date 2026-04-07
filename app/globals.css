@@ -151,8 +151,6 @@ html.dark body {
   transition: background 0.4s ease, box-shadow 0.4s ease;
 }
 
-.knob-off {}
-
 @keyframes led-standby {
   0%, 100% {
     opacity: 1;
@@ -168,9 +166,9 @@ html.dark body {
   animation: led-standby 1.4s ease-in-out infinite;
 }
 
-.knob-off .knob-indicator {
-  background: linear-gradient(to bottom, #2a2c30 0%, #1a1c20 100%);
-  box-shadow: none;
+.knob-indicator.knob-off {
+  background: linear-gradient(to bottom, #2a2c30 0%, #1a1c20 100%) !important;
+  box-shadow: none !important;
 }
 
 

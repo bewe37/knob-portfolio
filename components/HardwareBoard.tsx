@@ -1230,6 +1230,9 @@ export default function HardwareBoard({ isDark = false, onOverlayChange }: { isD
                         <span style={{ fontSize:9, letterSpacing:2.5, color:amberLabel }}>NDA — ENTER PASSWORD TO UNLOCK</span>
                         <div style={{ flex:1, height:1, background:`linear-gradient(90deg, ${amberFaint}, transparent)` }} />
                       </div>
+                      {(details as any).passwordDesc && (
+                        <p style={{ fontSize:13, lineHeight:1.8, color:amberDim, letterSpacing:0.1, marginBottom:16 }}>{(details as any).passwordDesc}</p>
+                      )}
                       <div style={{ display:'flex', gap:10, alignItems:'center' }}>
                         <input
                           type="password"
@@ -1487,7 +1490,7 @@ export default function HardwareBoard({ isDark = false, onOverlayChange }: { isD
             </div>
 
             {/* Metal knob */}
-            <div ref={knobRef} className={isPoweredOn ? '' : 'knob-off'} style={{
+            <div ref={knobRef} style={{
               width:160, height:160, borderRadius:'50%', position:'relative',
               cursor:'grab', flexShrink:0,
               boxShadow:'10px 14px 30px rgba(0,0,0,0.9), -4px -4px 12px rgba(80,105,130,0.12), 0 0 0 1.5px rgba(255,255,255,0.09), 0 0 0 3px rgba(0,0,0,0.6)',
@@ -1495,7 +1498,7 @@ export default function HardwareBoard({ isDark = false, onOverlayChange }: { isD
               <canvas ref={metalCanvasRef} style={{ position:'absolute', inset:0, width:'100%', height:'100%', borderRadius:'50%', pointerEvents:'none' }} />
               <div ref={rotatorRef} className="knob-rotator">
                 <div className="knob-grip" />
-                <div className="knob-indicator" />
+                <div className={isPoweredOn ? 'knob-indicator' : 'knob-indicator knob-off'} />
               </div>
             </div>
           </div>
