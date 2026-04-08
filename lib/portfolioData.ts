@@ -92,6 +92,7 @@ export const SECTION_DETAILS: SectionDetail[] = [
   {
     cover: '/AMDThumbnail.png',
     password: 'amdx', // change this to your preferred password
+    passwordDesc: "This case study is protected under NDA. If you'd like to learn more about the work, feel free to reach out directly and I'd be happy to walk you through it.",
     overview: "Designed the conversational AI feature for AMD Software, an AI assistant embedded within the Adrenalin overlay that lets users control settings, get recommendations, and troubleshoot through natural language. The work covered interaction design, conversation flows, and the UI layer that sits between the user and the model.",
     role: 'Product Design Intern',
     year: '2025',
