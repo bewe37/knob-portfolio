@@ -450,8 +450,6 @@ export default function MobileView() {
     .filter(({ s }) => s.id.startsWith('PRJ') && !s.desktopOnly)
     .map(({ i }) => i)
 
-  const contactIndex = SECTIONS.findIndex(s => s.id === 'COM-05')
-
   return (
     <div style={{
       position: 'fixed', inset: 0, zIndex: 1,
@@ -521,16 +519,48 @@ export default function MobileView() {
         </div>
       </div>
 
-      {/* ── Contact card ── */}
-      {contactIndex !== -1 && (
-        <div style={{ padding: '0 16px 48px' }}>
-          <div style={{ padding: '16px 0 10px', display: 'flex', alignItems: 'center', gap: 8 }}>
-            <span style={{ fontSize: 9, letterSpacing: 3, color: LABEL }}>CONTACT</span>
-            <div style={{ flex: 1, height: 1, background: `linear-gradient(90deg, ${FAINT}, transparent)` }} />
+      {/* ── Contact section ── */}
+      {(() => {
+        const contacts = (SECTION_DETAILS[0].sections as any[])
+          ?.find((s: any) => s.contacts)?.contacts as { platform: string; handle: string; href: string }[] | undefined
+        if (!contacts) return null
+        return (
+          <div style={{ padding: '0 16px 56px' }}>
+            <div style={{ padding: '16px 0 12px', display: 'flex', alignItems: 'center', gap: 8 }}>
+              <span style={{ fontSize: 9, letterSpacing: 3, color: LABEL }}>CONTACT</span>
+              <div style={{ flex: 1, height: 1, background: `linear-gradient(90deg, ${FAINT}, transparent)` }} />
+            </div>
+            <div style={{
+              border: `1px solid ${FAINT}`,
+              borderRadius: 8,
+              overflow: 'hidden',
+              background: 'rgba(51,255,102,0.02)',
+            }}>
+              <div style={{ padding: '14px 18px 4px' }}>
+                <div style={{ fontSize: 15, fontWeight: 700, color: GREEN, marginBottom: 4 }}>Say hello</div>
+                <p style={{ fontSize: 12, lineHeight: 1.75, color: DIM }}>
+                  Open to full-time roles — reach out any time.
+                </p>
+              </div>
+              <div style={{ padding: '4px 18px 14px' }}>
+                {contacts.map((c, ci) => (
+                  <div key={ci} style={{
+                    display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+                    paddingTop: 12, paddingBottom: 12,
+                    borderBottom: ci < contacts.length - 1 ? `1px solid rgba(${RGB},0.08)` : 'none',
+                  }}>
+                    <span style={{ fontSize: 9, letterSpacing: 2, color: LABEL }}>{c.platform}</span>
+                    <a href={c.href} target="_blank" rel="noopener noreferrer"
+                      style={{ fontSize: 11, color: DIM, textDecoration: 'none' }}>
+                      {c.handle}
+                    </a>
+                  </div>
+                ))}
+              </div>
+            </div>
           </div>
-          <SectionCard index={contactIndex} onOpen={() => {}} />
-        </div>
-      )}
+        )
+      })()}
 
       {/* Case study overlay */}
       {openIndex !== null && (
