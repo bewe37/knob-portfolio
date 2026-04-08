@@ -33,10 +33,10 @@ function drawMetalKnob(canvas: HTMLCanvasElement) {
 
   // Base — clear gunmetal gray, centered radial lighting
   const base = ctx.createRadialGradient(cx * 0.72, cy * 0.65, 0, cx, cy, r)
-  base.addColorStop(0,   '#626c76')  // gunmetal highlight
-  base.addColorStop(0.28,'#424c56')  // mid gunmetal
-  base.addColorStop(0.62,'#28323a')  // deep gunmetal
-  base.addColorStop(1,   '#141c22')  // near-black rim
+  base.addColorStop(0,   '#686866')  // neutral highlight
+  base.addColorStop(0.28,'#464644')  // mid neutral
+  base.addColorStop(0.62,'#2c2c2a')  // deep neutral
+  base.addColorStop(1,   '#161614')  // near-black rim
   ctx.fillStyle = base
   ctx.fillRect(0, 0, SIZE, SIZE)
 
@@ -739,7 +739,7 @@ export default function HardwareBoard({ isDark = false, onOverlayChange }: { isD
 
       {/* ── SCREEN BEZEL ──────────────────────────────────── */}
       <div style={{
-        background: 'linear-gradient(155deg, #202830 0%, #161c22 50%, #0e1216 100%)',
+        background: 'linear-gradient(155deg, #202020 0%, #161616 50%, #0e0e0e 100%)',
         borderRadius: 18, padding: 16,
         boxShadow: '0 8px 24px rgba(0,0,0,0.7), 0 2px 6px rgba(0,0,0,0.5), inset 0 2px 8px rgba(0,0,0,0.8), inset 0 1px 0 rgba(255,255,255,0.04)',
         position: 'relative',
@@ -749,7 +749,7 @@ export default function HardwareBoard({ isDark = false, onOverlayChange }: { isD
           className="screen-tv"
           onClick={handleZoom}
           style={{
-            background: '#080a0c', height: 260, borderRadius: 10,
+            background: '#090909', height: 260, borderRadius: 10,
             position: 'relative', overflow: 'hidden',
             boxShadow: 'inset 0 12px 28px rgba(0,0,0,0.95), inset 0 0 0 1px rgba(0,0,0,1), 0 0 0 1px rgba(255,255,255,0.04)',
             display: 'flex', flexDirection: 'column', padding: 24,
@@ -804,7 +804,7 @@ export default function HardwareBoard({ isDark = false, onOverlayChange }: { isD
           {/* Flicker overlay */}
           <div className="board-flicker" />
           {/* Main screen power-off blackout */}
-          <div ref={mainScreenBlackoutRef} style={{ position:'absolute', inset:0, background:'#080a0c', borderRadius:10, pointerEvents:'none', zIndex:20 }} />
+          <div ref={mainScreenBlackoutRef} style={{ position:'absolute', inset:0, background:'#090909', borderRadius:10, pointerEvents:'none', zIndex:20 }} />
 
           {bootingUp ? (
             <LoadingScreen
@@ -1439,7 +1439,7 @@ export default function HardwareBoard({ isDark = false, onOverlayChange }: { isD
         <div style={{ display:'flex', flexDirection:'column', alignItems:'center', gap:12 }}>
           <div style={{
             width:220, height:220, borderRadius:'50%',
-            background:'linear-gradient(145deg, #3a4248 0%, #252c32 45%, #181c20 100%)',
+            background:'linear-gradient(145deg, #383836 0%, #252523 45%, #181816 100%)',
             boxShadow:'6px 10px 28px rgba(0,0,0,0.85), -2px -3px 8px rgba(80,100,120,0.07), inset 3px 3px 8px rgba(255,255,255,0.045), inset -3px -3px 8px rgba(0,0,0,0.7), inset 0 0 0 1px rgba(255,255,255,0.04)',
             display:'flex', justifyContent:'center', alignItems:'center', position:'relative',
           }}>
@@ -1644,7 +1644,7 @@ export default function HardwareBoard({ isDark = false, onOverlayChange }: { isD
         <div style={{ display:'flex', flexDirection:'column', alignItems:'flex-end', gap:28, paddingRight:8, gridColumn: 3 }}>
           {/* Skeuomorphic clock screen */}
           <div style={{
-            background: 'linear-gradient(160deg, #1e252c 0%, #141a1f 55%, #0d1115 100%)',
+            background: 'linear-gradient(160deg, #1e1e1c 0%, #141412 55%, #0d0d0b 100%)',
             borderRadius: 7,
             padding: '5px 6px 7px',
             boxShadow: [
@@ -1658,7 +1658,7 @@ export default function HardwareBoard({ isDark = false, onOverlayChange }: { isD
           }}>
             {/* Screen face */}
             <div style={{
-              background: '#030507',
+              background: '#040404',
               borderRadius: 4,
               padding: '9px 13px 10px',
               position: 'relative',
@@ -1728,7 +1728,7 @@ export default function HardwareBoard({ isDark = false, onOverlayChange }: { isD
               }} />
               {/* Power-off blackout — animated by GSAP */}
               <div ref={screenBlackoutRef} style={{
-                position:'absolute', inset:0, background:'#030507',
+                position:'absolute', inset:0, background:'#040404',
                 borderRadius:4, pointerEvents:'none', zIndex:7,
               }} />
             </div>
@@ -1743,7 +1743,7 @@ export default function HardwareBoard({ isDark = false, onOverlayChange }: { isD
               onClick={() => setIsPoweredOn(p => !p)}
               style={{
                 width:60, height:30, borderRadius:15, cursor:'pointer', flexShrink:0,
-                background: 'linear-gradient(135deg, #1e2226 0%, #161a1e 50%, #0e1214 100%)',
+                background: 'linear-gradient(135deg, #1e1e1c 0%, #161614 50%, #0e0e0c 100%)',
                 boxShadow: 'inset 0 2px 6px rgba(0,0,0,0.8), inset 0 -1px 2px rgba(255,255,255,0.05), 2px 3px 8px rgba(0,0,0,0.6), 0 0 0 1px rgba(255,255,255,0.08)',
                 position:'relative',
               }}
@@ -1792,7 +1792,7 @@ export default function HardwareBoard({ isDark = false, onOverlayChange }: { isD
                 return (
                   <g key={`${row}-${col}`}>
                     <circle cx={cx} cy={cy - 0.5} r={2.5} fill="rgba(0,0,0,0.45)"/>
-                    <circle cx={cx} cy={cy} r={2} fill="#03060a"/>
+                    <circle cx={cx} cy={cy} r={2} fill="#040404"/>
                     <circle cx={cx + 0.3} cy={cy + 1.8} r={0.65} fill="rgba(255,255,255,0.08)"/>
                   </g>
                 )
