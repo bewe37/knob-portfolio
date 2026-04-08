@@ -693,7 +693,7 @@ export default function HardwareBoard({ isDark = false, onOverlayChange }: { isD
   return (
     <div style={{
       width: 920, height: 640,
-      background: 'linear-gradient(175deg, #3e4650 0%, #30383e 30%, #262e34 58%, #1e252c 100%)',
+      background: 'linear-gradient(175deg, #424240 0%, #333331 30%, #272725 58%, #1c1c1a 100%)',
       borderRadius: 24,
       boxShadow: isDark
         ? '40px 55px 90px rgba(0,0,0,0.95), 0 0 0 1px rgba(255,255,255,0.07), 0 0 80px rgba(30,50,70,0.18), inset 0 1px 0 rgba(255,255,255,0.14), inset 0 -2px 0 rgba(0,0,0,0.65), inset 1px 0 0 rgba(255,255,255,0.05), inset -1px 0 0 rgba(0,0,0,0.3)'
