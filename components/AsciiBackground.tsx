@@ -22,6 +22,22 @@ interface Ripple {
   x: number; y: number; r: number; maxR: number; speed: number
 }
 
+// Pre-render all characters into a single atlas canvas to avoid per-frame
+// fillText calls — drawImage is significantly faster in Safari
+function buildAtlas(dark: boolean): HTMLCanvasElement {
+  const rgb = dark ? '110,140,170' : '80,100,115'
+  const c   = document.createElement('canvas')
+  c.width   = CELL * LEVELS.length
+  c.height  = CELL
+  const cx  = c.getContext('2d')!
+  cx.font         = `${Math.round(CELL * 0.75)}px "JetBrains Mono", monospace`
+  cx.textAlign    = 'center'
+  cx.textBaseline = 'middle'
+  cx.fillStyle    = `rgb(${rgb})`
+  LEVELS.forEach((ch, i) => cx.fillText(ch, i * CELL + CELL / 2, CELL / 2))
+  return c
+}
+
 export default function AsciiBackground({ isDark = false }: { isDark?: boolean }) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const isDarkRef = useRef(isDark)
@@ -41,6 +57,10 @@ export default function AsciiBackground({ isDark = false }: { isDark?: boolean }
     const videoMode = { t: 0 }
     const embers: Ember[]  = []
     const ripples: Ripple[] = []
+
+    // Atlas is built once and rebuilt only when dark mode changes
+    let atlasDark = isDarkRef.current
+    let atlas     = buildAtlas(atlasDark)
 
     const img = new Image()
     img.src = '/bgimage.jpg'
@@ -72,9 +92,6 @@ export default function AsciiBackground({ isDark = false }: { isDark?: boolean }
       heat = new Float32Array(n)
       base = new Uint8Array(n)
       for (let i = 0; i < n; i++) base[i] = Math.random() < 0.5 ? 0 : 1
-      ctx.font         = `${Math.round(CELL * 0.75)}px "JetBrains Mono", monospace`
-      ctx.textAlign    = 'center'
-      ctx.textBaseline = 'middle'
     }
 
     const onMove  = (e: MouseEvent) => { mouse.x = e.clientX; mouse.y = e.clientY }
@@ -98,6 +115,12 @@ export default function AsciiBackground({ isDark = false }: { isDark?: boolean }
       if (elapsed < FRAME_MS) return
       const dt = Math.min(elapsed, 50)
       frameTime = timestamp
+
+      // Rebuild atlas if dark mode changed
+      if (isDarkRef.current !== atlasDark) {
+        atlasDark = isDarkRef.current
+        atlas     = buildAtlas(atlasDark)
+      }
 
       ctx.clearRect(0, 0, canvas.width, canvas.height)
       const t = videoMode.t
@@ -203,29 +226,31 @@ export default function AsciiBackground({ isDark = false }: { isDark?: boolean }
           else heat[i] = 0
         }
 
-        // ── Pass 1: cold cells ──────────────────────────────
-        const baseRgb = isDarkRef.current ? '110,140,170' : '80,100,115'
-        const baseOp  = isDarkRef.current ? BASE_OPACITY * 1.8 : BASE_OPACITY
-        ctx.fillStyle = `rgba(${baseRgb},${baseOp * alpha1t})`
+        const baseOp = isDarkRef.current ? BASE_OPACITY * 1.8 : BASE_OPACITY
+
+        // ── Pass 1: cold cells (same opacity — set globalAlpha once) ──
+        ctx.globalAlpha = baseOp * alpha1t
         for (let r = 0; r < rows; r++) {
           for (let c = 0; c < cols; c++) {
             if (heat[r * cols + c] > 0.01) continue
-            ctx.fillText(LEVELS[base[r * cols + c]], c * CELL + CELL / 2, r * CELL + CELL / 2)
+            const charIdx = base[r * cols + c]
+            ctx.drawImage(atlas, charIdx * CELL, 0, CELL, CELL, c * CELL, r * CELL, CELL, CELL)
           }
         }
 
-        // ── Pass 2: hot cells ───────────────────────────────
+        // ── Pass 2: hot cells (per-cell alpha via globalAlpha) ───────
         for (let r = 0; r < rows; r++) {
           for (let c = 0; c < cols; c++) {
             const idx = r * cols + c
             const h   = heat[idx]
             if (h <= 0.01) continue
-            const a       = (baseOp + h * (PEAK_OPACITY - baseOp)) * alpha1t
-            const charIdx = Math.min(LEVELS.length - 1, base[idx] + Math.round(h * (LEVELS.length - 2)))
-            ctx.fillStyle = `rgba(${baseRgb},${a})`
-            ctx.fillText(LEVELS[charIdx], c * CELL + CELL / 2, r * CELL + CELL / 2)
+            ctx.globalAlpha = (baseOp + h * (PEAK_OPACITY - baseOp)) * alpha1t
+            const charIdx   = Math.min(LEVELS.length - 1, base[idx] + Math.round(h * (LEVELS.length - 2)))
+            ctx.drawImage(atlas, charIdx * CELL, 0, CELL, CELL, c * CELL, r * CELL, CELL, CELL)
           }
         }
+
+        ctx.globalAlpha = 1
       }
     }
 
