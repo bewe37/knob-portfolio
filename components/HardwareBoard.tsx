@@ -18,7 +18,7 @@ const STEP         = TOTAL_ARC / (NUM - 1)   // 60° per position
 const START_OFFSET = -120                     // arc: -120° → +120°
 
 // ── Draw concentric machined-metal rings onto a canvas ────
-function drawMetalKnob(canvas: HTMLCanvasElement) {
+function drawMetalKnob(canvas: HTMLCanvasElement, isDark = false) {
   const SIZE = 160
   canvas.width  = SIZE
   canvas.height = SIZE
@@ -33,10 +33,10 @@ function drawMetalKnob(canvas: HTMLCanvasElement) {
 
   // Base — clear gunmetal gray, centered radial lighting
   const base = ctx.createRadialGradient(cx * 0.72, cy * 0.65, 0, cx, cy, r)
-  base.addColorStop(0,   '#9a9aa4')  // neutral highlight
-  base.addColorStop(0.28,'#6e6e78')  // mid neutral
-  base.addColorStop(0.62,'#464650')  // deep neutral
-  base.addColorStop(1,   '#222228')  // near-black rim
+  base.addColorStop(0,   isDark ? '#8a8a94' : '#aaaab4')  // neutral highlight
+  base.addColorStop(0.28,isDark ? '#606068' : '#808088')  // mid neutral
+  base.addColorStop(0.62,isDark ? '#3a3a42' : '#545460')  // deep neutral
+  base.addColorStop(1,   isDark ? '#1a1a20' : '#2e2e36')  // near-black rim
   ctx.fillStyle = base
   ctx.fillRect(0, 0, SIZE, SIZE)
 
@@ -125,6 +125,135 @@ function initCRT(canvas: HTMLCanvasElement): (() => void) | null {
   }
   raf = requestAnimationFrame(render)
   return () => cancelAnimationFrame(raf)
+}
+
+// ── Vintage projector preview ─────────────────────────────
+function ProjectorPreview({ activeIndex, isPoweredOn, isOverlayOpen }: {
+  activeIndex: number; isPoweredOn: boolean; isOverlayOpen: boolean
+}) {
+  const frameRef  = useRef<HTMLDivElement>(null)
+  const beamRef   = useRef<HTMLDivElement>(null)
+  const lensRef   = useRef<HTMLDivElement>(null)
+  const prevIndex = useRef(activeIndex)
+
+  // Slide-advance flicker when section changes
+  useEffect(() => {
+    if (prevIndex.current === activeIndex) return
+    prevIndex.current = activeIndex
+    if (!frameRef.current) return
+    gsap.timeline()
+      .to(frameRef.current, { opacity: 0,   duration: 0.07, ease: 'none' })
+      .to(frameRef.current, { opacity: 0.7, duration: 0.04, ease: 'none' })
+      .to(frameRef.current, { opacity: 0.1, duration: 0.06, ease: 'none' })
+      .to(frameRef.current, { opacity: 1,   duration: 0.20, ease: 'power2.out' })
+  }, [activeIndex])
+
+  // Power on/off
+  useEffect(() => {
+    const targets = [frameRef.current, beamRef.current, lensRef.current].filter(Boolean)
+    if (isPoweredOn) {
+      gsap.to(targets, { opacity: 1, duration: 0.7, delay: 0.5, ease: 'power2.out', stagger: 0.08 })
+    } else {
+      gsap.to(targets, { opacity: 0, duration: 0.18, ease: 'power2.in' })
+    }
+  }, [isPoweredOn])
+
+  // Hide when overlay open
+  useEffect(() => {
+    const targets = [frameRef.current, beamRef.current, lensRef.current].filter(Boolean)
+    gsap.to(targets, { opacity: isOverlayOpen ? 0 : (isPoweredOn ? 1 : 0), duration: 0.3 })
+  }, [isOverlayOpen, isPoweredOn])
+
+  const details = SECTION_DETAILS[activeIndex] as Record<string, any>
+  const cover   = details?.cover as string | undefined
+  const section = SECTIONS[activeIndex]
+  const SPROCKETS = 7
+
+  // No projector for About or Spatial UI (no image)
+  if (!cover || activeIndex === 0 || activeIndex === SECTIONS.length - 1) return null
+
+  return (
+    <>
+      {/* ── Projector lens on the right board edge ── */}
+      <div ref={lensRef} style={{
+        position: 'absolute', right: -10, top: 295,
+        width: 20, height: 20, borderRadius: '50%',
+        opacity: 0, zIndex: 10, pointerEvents: 'none',
+        background: isPoweredOn
+          ? 'radial-gradient(circle at 38% 35%, #fff5cc, #f0b830 45%, #8a5c10)'
+          : 'radial-gradient(circle at 38% 35%, #3a3a3a, #1c1c1c)',
+        boxShadow: isPoweredOn
+          ? '0 0 0 2px #5a3c08, 0 0 8px 3px rgba(240,170,30,0.45), inset 0 1px 2px rgba(255,240,180,0.7)'
+          : '0 0 0 2px #2a2a2a, inset 0 1px 2px rgba(0,0,0,0.8)',
+        transition: 'background 0.5s, box-shadow 0.5s',
+      }} />
+
+      {/* ── Light beam — trapezoidal warm cone ── */}
+      <div ref={beamRef} style={{
+        position: 'absolute', left: 912, top: 180,
+        width: 145, height: 250,
+        opacity: 0, pointerEvents: 'none', zIndex: 1,
+        background: 'linear-gradient(90deg, rgba(255,200,80,0.07) 0%, rgba(255,190,60,0.03) 70%, transparent 100%)',
+        clipPath: 'polygon(0 47%, 0 53%, 100% 12%, 100% 88%)',
+      }} />
+
+      {/* ── Film frame ── */}
+      <div ref={frameRef} style={{
+        position: 'absolute', left: 950, top: 210,
+        width: 220, opacity: 0, pointerEvents: 'none', zIndex: 2,
+        transform: 'perspective(700px) rotateY(-5deg)',
+        filter: 'drop-shadow(0 12px 32px rgba(0,0,0,0.7)) drop-shadow(0 3px 8px rgba(0,0,0,0.5))',
+      }}>
+
+        {/* Top sprocket strip */}
+        <div style={{ height: 17, background: '#0e0e0e', display: 'flex', alignItems: 'center', justifyContent: 'space-around', padding: '0 6px', borderRadius: '3px 3px 0 0' }}>
+          {Array.from({ length: SPROCKETS }).map((_, i) => (
+            <div key={i} style={{ width: 10, height: 12, borderRadius: 2, background: '#1e1e1e', border: '1px solid #2e2e2e', boxShadow: 'inset 0 1px 3px rgba(0,0,0,0.9)' }} />
+          ))}
+        </div>
+
+        {/* Image */}
+        <div style={{ position: 'relative', overflow: 'hidden', background: '#050505', lineHeight: 0 }}>
+          <img src={cover} alt="" style={{
+            display: 'block', width: '100%', height: 'auto',
+            filter: 'sepia(0.4) saturate(0.72) brightness(0.82) contrast(1.08)',
+          }} />
+          {/* Film grain */}
+          <div style={{
+            position: 'absolute', inset: 0, pointerEvents: 'none',
+            backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.72' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='180' height='180' filter='url(%23g)' opacity='0.12'/%3E%3C/svg%3E")`,
+            backgroundSize: '180px 180px',
+            mixBlendMode: 'overlay', opacity: 0.55,
+          }} />
+          {/* Vignette */}
+          <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none', background: 'radial-gradient(ellipse at 50% 50%, transparent 40%, rgba(0,0,0,0.72) 100%)' }} />
+          {/* Warm amber wash */}
+          <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none', background: 'rgba(140,90,10,0.10)', mixBlendMode: 'multiply' }} />
+          {/* Frame counter */}
+          <div style={{ position: 'absolute', bottom: 5, right: 7, fontFamily: 'var(--font-jetbrains-mono), monospace', fontSize: 7.5, letterSpacing: 1.5, color: 'rgba(255,215,120,0.55)' }}>
+            {String(activeIndex).padStart(2, '0')}A
+          </div>
+        </div>
+
+        {/* Bottom sprocket strip */}
+        <div style={{ height: 17, background: '#0e0e0e', display: 'flex', alignItems: 'center', justifyContent: 'space-around', padding: '0 6px' }}>
+          {Array.from({ length: SPROCKETS }).map((_, i) => (
+            <div key={i} style={{ width: 10, height: 12, borderRadius: 2, background: '#1e1e1e', border: '1px solid #2e2e2e', boxShadow: 'inset 0 1px 3px rgba(0,0,0,0.9)' }} />
+          ))}
+        </div>
+
+        {/* Caption bar */}
+        <div style={{ background: '#080808', padding: '5px 10px 6px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderRadius: '0 0 3px 3px' }}>
+          <span style={{ fontFamily: 'var(--font-jetbrains-mono), monospace', fontSize: 7.5, letterSpacing: 2, color: 'rgba(255,210,100,0.6)', textTransform: 'uppercase' }}>
+            {section.id}
+          </span>
+          <span style={{ fontFamily: 'var(--font-jetbrains-mono), monospace', fontSize: 7, letterSpacing: 1, color: 'rgba(255,210,100,0.3)' }}>
+            ▶ SLIDE
+          </span>
+        </div>
+      </div>
+    </>
+  )
 }
 
 // ── Corner bolt ───────────────────────────────────────────
@@ -222,10 +351,10 @@ export default function HardwareBoard({ isDark = false, onOverlayChange }: { isD
   const polaroidOverlayRef    = useRef<HTMLDivElement>(null)
   const polaroidCardRef       = useRef<HTMLDivElement>(null)
 
-  // ── Metal canvas
+  // ── Metal canvas — redraw when mode changes
   useEffect(() => {
-    if (metalCanvasRef.current) drawMetalKnob(metalCanvasRef.current)
-  }, [])
+    if (metalCanvasRef.current) drawMetalKnob(metalCanvasRef.current, isDark)
+  }, [isDark])
 
   // ── Board CRT WebGL
   useEffect(() => {
@@ -689,7 +818,9 @@ export default function HardwareBoard({ isDark = false, onOverlayChange }: { isD
   return (
     <div style={{
       width: 920, height: 640,
-      background: 'linear-gradient(175deg, #464648 0%, #38383c 22%, #2c2c30 50%, #222226 75%, #1a1a1e 100%)',
+      background: isDark
+        ? 'linear-gradient(175deg, #303034 0%, #262628 22%, #1e1e22 50%, #161618 75%, #101012 100%)'
+        : 'linear-gradient(175deg, #565658 0%, #484848 22%, #3c3c40 50%, #323236 75%, #28282c 100%)',
       borderRadius: 24,
       boxShadow: isDark
         ? [
@@ -763,7 +894,9 @@ export default function HardwareBoard({ isDark = false, onOverlayChange }: { isD
 
       {/* ── SCREEN BEZEL ──────────────────────────────────── */}
       <div style={{
-        background: 'linear-gradient(155deg, #252528 0%, #1c1c1f 50%, #141416 100%)',
+        background: isDark
+          ? 'linear-gradient(155deg, #181819 0%, #111113 50%, #0a0a0c 100%)'
+          : 'linear-gradient(155deg, #323236 0%, #28282c 50%, #202024 100%)',
         borderRadius: 18, padding: 16,
         boxShadow: '0 8px 24px rgba(0,0,0,0.7), 0 2px 6px rgba(0,0,0,0.5), inset 0 2px 8px rgba(0,0,0,0.8), inset 0 1px 0 rgba(255,255,255,0.04)',
         position: 'relative',
@@ -1463,7 +1596,9 @@ export default function HardwareBoard({ isDark = false, onOverlayChange }: { isD
         <div style={{ display:'flex', flexDirection:'column', alignItems:'center', gap:12 }}>
           <div style={{
             width:220, height:220, borderRadius:'50%',
-            background:'linear-gradient(145deg, #303034 0%, #242428 45%, #1a1a1d 100%)',
+            background: isDark
+              ? 'linear-gradient(145deg, #222226 0%, #18181c 45%, #101014 100%)'
+              : 'linear-gradient(145deg, #3e3e44 0%, #323238 45%, #28282e 100%)',
             boxShadow:'6px 10px 28px rgba(0,0,0,0.85), -2px -3px 8px rgba(80,100,120,0.07), inset 3px 3px 8px rgba(255,255,255,0.045), inset -3px -3px 8px rgba(0,0,0,0.7), inset 0 0 0 1px rgba(255,255,255,0.04)',
             display:'flex', justifyContent:'center', alignItems:'center', position:'relative',
           }}>
@@ -1668,7 +1803,9 @@ export default function HardwareBoard({ isDark = false, onOverlayChange }: { isD
         <div style={{ display:'flex', flexDirection:'column', alignItems:'flex-end', gap:28, paddingRight:8, gridColumn: 3 }}>
           {/* Skeuomorphic clock screen */}
           <div style={{
-            background: 'linear-gradient(160deg, #252528 0%, #1c1c1f 55%, #141416 100%)',
+            background: isDark
+              ? 'linear-gradient(160deg, #181819 0%, #111113 55%, #0a0a0c 100%)'
+              : 'linear-gradient(160deg, #303034 0%, #262628 55%, #1e1e20 100%)',
             borderRadius: 7,
             padding: '5px 6px 7px',
             boxShadow: [
@@ -1767,7 +1904,9 @@ export default function HardwareBoard({ isDark = false, onOverlayChange }: { isD
               onClick={() => setIsPoweredOn(p => !p)}
               style={{
                 width:60, height:30, borderRadius:15, cursor:'pointer', flexShrink:0,
-                background: 'linear-gradient(135deg, #3a3a42 0%, #2c2c34 50%, #20202a 100%)',
+                background: isDark
+                  ? 'linear-gradient(135deg, #28282e 0%, #1e1e24 50%, #16161c 100%)'
+                  : 'linear-gradient(135deg, #484850 0%, #3a3a42 50%, #2e2e36 100%)',
                 boxShadow: 'inset 0 3px 8px rgba(0,0,0,0.85), inset 0 1px 3px rgba(0,0,0,0.6), inset 0 -1px 0 rgba(255,255,255,0.06), 2px 3px 8px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.10)',
                 position:'relative',
               }}
@@ -1804,7 +1943,7 @@ export default function HardwareBoard({ isDark = false, onOverlayChange }: { isD
 
           {/* Speaker — perforated dot grille in recessed panel */}
           <div style={{
-            background: '#1e1e22',
+            background: isDark ? '#141418' : '#242428',
             borderRadius: 7,
             padding: '10px 12px',
             boxShadow: [
@@ -1836,6 +1975,13 @@ export default function HardwareBoard({ isDark = false, onOverlayChange }: { isD
           </div>
         </div>
       </div>
+
+      {/* ── Vintage projector preview ── */}
+      <ProjectorPreview
+        activeIndex={activeIndex}
+        isPoweredOn={isPoweredOn}
+        isOverlayOpen={isZoomed || lightboxSrc !== null}
+      />
     </div>
   )
 }
