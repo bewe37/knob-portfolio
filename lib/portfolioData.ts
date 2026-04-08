@@ -118,7 +118,7 @@ export const SECTION_DETAILS: SectionDetail[] = [
       {
         label: 'HIGH-LEVEL AUDIT',
         title: 'Identifying the problems',
-        images: ['/ColorMismatch.png', '/InconsistentStyling.png'],
+        images: ['/colorMismatch.png', '/inconsistentStyling.png'],
         body: 'Before diving into any design system work, I conducted an audit and found two major issues. Colors were applied inconsistently across teams, leading to unclear states and a broken visual hierarchy. Component styling had the same problem, where buttons alone varied across screens in size, corner radius, spacing, and interaction states, revealing a product that had grown without any visual governance.',
       },
       {
@@ -180,6 +180,7 @@ export const SECTION_DETAILS: SectionDetail[] = [
         label: 'THE IMPACT',
         title: '',
         body: 'The enhanced annotation feature reduced visible canvas clutter by 57%, improving workflow readability and navigation across complex workflows.',
+        stat: { value: '57%', label: 'reduction in visible canvas clutter', body: 'The enhanced annotation feature improved workflow readability and navigation across complex workflows.' },
       },
       {
         label: 'PROBLEM SPACE',
@@ -246,7 +247,6 @@ export const SECTION_DETAILS: SectionDetail[] = [
         title: "What made it to release and what didn't.",
         body: "The annotation in the parameter dialog has been released and is now available to users. However, the annotation visibility feature is on hold due to capacity constraints, though it has been prioritized for future development and remains on the Product Planning page.",
         image: '/linkedInComments.png',
-        stat: { value: '57%', label: 'reduction in visible canvas clutter', body: 'The enhanced annotation feature improved workflow readability and navigation across complex workflows.' },
       },
       {
         label: 'RETROSPECTIVE',
