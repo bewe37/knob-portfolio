@@ -17,7 +17,7 @@ const TOTAL_ARC    = 240
 const STEP         = TOTAL_ARC / (NUM - 1)   // 60° per position
 const START_OFFSET = -120                     // arc: -120° → +120°
 
-// ── Draw brushed-metal body texture onto a canvas ─────────
+// ── Draw off-white body surface onto a canvas ──────────────
 function drawBrushedBody(canvas: HTMLCanvasElement) {
   const W = 920, H = 640
   canvas.width  = W
@@ -25,32 +25,26 @@ function drawBrushedBody(canvas: HTMLCanvasElement) {
   const ctx = canvas.getContext('2d')
   if (!ctx) return
 
-  // Deterministic LCG — same result every render, no Math.random() drift
-  let seed = 0xdeadbeef
-  const rng = () => { seed = (seed ^ (seed << 13)) >>> 0; seed = (seed ^ (seed >> 17)) >>> 0; seed = (seed ^ (seed << 5)) >>> 0; return seed / 0xffffffff }
-
-  // Base — neutral steel grey, anisotropic vertical gradient
+  // Base — warm off-white, subtle top-to-bottom shading for depth
   const base = ctx.createLinearGradient(0, 0, 0, H)
-  base.addColorStop(0,    '#28292c')
-  base.addColorStop(0.14, '#35383e')
-  base.addColorStop(0.32, '#3e4248')
-  base.addColorStop(0.50, '#3b3f46')
-  base.addColorStop(0.70, '#32363c')
-  base.addColorStop(0.88, '#272a30')
-  base.addColorStop(1,    '#1c1e22')
+  base.addColorStop(0,    '#dddbd6')
+  base.addColorStop(0.25, '#e8e6e0')
+  base.addColorStop(0.55, '#e4e2dc')
+  base.addColorStop(0.80, '#d8d6d0')
+  base.addColorStop(1,    '#c8c6c0')
   ctx.fillStyle = base
   ctx.fillRect(0, 0, W, H)
 
-  // Fine brushed grain — 3 sine frequencies + per-line micro-randomness
+  // Very fine grain — barely-there horizontal lines, light surfaces need restraint
+  let seed = 0xdeadbeef
+  const rng = () => { seed = (seed ^ (seed << 13)) >>> 0; seed = (seed ^ (seed >> 17)) >>> 0; seed = (seed ^ (seed << 5)) >>> 0; return seed / 0xffffffff }
   for (let y = 0; y < H; y++) {
-    const low  = Math.sin(y * 0.22)  * 14   // slow rolling bands
-    const mid  = Math.sin(y * 1.85)  * 7    // medium scratches
-    const high = Math.sin(y * 9.4)   * 3    // fine grain
-    const noise = (rng() - 0.5) * 12        // stochastic micro-scratch
-    const b = Math.max(80, Math.min(230, Math.round(150 + low + mid + high + noise)))
-    // Opacity also varies — brighter lines appear slightly more opaque
-    const a = 0.038 + (b - 80) / 150 * 0.055 + rng() * 0.018
-    ctx.strokeStyle = `rgba(${b - 8},${b - 2},${b + 6},${a})`
+    const wave = Math.sin(y * 2.1) * 6 + Math.sin(y * 8.3) * 2
+    const noise = (rng() - 0.5) * 5
+    const b = Math.round(210 + wave + noise)
+    const bClamped = Math.max(160, Math.min(255, b))
+    const a = 0.018 + rng() * 0.012
+    ctx.strokeStyle = `rgba(${bClamped},${bClamped - 2},${bClamped - 6},${a})`
     ctx.lineWidth = 0.5
     ctx.beginPath()
     ctx.moveTo(0, y + 0.5)
@@ -58,32 +52,20 @@ function drawBrushedBody(canvas: HTMLCanvasElement) {
     ctx.stroke()
   }
 
-  // Primary specular — bright anisotropic band, the hallmark of brushed metal
-  // Offset to upper-third to simulate overhead lighting
-  const spec = ctx.createLinearGradient(0, H * 0.08, 0, H * 0.62)
-  spec.addColorStop(0,    'rgba(215,222,230,0)')
-  spec.addColorStop(0.22, 'rgba(215,222,230,0.22)')
-  spec.addColorStop(0.38, 'rgba(225,232,240,0.32)')
-  spec.addColorStop(0.52, 'rgba(215,222,230,0.18)')
-  spec.addColorStop(0.75, 'rgba(200,208,218,0.06)')
-  spec.addColorStop(1,    'rgba(200,208,218,0)')
-  ctx.fillStyle = spec
+  // Soft overhead light catch
+  const light = ctx.createLinearGradient(0, 0, 0, H * 0.5)
+  light.addColorStop(0,   'rgba(255,255,252,0.18)')
+  light.addColorStop(0.4, 'rgba(255,255,252,0.06)')
+  light.addColorStop(1,   'rgba(255,255,252,0)')
+  ctx.fillStyle = light
   ctx.fillRect(0, 0, W, H)
 
-  // Secondary specular — subtle warm glint lower on the face
-  const spec2 = ctx.createLinearGradient(0, H * 0.60, 0, H * 0.90)
-  spec2.addColorStop(0,   'rgba(200,205,210,0)')
-  spec2.addColorStop(0.4, 'rgba(200,205,210,0.07)')
-  spec2.addColorStop(1,   'rgba(200,205,210,0)')
-  ctx.fillStyle = spec2
-  ctx.fillRect(0, 0, W, H)
-
-  // Edge vignette — corners/edges fall off in shadow (physical depth cue)
-  const vign = ctx.createRadialGradient(W * 0.5, H * 0.46, H * 0.22, W * 0.5, H * 0.46, Math.hypot(W, H) * 0.58)
+  // Edge shadow — gives the panel a sense of thickness and curvature
+  const vign = ctx.createRadialGradient(W * 0.5, H * 0.5, H * 0.28, W * 0.5, H * 0.5, Math.hypot(W, H) * 0.6)
   vign.addColorStop(0,    'transparent')
-  vign.addColorStop(0.55, 'rgba(0,0,0,0.06)')
-  vign.addColorStop(0.80, 'rgba(0,0,0,0.22)')
-  vign.addColorStop(1,    'rgba(0,0,0,0.52)')
+  vign.addColorStop(0.60, 'rgba(0,0,0,0.04)')
+  vign.addColorStop(0.82, 'rgba(0,0,0,0.14)')
+  vign.addColorStop(1,    'rgba(0,0,0,0.32)')
   ctx.fillStyle = vign
   ctx.fillRect(0, 0, W, H)
 }
@@ -766,11 +748,11 @@ export default function HardwareBoard({ isDark = false, onOverlayChange }: { isD
   return (
     <div style={{
       width: 920, height: 640,
-      background: '#1a2028',
+      background: '#d8d6d0',
       borderRadius: 24,
       boxShadow: isDark
-        ? '40px 55px 90px rgba(0,0,0,0.95), 0 0 0 1px rgba(255,255,255,0.07), 0 0 80px rgba(30,50,70,0.18), inset 0 1px 0 rgba(255,255,255,0.14), inset 0 -2px 0 rgba(0,0,0,0.65), inset 1px 0 0 rgba(255,255,255,0.05), inset -1px 0 0 rgba(0,0,0,0.3)'
-        : '40px 55px 90px rgba(0,0,0,0.88), 0 0 0 1px rgba(0,0,0,0.9), inset 0 1px 0 rgba(255,255,255,0.14), inset 0 -2px 0 rgba(0,0,0,0.65), inset 1px 0 0 rgba(255,255,255,0.05), inset -1px 0 0 rgba(0,0,0,0.3)',
+        ? '40px 55px 90px rgba(0,0,0,0.92), 0 0 0 1px rgba(0,0,0,0.25), inset 0 1px 0 rgba(255,255,255,0.7), inset 0 -2px 0 rgba(0,0,0,0.18), inset 1px 0 0 rgba(255,255,255,0.4), inset -1px 0 0 rgba(0,0,0,0.12)'
+        : '40px 55px 90px rgba(0,0,0,0.55), 0 0 0 1px rgba(0,0,0,0.18), inset 0 1px 0 rgba(255,255,255,0.7), inset 0 -2px 0 rgba(0,0,0,0.18), inset 1px 0 0 rgba(255,255,255,0.4), inset -1px 0 0 rgba(0,0,0,0.12)',
       display: 'grid',
       gridTemplateRows: 'auto 1fr',
       padding: 40,
