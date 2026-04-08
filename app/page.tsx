@@ -57,9 +57,6 @@ export default function Home() {
         onKeyDown={e => e.key === 'Enter' && setIsDark(d => !d)}
         style={{
           position: 'fixed', top: 18, right: 18, zIndex: 1000,
-          opacity: isOverlay ? 0 : 1,
-          pointerEvents: isOverlay ? 'none' : 'auto',
-          transition: 'opacity 0.2s ease',
           display: 'flex', alignItems: 'center', gap: 8,
           cursor: 'pointer', userSelect: 'none',
           padding: '6px 10px 6px 10px',
@@ -68,7 +65,9 @@ export default function Home() {
           backdropFilter: 'blur(10px)',
           border: isDark ? '1px solid rgba(255,255,255,0.07)' : '1px solid rgba(255,255,255,0.65)',
           boxShadow: isDark ? '0 2px 12px rgba(0,0,0,0.55)' : '0 2px 8px rgba(0,0,0,0.14)',
-          transition: 'background 0.35s ease, border-color 0.35s ease, box-shadow 0.35s ease',
+          opacity: isOverlay ? 0 : 1,
+          pointerEvents: isOverlay ? 'none' : 'auto',
+          transition: 'background 0.35s ease, border-color 0.35s ease, box-shadow 0.35s ease, opacity 0.2s ease',
         }}
       >
         <span style={{
