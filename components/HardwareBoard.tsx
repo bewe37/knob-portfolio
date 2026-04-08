@@ -1383,7 +1383,7 @@ export default function HardwareBoard({ isDark = false, onOverlayChange }: { isD
                     <img src={src} alt={caption} style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center', display: 'block', filter }} />
                     <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none', background: 'radial-gradient(ellipse 88% 82% at 50% 50%, transparent 45%, rgba(30,20,10,0.38) 100%)' }} />
                   </div>
-                  <div style={{ marginTop: 10, textAlign: 'center', fontFamily: '"Shelter Coffee", cursive', fontWeight: 600, color: '#3a3020' }}>
+                  <div style={{ marginTop: 10, textAlign: 'center', fontFamily: '"Caveat", cursive', fontWeight: 600, color: '#3a3020' }}>
                     <div style={{ fontSize: 15, lineHeight: 1.2 }}>{caption}</div>
                     <div style={{ fontSize: 13, opacity: 0.62, marginTop: 2 }}>{sub}</div>
                   </div>
@@ -1570,7 +1570,7 @@ export default function HardwareBoard({ isDark = false, onOverlayChange }: { isD
             {/* Text */}
             <div style={{ position: 'relative', zIndex: 2, textAlign: 'center' }}>
               <div style={{
-                fontFamily: '"Shelter Coffee", cursive',
+                fontFamily: '"Caveat", cursive',
                 fontSize: 16,
                 lineHeight: 1.45,
                 color: '#5a4e2e',
@@ -1610,7 +1610,7 @@ export default function HardwareBoard({ isDark = false, onOverlayChange }: { isD
                 <img src="/korea.jpg" alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', filter: 'sepia(0.5) saturate(0.6) brightness(0.8)' }} />
                 <div style={{ position: 'absolute', inset: 0, background: 'radial-gradient(ellipse 88% 82% at 50% 50%, transparent 45%, rgba(30,20,10,0.38) 100%)' }} />
               </div>
-              <div style={{ marginTop: 6, textAlign: 'center', fontFamily: '"Shelter Coffee", cursive', fontWeight: 600, color: '#3a3020', fontSize: 13 }}>
+              <div style={{ marginTop: 6, textAlign: 'center', fontFamily: '"Caveat", cursive', fontWeight: 600, color: '#3a3020', fontSize: 13 }}>
                 toronto, on
               </div>
             </div>
@@ -1628,7 +1628,7 @@ export default function HardwareBoard({ isDark = false, onOverlayChange }: { isD
                 <img src="/austria.jpg" alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', filter: 'sepia(0.2) saturate(0.85) brightness(0.88)' }} />
                 <div style={{ position: 'absolute', inset: 0, background: 'radial-gradient(ellipse 88% 82% at 50% 50%, transparent 45%, rgba(30,20,10,0.38) 100%)' }} />
               </div>
-              <div style={{ marginTop: 6, textAlign: 'center', fontFamily: '"Shelter Coffee", cursive', fontWeight: 600, color: '#3a3020', fontSize: 13 }}>
+              <div style={{ marginTop: 6, textAlign: 'center', fontFamily: '"Caveat", cursive', fontWeight: 600, color: '#3a3020', fontSize: 13 }}>
                 good boi
               </div>
             </div>
@@ -1657,7 +1657,7 @@ export default function HardwareBoard({ isDark = false, onOverlayChange }: { isD
                 <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none', background: 'radial-gradient(ellipse 88% 82% at 50% 50%, transparent 45%, rgba(30,20,10,0.38) 100%)' }} />
                 <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none', background: 'rgba(210,180,120,0.10)', mixBlendMode: 'multiply' }} />
               </div>
-              <div style={{ marginTop: 6, textAlign: 'center', fontFamily: '"Shelter Coffee", cursive', fontWeight: 600, color: '#3a3020', textShadow: '0.3px 0.3px 0 rgba(20,12,0,0.12)' }}>
+              <div style={{ marginTop: 6, textAlign: 'center', fontFamily: '"Caveat", cursive', fontWeight: 600, color: '#3a3020', textShadow: '0.3px 0.3px 0 rgba(20,12,0,0.12)' }}>
                 <div style={{ fontSize: 15, letterSpacing: '0.2px', lineHeight: 1.2 }}>nyc – employees only</div>
                 <div style={{ fontSize: 12, opacity: 0.62, marginTop: 2, letterSpacing: '0.3px' }}>summer 2025</div>
               </div>

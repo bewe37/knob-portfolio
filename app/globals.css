@@ -7,6 +7,30 @@
   font-style: normal;
 }
 
+@font-face {
+  font-family: 'Caveat';
+  src: url('/Caveat.woff2') format('woff2');
+  font-weight: 400 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Kalam';
+  src: url('/Kalam.woff2') format('woff2');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Architects Daughter';
+  src: url('/ArchitectsDaughter.woff2') format('woff2');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
 :root {
   --bg-body: #bec9d2;
   --surface-main: #e4ebf0;
