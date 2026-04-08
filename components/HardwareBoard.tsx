@@ -17,59 +17,6 @@ const TOTAL_ARC    = 240
 const STEP         = TOTAL_ARC / (NUM - 1)   // 60° per position
 const START_OFFSET = -120                     // arc: -120° → +120°
 
-// ── Draw off-white body surface onto a canvas ──────────────
-function drawBrushedBody(canvas: HTMLCanvasElement) {
-  const W = 920, H = 640
-  canvas.width  = W
-  canvas.height = H
-  const ctx = canvas.getContext('2d')
-  if (!ctx) return
-
-  // Base — warm off-white, subtle top-to-bottom shading for depth
-  const base = ctx.createLinearGradient(0, 0, 0, H)
-  base.addColorStop(0,    '#dddbd6')
-  base.addColorStop(0.25, '#e8e6e0')
-  base.addColorStop(0.55, '#e4e2dc')
-  base.addColorStop(0.80, '#d8d6d0')
-  base.addColorStop(1,    '#c8c6c0')
-  ctx.fillStyle = base
-  ctx.fillRect(0, 0, W, H)
-
-  // Very fine grain — barely-there horizontal lines, light surfaces need restraint
-  let seed = 0xdeadbeef
-  const rng = () => { seed = (seed ^ (seed << 13)) >>> 0; seed = (seed ^ (seed >> 17)) >>> 0; seed = (seed ^ (seed << 5)) >>> 0; return seed / 0xffffffff }
-  for (let y = 0; y < H; y++) {
-    const wave = Math.sin(y * 2.1) * 6 + Math.sin(y * 8.3) * 2
-    const noise = (rng() - 0.5) * 5
-    const b = Math.round(210 + wave + noise)
-    const bClamped = Math.max(160, Math.min(255, b))
-    const a = 0.018 + rng() * 0.012
-    ctx.strokeStyle = `rgba(${bClamped},${bClamped - 2},${bClamped - 6},${a})`
-    ctx.lineWidth = 0.5
-    ctx.beginPath()
-    ctx.moveTo(0, y + 0.5)
-    ctx.lineTo(W, y + 0.5)
-    ctx.stroke()
-  }
-
-  // Soft overhead light catch
-  const light = ctx.createLinearGradient(0, 0, 0, H * 0.5)
-  light.addColorStop(0,   'rgba(255,255,252,0.18)')
-  light.addColorStop(0.4, 'rgba(255,255,252,0.06)')
-  light.addColorStop(1,   'rgba(255,255,252,0)')
-  ctx.fillStyle = light
-  ctx.fillRect(0, 0, W, H)
-
-  // Edge shadow — gives the panel a sense of thickness and curvature
-  const vign = ctx.createRadialGradient(W * 0.5, H * 0.5, H * 0.28, W * 0.5, H * 0.5, Math.hypot(W, H) * 0.6)
-  vign.addColorStop(0,    'transparent')
-  vign.addColorStop(0.60, 'rgba(0,0,0,0.04)')
-  vign.addColorStop(0.82, 'rgba(0,0,0,0.14)')
-  vign.addColorStop(1,    'rgba(0,0,0,0.32)')
-  ctx.fillStyle = vign
-  ctx.fillRect(0, 0, W, H)
-}
-
 // ── Draw concentric machined-metal rings onto a canvas ────
 function drawMetalKnob(canvas: HTMLCanvasElement) {
   const SIZE = 160
@@ -254,7 +201,6 @@ export default function HardwareBoard({ isDark = false, onOverlayChange }: { isD
   const knobRef        = useRef<HTMLDivElement>(null)
   const rotatorRef     = useRef<HTMLDivElement>(null)
   const metalCanvasRef = useRef<HTMLCanvasElement>(null)
-  const bodyCanvasRef  = useRef<HTMLCanvasElement>(null)
   const isDragging     = useRef(false)
   const startAngleRef  = useRef(0)
   const currentRot     = useRef(START_OFFSET)
@@ -279,7 +225,6 @@ export default function HardwareBoard({ isDark = false, onOverlayChange }: { isD
   // ── Metal canvas
   useEffect(() => {
     if (metalCanvasRef.current) drawMetalKnob(metalCanvasRef.current)
-    if (bodyCanvasRef.current)  drawBrushedBody(bodyCanvasRef.current)
   }, [])
 
   // ── Board CRT WebGL
@@ -748,22 +693,17 @@ export default function HardwareBoard({ isDark = false, onOverlayChange }: { isD
   return (
     <div style={{
       width: 920, height: 640,
-      background: '#d8d6d0',
+      background: 'linear-gradient(175deg, #3e4650 0%, #30383e 30%, #262e34 58%, #1e252c 100%)',
       borderRadius: 24,
       boxShadow: isDark
-        ? '40px 55px 90px rgba(0,0,0,0.92), 0 0 0 1px rgba(0,0,0,0.25), inset 0 1px 0 rgba(255,255,255,0.7), inset 0 -2px 0 rgba(0,0,0,0.18), inset 1px 0 0 rgba(255,255,255,0.4), inset -1px 0 0 rgba(0,0,0,0.12)'
-        : '40px 55px 90px rgba(0,0,0,0.55), 0 0 0 1px rgba(0,0,0,0.18), inset 0 1px 0 rgba(255,255,255,0.7), inset 0 -2px 0 rgba(0,0,0,0.18), inset 1px 0 0 rgba(255,255,255,0.4), inset -1px 0 0 rgba(0,0,0,0.12)',
+        ? '40px 55px 90px rgba(0,0,0,0.95), 0 0 0 1px rgba(255,255,255,0.07), 0 0 80px rgba(30,50,70,0.18), inset 0 1px 0 rgba(255,255,255,0.14), inset 0 -2px 0 rgba(0,0,0,0.65), inset 1px 0 0 rgba(255,255,255,0.05), inset -1px 0 0 rgba(0,0,0,0.3)'
+        : '40px 55px 90px rgba(0,0,0,0.88), 0 0 0 1px rgba(0,0,0,0.9), inset 0 1px 0 rgba(255,255,255,0.14), inset 0 -2px 0 rgba(0,0,0,0.65), inset 1px 0 0 rgba(255,255,255,0.05), inset -1px 0 0 rgba(0,0,0,0.3)',
       display: 'grid',
       gridTemplateRows: 'auto 1fr',
       padding: 40,
       gap: 32,
       position: 'relative',
     }}>
-      {/* ── Brushed metal body canvas ─────────────────────────── */}
-      <canvas ref={bodyCanvasRef} style={{
-        position: 'absolute', inset: 0, width: '100%', height: '100%',
-        borderRadius: 24, pointerEvents: 'none', zIndex: 0,
-      }} />
       {/* ── Upper catchlight — diffuse overhead light on metal ── */}
       <div style={{
         position: 'absolute', inset: 0, borderRadius: 24,
