@@ -53,8 +53,8 @@ export default function Home() {
     <>
       {!isMobile && <AsciiBackground isDark={isDark} />}
 
-      {/* Dark mode toggle — top right */}
-      <div
+      {/* Dark mode toggle — top right, desktop only */}
+      {!isMobile && <div
         role="button"
         tabIndex={0}
         onClick={() => setIsDark(d => !d)}
@@ -98,7 +98,7 @@ export default function Home() {
             boxShadow: '0 1px 3px rgba(0,0,0,0.28)',
           }} />
         </div>
-      </div>
+      </div>}
 
       {isMobile ? (
         <MobileView />
