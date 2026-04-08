@@ -131,160 +131,128 @@ function initCRT(canvas: HTMLCanvasElement): (() => void) | null {
 function ProjectorPreview({ activeIndex, isPoweredOn, isOverlayOpen }: {
   activeIndex: number; isPoweredOn: boolean; isOverlayOpen: boolean
 }) {
-  const groupRef = useRef<HTMLDivElement>(null)
-  const imgRef   = useRef<HTMLDivElement>(null)
+  const frameRef  = useRef<HTMLDivElement>(null)
+  const beamRef   = useRef<HTMLDivElement>(null)
+  const lensRef   = useRef<HTMLDivElement>(null)
   const prevIndex = useRef(activeIndex)
 
-  // Slide-change: brief white flash like a physical slide advancing
+  // Slide-advance flicker when section changes
   useEffect(() => {
     if (prevIndex.current === activeIndex) return
     prevIndex.current = activeIndex
-    if (!imgRef.current) return
+    if (!frameRef.current) return
     gsap.timeline()
-      .to(imgRef.current, { opacity: 0,   duration: 0.06 })
-      .to(imgRef.current, { opacity: 0.8, duration: 0.04 })
-      .to(imgRef.current, { opacity: 0,   duration: 0.05 })
-      .to(imgRef.current, { opacity: 1,   duration: 0.28, ease: 'power2.out' })
+      .to(frameRef.current, { opacity: 0,   duration: 0.07, ease: 'none' })
+      .to(frameRef.current, { opacity: 0.7, duration: 0.04, ease: 'none' })
+      .to(frameRef.current, { opacity: 0.1, duration: 0.06, ease: 'none' })
+      .to(frameRef.current, { opacity: 1,   duration: 0.20, ease: 'power2.out' })
   }, [activeIndex])
 
-  // Power on/off — whole group
+  // Power on/off
   useEffect(() => {
-    if (!groupRef.current) return
-    gsap.to(groupRef.current, {
-      opacity: isPoweredOn ? 1 : 0,
-      duration: isPoweredOn ? 0.75 : 0.2,
-      delay:    isPoweredOn ? 0.45 : 0,
-      ease:     isPoweredOn ? 'power2.out' : 'power2.in',
-    })
+    const targets = [frameRef.current, beamRef.current, lensRef.current].filter(Boolean)
+    if (isPoweredOn) {
+      gsap.to(targets, { opacity: 1, duration: 0.7, delay: 0.5, ease: 'power2.out', stagger: 0.08 })
+    } else {
+      gsap.to(targets, { opacity: 0, duration: 0.18, ease: 'power2.in' })
+    }
   }, [isPoweredOn])
 
   // Hide when overlay open
   useEffect(() => {
-    if (!groupRef.current) return
-    gsap.to(groupRef.current, { opacity: isOverlayOpen ? 0 : (isPoweredOn ? 1 : 0), duration: 0.3 })
+    const targets = [frameRef.current, beamRef.current, lensRef.current].filter(Boolean)
+    gsap.to(targets, { opacity: isOverlayOpen ? 0 : (isPoweredOn ? 1 : 0), duration: 0.3 })
   }, [isOverlayOpen, isPoweredOn])
 
   const details = SECTION_DETAILS[activeIndex] as Record<string, any>
   const cover   = details?.cover as string | undefined
+  const section = SECTIONS[activeIndex]
+  const SPROCKETS = 7
+
+  // No projector for About or Spatial UI (no image)
   if (!cover || activeIndex === 0 || activeIndex === SECTIONS.length - 1) return null
 
   return (
-    <div ref={groupRef} style={{ opacity: 0, pointerEvents: 'none' }}>
-
-      {/* ── Mini projector body — clamped to right edge ── */}
-      <div style={{
-        position: 'absolute', left: 926, top: 272,
-        width: 54, height: 40, zIndex: 12,
-      }}>
-        {/* Main body */}
-        <div style={{
-          position: 'absolute', inset: 0,
-          background: 'linear-gradient(155deg, #3e3e3e 0%, #2a2a2a 55%, #1e1e1e 100%)',
-          borderRadius: '5px 3px 3px 5px',
-          boxShadow: [
-            '0 4px 16px rgba(0,0,0,0.75)',
-            '0 1px 0 rgba(255,255,255,0.07)',
-            'inset 0 1px 0 rgba(255,255,255,0.09)',
-            'inset 0 -1px 0 rgba(0,0,0,0.6)',
-          ].join(', '),
-        }} />
-        {/* Top vent slits */}
-        <div style={{ position: 'absolute', top: 6, left: 8, display: 'flex', gap: 2.5 }}>
-          {[0,1,2,3].map(i => (
-            <div key={i} style={{ width: 6, height: 1.5, background: 'rgba(0,0,0,0.55)', borderRadius: 1 }} />
-          ))}
-        </div>
-        {/* Small status dot */}
-        <div style={{
-          position: 'absolute', bottom: 7, left: 10,
-          width: 4, height: 4, borderRadius: '50%',
-          background: isPoweredOn ? '#44ff88' : '#222',
-          boxShadow: isPoweredOn ? '0 0 4px 2px rgba(60,255,100,0.5)' : 'none',
-          transition: 'background 0.4s, box-shadow 0.4s',
-        }} />
-        {/* Front face — darker panel */}
-        <div style={{
-          position: 'absolute', right: 0, top: 0, bottom: 0, width: 14,
-          background: 'linear-gradient(180deg, #242424 0%, #181818 100%)',
-          borderRadius: '0 3px 3px 0',
-          borderLeft: '1px solid rgba(0,0,0,0.5)',
-        }} />
-        {/* Lens housing */}
-        <div style={{
-          position: 'absolute', right: -14, top: '50%', marginTop: -13,
-          width: 26, height: 26, borderRadius: '50%',
-          background: 'linear-gradient(135deg, #303030, #141414)',
-          border: '2px solid #0e0e0e',
-          boxShadow: '2px 3px 8px rgba(0,0,0,0.85), inset 0 1px 2px rgba(255,255,255,0.06)',
-          zIndex: 13,
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-        }}>
-          {/* Outer lens ring */}
-          <div style={{
-            width: 20, height: 20, borderRadius: '50%',
-            background: 'linear-gradient(135deg, #222, #0a0a0a)',
-            border: '1px solid #2a2a2a',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-          }}>
-            {/* Lens glass */}
-            <div style={{
-              width: 13, height: 13, borderRadius: '50%',
-              background: isPoweredOn
-                ? 'radial-gradient(circle at 36% 30%, rgba(255,255,230,0.9), rgba(255,200,70,0.85) 40%, rgba(160,90,10,0.95) 75%, #050505)'
-                : 'radial-gradient(circle at 36% 30%, #282830, #0c0c12)',
-              boxShadow: isPoweredOn
-                ? '0 0 10px 5px rgba(255,185,30,0.5), 0 0 22px 10px rgba(255,160,10,0.22), inset 0 1px 3px rgba(255,250,200,0.7)'
-                : 'inset 0 1px 3px rgba(0,0,0,0.95)',
-              transition: 'background 0.5s, box-shadow 0.5s',
-            }} />
-          </div>
-        </div>
-      </div>
-
-      {/* ── Light beam — diverging warm cone ── */}
-      <div style={{
-        position: 'absolute', left: 938, top: 178,
-        width: 160, height: 268,
-        zIndex: 1,
-        background: 'linear-gradient(90deg, rgba(255,215,110,0.10) 0%, rgba(255,200,80,0.05) 50%, transparent 100%)',
-        clipPath: 'polygon(0 46.5%, 0 53.5%, 100% 5%, 100% 95%)',
+    <>
+      {/* ── Projector lens on the right board edge ── */}
+      <div ref={lensRef} style={{
+        position: 'absolute', right: -10, top: 295,
+        width: 20, height: 20, borderRadius: '50%',
+        opacity: 0, zIndex: 10, pointerEvents: 'none',
+        background: isPoweredOn
+          ? 'radial-gradient(circle at 38% 35%, #fff5cc, #f0b830 45%, #8a5c10)'
+          : 'radial-gradient(circle at 38% 35%, #3a3a3a, #1c1c1c)',
+        boxShadow: isPoweredOn
+          ? '0 0 0 2px #5a3c08, 0 0 8px 3px rgba(240,170,30,0.45), inset 0 1px 2px rgba(255,240,180,0.7)'
+          : '0 0 0 2px #2a2a2a, inset 0 1px 2px rgba(0,0,0,0.8)',
+        transition: 'background 0.5s, box-shadow 0.5s',
       }} />
 
-      {/* ── Projected image ── */}
-      <div ref={imgRef} style={{
-        position: 'absolute', left: 1004, top: 193,
-        width: 200, zIndex: 2,
+      {/* ── Light beam — trapezoidal warm cone ── */}
+      <div ref={beamRef} style={{
+        position: 'absolute', left: 912, top: 180,
+        width: 145, height: 250,
+        opacity: 0, pointerEvents: 'none', zIndex: 1,
+        background: 'linear-gradient(90deg, rgba(255,200,80,0.07) 0%, rgba(255,190,60,0.03) 70%, transparent 100%)',
+        clipPath: 'polygon(0 47%, 0 53%, 100% 12%, 100% 88%)',
+      }} />
+
+      {/* ── Film frame ── */}
+      <div ref={frameRef} style={{
+        position: 'absolute', left: 950, top: 210,
+        width: 220, opacity: 0, pointerEvents: 'none', zIndex: 2,
+        transform: 'perspective(700px) rotateY(-5deg)',
+        filter: 'drop-shadow(0 12px 32px rgba(0,0,0,0.7)) drop-shadow(0 3px 8px rgba(0,0,0,0.5))',
       }}>
-        {/* Wall/surface ambient spill — big soft glow behind image */}
-        <div style={{
-          position: 'absolute', inset: -32,
-          background: 'radial-gradient(ellipse at 50% 50%, rgba(255,230,160,0.20) 0%, rgba(255,200,80,0.08) 45%, transparent 72%)',
-          pointerEvents: 'none',
-        }} />
-        {/* Projected image with soft feathered edges */}
-        <div style={{
-          position: 'relative', lineHeight: 0,
-          WebkitMaskImage: 'radial-gradient(ellipse 88% 88% at 50% 50%, black 38%, rgba(0,0,0,0.7) 56%, rgba(0,0,0,0.2) 70%, transparent 82%)',
-          maskImage:        'radial-gradient(ellipse 88% 88% at 50% 50%, black 38%, rgba(0,0,0,0.7) 56%, rgba(0,0,0,0.2) 70%, transparent 82%)',
-        }}>
+
+        {/* Top sprocket strip */}
+        <div style={{ height: 17, background: '#0e0e0e', display: 'flex', alignItems: 'center', justifyContent: 'space-around', padding: '0 6px', borderRadius: '3px 3px 0 0' }}>
+          {Array.from({ length: SPROCKETS }).map((_, i) => (
+            <div key={i} style={{ width: 10, height: 12, borderRadius: 2, background: '#1e1e1e', border: '1px solid #2e2e2e', boxShadow: 'inset 0 1px 3px rgba(0,0,0,0.9)' }} />
+          ))}
+        </div>
+
+        {/* Image */}
+        <div style={{ position: 'relative', overflow: 'hidden', background: '#050505', lineHeight: 0 }}>
           <img src={cover} alt="" style={{
             display: 'block', width: '100%', height: 'auto',
-            filter: 'brightness(1.12) saturate(0.78) contrast(0.90)',
+            filter: 'sepia(0.4) saturate(0.72) brightness(0.82) contrast(1.08)',
           }} />
-          {/* Hot-spot: overexposed centre like a real projection lamp */}
+          {/* Film grain */}
           <div style={{
             position: 'absolute', inset: 0, pointerEvents: 'none',
-            background: 'radial-gradient(ellipse 55% 50% at 50% 46%, rgba(255,255,245,0.22) 0%, transparent 65%)',
+            backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.72' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='180' height='180' filter='url(%23g)' opacity='0.12'/%3E%3C/svg%3E")`,
+            backgroundSize: '180px 180px',
+            mixBlendMode: 'overlay', opacity: 0.55,
           }} />
-          {/* Warm amber tint */}
-          <div style={{
-            position: 'absolute', inset: 0, pointerEvents: 'none',
-            background: 'rgba(200,140,20,0.09)', mixBlendMode: 'screen',
-          }} />
+          {/* Vignette */}
+          <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none', background: 'radial-gradient(ellipse at 50% 50%, transparent 40%, rgba(0,0,0,0.72) 100%)' }} />
+          {/* Warm amber wash */}
+          <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none', background: 'rgba(140,90,10,0.10)', mixBlendMode: 'multiply' }} />
+          {/* Frame counter */}
+          <div style={{ position: 'absolute', bottom: 5, right: 7, fontFamily: 'var(--font-jetbrains-mono), monospace', fontSize: 7.5, letterSpacing: 1.5, color: 'rgba(255,215,120,0.55)' }}>
+            {String(activeIndex).padStart(2, '0')}A
+          </div>
+        </div>
+
+        {/* Bottom sprocket strip */}
+        <div style={{ height: 17, background: '#0e0e0e', display: 'flex', alignItems: 'center', justifyContent: 'space-around', padding: '0 6px' }}>
+          {Array.from({ length: SPROCKETS }).map((_, i) => (
+            <div key={i} style={{ width: 10, height: 12, borderRadius: 2, background: '#1e1e1e', border: '1px solid #2e2e2e', boxShadow: 'inset 0 1px 3px rgba(0,0,0,0.9)' }} />
+          ))}
+        </div>
+
+        {/* Caption bar */}
+        <div style={{ background: '#080808', padding: '5px 10px 6px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderRadius: '0 0 3px 3px' }}>
+          <span style={{ fontFamily: 'var(--font-jetbrains-mono), monospace', fontSize: 7.5, letterSpacing: 2, color: 'rgba(255,210,100,0.6)', textTransform: 'uppercase' }}>
+            {section.id}
+          </span>
+          <span style={{ fontFamily: 'var(--font-jetbrains-mono), monospace', fontSize: 7, letterSpacing: 1, color: 'rgba(255,210,100,0.3)' }}>
+            ▶ SLIDE
+          </span>
         </div>
       </div>
-
-    </div>
+    </>
   )
 }
 
