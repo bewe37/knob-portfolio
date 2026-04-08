@@ -17,6 +17,48 @@ const TOTAL_ARC    = 240
 const STEP         = TOTAL_ARC / (NUM - 1)   // 60° per position
 const START_OFFSET = -120                     // arc: -120° → +120°
 
+// ── Draw brushed-metal body texture onto a canvas ─────────
+function drawBrushedBody(canvas: HTMLCanvasElement) {
+  const W = 920, H = 640
+  canvas.width  = W
+  canvas.height = H
+  const ctx = canvas.getContext('2d')
+  if (!ctx) return
+
+  // Base — anisotropic vertical gradient (brushed metal reflects mostly vertically)
+  const base = ctx.createLinearGradient(0, 0, 0, H)
+  base.addColorStop(0,    '#252d36')
+  base.addColorStop(0.18, '#333d48')
+  base.addColorStop(0.38, '#3c4750')
+  base.addColorStop(0.52, '#394450')
+  base.addColorStop(0.70, '#2e3840')
+  base.addColorStop(1,    '#1a2028')
+  ctx.fillStyle = base
+  ctx.fillRect(0, 0, W, H)
+
+  // Brushed grain — fine horizontal lines with lathe-like brightness variation
+  for (let y = 0; y < H; y++) {
+    const brightness = Math.sin(y * 3.1) * 20 + Math.sin(y * 8.7) * 8 + Math.sin(y * 0.6) * 14
+    const b = 148 + Math.round(brightness)
+    const a = 0.055 + Math.abs(Math.sin(y * 1.9)) * 0.038
+    ctx.strokeStyle = `rgba(${b - 4},${b},${b + 10},${a})`
+    ctx.lineWidth = 0.6
+    ctx.beginPath()
+    ctx.moveTo(0, y + 0.5)
+    ctx.lineTo(W, y + 0.5)
+    ctx.stroke()
+  }
+
+  // Anisotropic sheen band — directional light catch across the face
+  const sheen = ctx.createLinearGradient(0, H * 0.15, 0, H * 0.65)
+  sheen.addColorStop(0,    'rgba(170,195,220,0)')
+  sheen.addColorStop(0.28, 'rgba(170,195,220,0.10)')
+  sheen.addColorStop(0.50, 'rgba(160,185,210,0.06)')
+  sheen.addColorStop(1,    'rgba(170,195,220,0)')
+  ctx.fillStyle = sheen
+  ctx.fillRect(0, 0, W, H)
+}
+
 // ── Draw concentric machined-metal rings onto a canvas ────
 function drawMetalKnob(canvas: HTMLCanvasElement) {
   const SIZE = 160
@@ -201,6 +243,7 @@ export default function HardwareBoard({ isDark = false, onOverlayChange }: { isD
   const knobRef        = useRef<HTMLDivElement>(null)
   const rotatorRef     = useRef<HTMLDivElement>(null)
   const metalCanvasRef = useRef<HTMLCanvasElement>(null)
+  const bodyCanvasRef  = useRef<HTMLCanvasElement>(null)
   const isDragging     = useRef(false)
   const startAngleRef  = useRef(0)
   const currentRot     = useRef(START_OFFSET)
@@ -225,6 +268,7 @@ export default function HardwareBoard({ isDark = false, onOverlayChange }: { isD
   // ── Metal canvas
   useEffect(() => {
     if (metalCanvasRef.current) drawMetalKnob(metalCanvasRef.current)
+    if (bodyCanvasRef.current)  drawBrushedBody(bodyCanvasRef.current)
   }, [])
 
   // ── Board CRT WebGL
@@ -693,8 +737,7 @@ export default function HardwareBoard({ isDark = false, onOverlayChange }: { isD
   return (
     <div style={{
       width: 920, height: 640,
-      /* Dark anodized aluminum — space grey, matches knob + bezel tones */
-      background: 'linear-gradient(168deg, #404a56 0%, #30393f 28%, #242c33 56%, #181e25 100%)',
+      background: '#1a2028',
       borderRadius: 24,
       boxShadow: isDark
         ? '40px 55px 90px rgba(0,0,0,0.95), 0 0 0 1px rgba(255,255,255,0.07), 0 0 80px rgba(30,50,70,0.18), inset 0 1px 0 rgba(255,255,255,0.14), inset 0 -2px 0 rgba(0,0,0,0.65), inset 1px 0 0 rgba(255,255,255,0.05), inset -1px 0 0 rgba(0,0,0,0.3)'
@@ -705,30 +748,10 @@ export default function HardwareBoard({ isDark = false, onOverlayChange }: { isD
       gap: 32,
       position: 'relative',
     }}>
-      {/* ── Brushed horizontal grain — fine anisotropic texture ── */}
-      <div style={{
-        position: 'absolute', inset: 0, borderRadius: 24, overflow: 'hidden',
-        backgroundImage: [
-          'repeating-linear-gradient(to bottom,',
-          '  rgba(255,255,255,0.028) 0px,',
-          '  rgba(255,255,255,0.028) 1px,',
-          '  transparent 1px,',
-          '  transparent 3px,',
-          '  rgba(0,0,0,0.022) 3px,',
-          '  rgba(0,0,0,0.022) 4px,',
-          '  transparent 4px,',
-          '  transparent 6px',
-          ')',
-        ].join(''),
-        pointerEvents: 'none', zIndex: 0,
-      }} />
-      {/* ── Micro-noise — surface roughness ─────────────────── */}
-      <div style={{
-        position: 'absolute', inset: 0, borderRadius: 24, overflow: 'hidden',
-        backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.62' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")`,
-        opacity: 0.092,
-        mixBlendMode: 'overlay',
-        pointerEvents: 'none', zIndex: 0,
+      {/* ── Brushed metal body canvas ─────────────────────────── */}
+      <canvas ref={bodyCanvasRef} style={{
+        position: 'absolute', inset: 0, width: '100%', height: '100%',
+        borderRadius: 24, pointerEvents: 'none', zIndex: 0,
       }} />
       {/* ── Upper catchlight — diffuse overhead light on metal ── */}
       <div style={{
