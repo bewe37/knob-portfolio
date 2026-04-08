@@ -148,7 +148,7 @@ html.dark body {
     0 0 10px 3px rgba(180, 220, 255, 0.90),
     0 0 22px 6px rgba(140, 200, 255, 0.60),
     0 0 40px 8px rgba(100, 170, 255, 0.30);
-  transition: background 0.4s ease, box-shadow 0.4s ease;
+  transition: background 0.5s ease, box-shadow 0.5s ease;
 }
 
 @keyframes led-standby {
@@ -167,8 +167,8 @@ html.dark body {
 }
 
 .knob-indicator.knob-off {
-  background: linear-gradient(to bottom, #2a2c30 0%, #1a1c20 100%) !important;
-  box-shadow: none !important;
+  background: linear-gradient(to bottom, #1e2228 0%, #141820 100%);
+  box-shadow: none;
 }
 
 
