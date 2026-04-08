@@ -222,6 +222,10 @@ export default function HardwareBoard({ isDark = false, onOverlayChange }: { isD
   const polaroidOverlayRef    = useRef<HTMLDivElement>(null)
   const polaroidCardRef       = useRef<HTMLDivElement>(null)
 
+  const screenTextRef     = useRef<HTMLDivElement>(null)
+  const screenImgRef      = useRef<HTMLDivElement>(null)
+  const screenHoveredRef  = useRef(false)
+
   // ── Metal canvas — redraw when mode changes
   useEffect(() => {
     if (metalCanvasRef.current) drawMetalKnob(metalCanvasRef.current, isDark)
@@ -435,6 +439,54 @@ export default function HardwareBoard({ isDark = false, onOverlayChange }: { isD
     if (cards[2]) gsap.to(cards[2], { rotation: 2, duration: 0.5, ease: 'elastic.out(1, 0.6)' })
   }, [])
 
+  // ── Screen hover — soft crossfade reveal
+  const handleScreenEnter = useCallback(() => {
+    const idx = activeIdxRef.current
+    if (!isPoweredOnRef.current || idx === 0 || idx === 5) return
+    const cover = (SECTION_DETAILS[idx] as Record<string, any>)?.screenCover
+    if (!cover) return
+    const textEl = screenTextRef.current
+    const imgEl  = screenImgRef.current
+    if (!textEl || !imgEl) return
+    screenHoveredRef.current = true
+    gsap.killTweensOf([textEl, imgEl])
+    gsap.timeline()
+      .to(textEl, { opacity: 0, duration: 0.2, ease: 'power2.inOut' })
+      .fromTo(imgEl,
+        { opacity: 0, scale: 1.04 },
+        { opacity: 1, scale: 1, duration: 0.32, ease: 'power2.out' }, '<0.08')
+  }, [])
+
+  const handleScreenLeave = useCallback(() => {
+    if (!screenHoveredRef.current) return
+    screenHoveredRef.current = false
+    const textEl = screenTextRef.current
+    const imgEl  = screenImgRef.current
+    if (!textEl || !imgEl) return
+    gsap.killTweensOf([textEl, imgEl])
+    gsap.timeline()
+      .to(imgEl,  { opacity: 0, scale: 1.02, duration: 0.2, ease: 'power2.inOut' })
+      .set(imgEl, { scale: 1 })
+      .to(textEl, { opacity: 1, duration: 0.28, ease: 'power2.out' }, '<0.06')
+  }, [])
+
+  // Reset on section change or power-off
+  useEffect(() => {
+    screenHoveredRef.current = false
+    gsap.killTweensOf([screenTextRef.current, screenImgRef.current])
+    if (screenTextRef.current) gsap.set(screenTextRef.current, { clearProps: 'opacity' })
+    if (screenImgRef.current)  gsap.set(screenImgRef.current,  { opacity: 0, scale: 1 })
+  }, [activeIndex])
+
+  useEffect(() => {
+    if (!isPoweredOn) {
+      screenHoveredRef.current = false
+      gsap.killTweensOf([screenTextRef.current, screenImgRef.current])
+      if (screenTextRef.current) gsap.set(screenTextRef.current, { clearProps: 'opacity' })
+      if (screenImgRef.current)  gsap.set(screenImgRef.current,  { opacity: 0, scale: 1 })
+    }
+  }, [isPoweredOn])
+
   // ── Polaroid zoom in
   useEffect(() => {
     if (!isPolaroidZoomed || !polaroidOverlayRef.current || !polaroidCardRef.current) return
@@ -614,6 +666,7 @@ export default function HardwareBoard({ isDark = false, onOverlayChange }: { isD
 
   const section     = SECTIONS[activeIndex]
   const details     = SECTION_DETAILS[activeIndex]
+  const screenCover = (details as Record<string, any>)?.screenCover as string | undefined
   const screenColor = phosphorGreen ? '#33ff66' : '#c07e18'
   const screenGlow  = phosphorGreen ? 'rgba(51,255,102,0.28)' : 'rgba(192,126,24,0.25)'
 
@@ -772,15 +825,15 @@ export default function HardwareBoard({ isDark = false, onOverlayChange }: { isD
         boxShadow: '0 8px 24px rgba(0,0,0,0.7), 0 2px 6px rgba(0,0,0,0.5), inset 0 2px 8px rgba(0,0,0,0.8), inset 0 1px 0 rgba(255,255,255,0.04)',
         position: 'relative',
       }}>
-        {/* ── Hover tooltip — floats above the screen ── */}
         <div
           className="screen-tv"
           onClick={handleZoom}
+          onMouseEnter={handleScreenEnter}
+          onMouseLeave={handleScreenLeave}
           style={{
             background: '#090909', height: 260, borderRadius: 10,
             position: 'relative', overflow: 'hidden',
             boxShadow: 'inset 0 12px 28px rgba(0,0,0,0.95), inset 0 0 0 1px rgba(0,0,0,1), 0 0 0 1px rgba(255,255,255,0.04)',
-            display: 'flex', flexDirection: 'column', padding: 24,
             fontFamily: 'var(--font-jetbrains-mono), monospace',
             color: screenColor, textShadow: `0 0 8px ${screenGlow}`,
             transition: 'color 0.3s, text-shadow 0.3s',
@@ -834,75 +887,109 @@ export default function HardwareBoard({ isDark = false, onOverlayChange }: { isD
           {/* Main screen power-off blackout */}
           <div ref={mainScreenBlackoutRef} style={{ position:'absolute', inset:0, background:'#090909', borderRadius:10, pointerEvents:'none', zIndex:20 }} />
 
-          {bootingUp ? (
-            <LoadingScreen
-              onDone={handleBootDone}
-              screenColor={screenColor}
-              screenGlow={screenGlow}
-            />
-          ) : activeIndex === 5 ? (
-            <div key={animKey.current} className="screen-fade" style={{ position:'absolute', inset:0, overflow:'hidden', borderRadius:10, zIndex:0, background:'#000', display:'flex', alignItems:'center', justifyContent:'center' }}>
-              {sdCard && isPoweredOn ? (
-                <>
-                  <video
-                    src={sdCard === 'ponyo' ? VIDEO_PONYO : VIDEO_HOWLS}
-                    autoPlay loop muted={false} playsInline
-                    style={{ position:'absolute', top:'50%', left:0, transform:'translateY(-50%)', width:'100%', height:'115%', objectFit:'cover', objectPosition:'center' }}
-                  />
-                  <div style={{ position:'absolute', bottom:10, left:12, fontFamily:'var(--font-jetbrains-mono), monospace', fontSize:9, letterSpacing:'0.08em', color:'rgba(255,255,255,0.5)', pointerEvents:'none', zIndex:5 }}>
-                    @stvlightss
-                  </div>
-                </>
-              ) : (
-                <div style={{ textAlign:'center', fontFamily:'var(--font-jetbrains-mono), monospace', pointerEvents:'none' }}>
-                  <div style={{ fontSize:13, letterSpacing:3, color:screenColor, opacity:0.75, marginBottom:10, textTransform:'uppercase', textShadow:`0 0 10px ${screenGlow}` }}>NO MEDIA</div>
-                  <div style={{ fontSize:10, letterSpacing:2, color:screenColor, opacity:0.45, lineHeight:1.9, textTransform:'uppercase', textShadow:`0 0 6px ${screenGlow}` }}>
-                    Click the screws to open<br />hardware panel &amp; insert SD card
-                  </div>
-                </div>
-              )}
-            </div>
-          ) : (
-            <>
-              {/* Header */}
-              <div style={{ display:'flex', justifyContent:'space-between', fontSize:12, letterSpacing:2, opacity:0.7, marginBottom:24, textTransform:'uppercase' }}>
-                <span>SYS.PORTFOLIO.OS</span>
-                <span style={{ fontWeight: 700 }}>{section.id}</span>
-              </div>
-
-              {/* Content */}
-              <div key={animKey.current} className="screen-fade" style={{ flexGrow:1, display:'flex', flexDirection:'column', justifyContent:'center' }}>
-                <div style={{ fontSize:32, fontWeight:700, marginBottom:8, letterSpacing:-0.5 }}>{section.title}</div>
-                <div style={{ fontSize:11, opacity:0.6, marginBottom:16, letterSpacing:1 }}>{section.tech}</div>
-                <div style={{ fontSize:14, lineHeight:1.6, maxWidth:'80%', opacity:0.9, whiteSpace:'pre-line' }}>{section.desc}</div>
-              </div>
-
-              {/* Audio viz + click hint */}
-              <div style={{ display:'flex', alignItems:'flex-end', justifyContent:'space-between' }}>
-                <div style={{ display:'flex', gap:3, alignItems:'flex-end', height:24 }}>
-                  {Array.from({ length: 28 }).map((_, i) => (
-                    <div key={i} ref={el => { audioBarsRef.current[i] = el }}
-                      style={{ width:6, height:4, background:screenColor, opacity:0.8, borderRadius:1, flexShrink:0, transition:'background 0.3s' }}
+          {/* ── Text layer ── */}
+          <div ref={screenTextRef} style={{
+            position: 'absolute', inset: 0, padding: 24, zIndex: 2,
+            display: 'flex', flexDirection: 'column',
+          }}>
+            {bootingUp ? (
+              <LoadingScreen
+                onDone={handleBootDone}
+                screenColor={screenColor}
+                screenGlow={screenGlow}
+              />
+            ) : activeIndex === 5 ? (
+              <div key={animKey.current} className="screen-fade" style={{ position:'absolute', inset:0, overflow:'hidden', borderRadius:10, zIndex:0, background:'#000', display:'flex', alignItems:'center', justifyContent:'center' }}>
+                {sdCard && isPoweredOn ? (
+                  <>
+                    <video
+                      src={sdCard === 'ponyo' ? VIDEO_PONYO : VIDEO_HOWLS}
+                      autoPlay loop muted={false} playsInline
+                      style={{ position:'absolute', top:'50%', left:0, transform:'translateY(-50%)', width:'100%', height:'115%', objectFit:'cover', objectPosition:'center' }}
                     />
-                  ))}
-                </div>
-                {activeIndex < 5 && (
-                  <div style={{
-                    fontSize: 10,
-                    letterSpacing: '0.18em',
-                    fontWeight: 700,
-                    color: screenColor,
-                    opacity: 0.75,
-                    fontFamily: 'var(--font-jetbrains-mono), monospace',
-                    whiteSpace: 'nowrap',
-                    paddingBottom: 2,
-                  }}>
-                    [ CLICK TO OPEN ]
+                    <div style={{ position:'absolute', bottom:10, left:12, fontFamily:'var(--font-jetbrains-mono), monospace', fontSize:9, letterSpacing:'0.08em', color:'rgba(255,255,255,0.5)', pointerEvents:'none', zIndex:5 }}>
+                      @stvlightss
+                    </div>
+                  </>
+                ) : (
+                  <div style={{ textAlign:'center', fontFamily:'var(--font-jetbrains-mono), monospace', pointerEvents:'none' }}>
+                    <div style={{ fontSize:13, letterSpacing:3, color:screenColor, opacity:0.75, marginBottom:10, textTransform:'uppercase', textShadow:`0 0 10px ${screenGlow}` }}>NO MEDIA</div>
+                    <div style={{ fontSize:10, letterSpacing:2, color:screenColor, opacity:0.45, lineHeight:1.9, textTransform:'uppercase', textShadow:`0 0 6px ${screenGlow}` }}>
+                      Click the screws to open<br />hardware panel &amp; insert SD card
+                    </div>
                   </div>
                 )}
               </div>
-            </>
-          )}
+            ) : (
+              <>
+                {/* Header */}
+                <div style={{ display:'flex', justifyContent:'space-between', fontSize:12, letterSpacing:2, opacity:0.7, marginBottom:24, textTransform:'uppercase' }}>
+                  <span>SYS.PORTFOLIO.OS</span>
+                  <span style={{ fontWeight: 700 }}>{section.id}</span>
+                </div>
+
+                {/* Content */}
+                <div key={animKey.current} className="screen-fade" style={{ flexGrow:1, display:'flex', flexDirection:'column', justifyContent:'center' }}>
+                  <div style={{ fontSize:32, fontWeight:700, marginBottom:8, letterSpacing:-0.5 }}>{section.title}</div>
+                  <div style={{ fontSize:11, opacity:0.6, marginBottom:16, letterSpacing:1 }}>{section.tech}</div>
+                  <div style={{ fontSize:14, lineHeight:1.6, maxWidth:'80%', opacity:0.9, whiteSpace:'pre-line' }}>{section.desc}</div>
+                </div>
+
+                {/* Audio viz + click hint */}
+                <div style={{ display:'flex', alignItems:'flex-end', justifyContent:'space-between' }}>
+                  <div style={{ display:'flex', gap:3, alignItems:'flex-end', height:24 }}>
+                    {Array.from({ length: 28 }).map((_, i) => (
+                      <div key={i} ref={el => { audioBarsRef.current[i] = el }}
+                        style={{ width:6, height:4, background:screenColor, opacity:0.8, borderRadius:1, flexShrink:0, transition:'background 0.3s' }}
+                      />
+                    ))}
+                  </div>
+                  {activeIndex < 5 && (
+                    <div style={{
+                      fontSize: 10, letterSpacing: '0.18em', fontWeight: 700,
+                      color: screenColor, opacity: 0.75,
+                      fontFamily: 'var(--font-jetbrains-mono), monospace',
+                      whiteSpace: 'nowrap', paddingBottom: 2,
+                    }}>
+                      [ CLICK TO OPEN ]
+                    </div>
+                  )}
+                </div>
+              </>
+            )}
+          </div>
+
+          {/* ── Cover image hover layer — above LCD grid (z:6), below CRT canvas (z:10) ── */}
+          <div ref={screenImgRef} style={{
+            position: 'absolute', inset: 0, zIndex: 7,
+            overflow: 'hidden', borderRadius: 10,
+            opacity: 0,
+          }}>
+            {screenCover && (
+              <>
+                <img src={screenCover} alt="" style={{
+                  width: '100%', height: '100%',
+                  objectFit: 'cover', display: 'block',
+                  filter: 'brightness(0.80) saturate(0.88)',
+                }} />
+                {/* Bottom info overlay */}
+                <div style={{
+                  position: 'absolute', bottom: 0, left: 0, right: 0,
+                  padding: '52px 24px 22px',
+                  background: 'linear-gradient(to top, rgba(0,0,0,0.90) 0%, transparent 100%)',
+                  fontFamily: 'var(--font-jetbrains-mono), monospace',
+                }}>
+                  <div style={{ fontSize: 9, letterSpacing: 2.5, color: screenColor, opacity: 0.55, marginBottom: 6, textTransform: 'uppercase', textShadow: `0 0 8px ${screenGlow}` }}>
+                    {section.id}
+                  </div>
+                  <div style={{ fontSize: 20, fontWeight: 700, letterSpacing: -0.5, color: screenColor, textShadow: `0 0 18px ${screenGlow}` }}>
+                    {section.title}
+                  </div>
+                </div>
+              </>
+            )}
+          </div>
+
         </div>
       </div>
 
