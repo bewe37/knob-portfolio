@@ -34,9 +34,13 @@ export default function Home() {
     document.documentElement.classList.toggle('dark', isDark)
     if (isDark) {
       document.body.style.backgroundColor = '#07090c'
-      document.body.style.backgroundImage = 'radial-gradient(ellipse at 50% 50%, transparent 35%, rgba(0,0,0,0.75) 100%), radial-gradient(ellipse 130% 110% at 50% 44%, #0d1116 0%, #090c10 40%, #050709 100%)'
-      document.body.style.backgroundSize = '100% 100%, 100% 100%'
-      document.body.style.backgroundRepeat = 'no-repeat, no-repeat'
+      document.body.style.backgroundImage = [
+        'radial-gradient(ellipse 55% 22% at 50% 0%, rgba(100,120,180,0.13) 0%, transparent 100%)',
+        'radial-gradient(ellipse at 50% 50%, transparent 35%, rgba(0,0,0,0.75) 100%)',
+        'radial-gradient(ellipse 130% 110% at 50% 44%, #0d1116 0%, #090c10 40%, #050709 100%)',
+      ].join(', ')
+      document.body.style.backgroundSize = '100% 100%, 100% 100%, 100% 100%'
+      document.body.style.backgroundRepeat = 'no-repeat, no-repeat, no-repeat'
     } else {
       document.body.style.backgroundColor = ''
       document.body.style.backgroundImage = ''

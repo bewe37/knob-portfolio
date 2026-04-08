@@ -33,10 +33,10 @@ function drawMetalKnob(canvas: HTMLCanvasElement) {
 
   // Base — clear gunmetal gray, centered radial lighting
   const base = ctx.createRadialGradient(cx * 0.72, cy * 0.65, 0, cx, cy, r)
-  base.addColorStop(0,   '#686866')  // neutral highlight
-  base.addColorStop(0.28,'#464644')  // mid neutral
-  base.addColorStop(0.62,'#2c2c2a')  // deep neutral
-  base.addColorStop(1,   '#161614')  // near-black rim
+  base.addColorStop(0,   '#9a9aa4')  // neutral highlight
+  base.addColorStop(0.28,'#6e6e78')  // mid neutral
+  base.addColorStop(0.62,'#464650')  // deep neutral
+  base.addColorStop(1,   '#222228')  // near-black rim
   ctx.fillStyle = base
   ctx.fillRect(0, 0, SIZE, SIZE)
 
@@ -693,11 +693,27 @@ export default function HardwareBoard({ isDark = false, onOverlayChange }: { isD
   return (
     <div style={{
       width: 920, height: 640,
-      background: 'linear-gradient(175deg, #424240 0%, #333331 30%, #272725 58%, #1c1c1a 100%)',
+      background: 'linear-gradient(175deg, #464648 0%, #38383c 22%, #2c2c30 50%, #222226 75%, #1a1a1e 100%)',
       borderRadius: 24,
       boxShadow: isDark
-        ? '40px 55px 90px rgba(0,0,0,0.95), 0 0 0 1px rgba(255,255,255,0.07), 0 0 80px rgba(30,50,70,0.18), inset 0 1px 0 rgba(255,255,255,0.14), inset 0 -2px 0 rgba(0,0,0,0.65), inset 1px 0 0 rgba(255,255,255,0.05), inset -1px 0 0 rgba(0,0,0,0.3)'
-        : '40px 55px 90px rgba(0,0,0,0.88), 0 0 0 1px rgba(0,0,0,0.9), inset 0 1px 0 rgba(255,255,255,0.14), inset 0 -2px 0 rgba(0,0,0,0.65), inset 1px 0 0 rgba(255,255,255,0.05), inset -1px 0 0 rgba(0,0,0,0.3)',
+        ? [
+            '0 0 0 1px rgba(255,255,255,0.06)',
+            '0 8px 24px rgba(0,0,0,0.55)',
+            '20px 32px 60px rgba(0,0,0,0.65)',
+            'inset 0 1px 0 rgba(255,255,255,0.14)',
+            'inset 0 -1px 0 rgba(0,0,0,0.55)',
+            'inset 1px 0 0 rgba(255,255,255,0.05)',
+            'inset -1px 0 0 rgba(0,0,0,0.3)',
+          ].join(', ')
+        : [
+            '0 0 0 1px rgba(0,0,0,0.55)',
+            '0 6px 18px rgba(0,0,0,0.22)',
+            '20px 32px 60px rgba(0,0,0,0.38)',
+            'inset 0 1px 0 rgba(255,255,255,0.16)',
+            'inset 0 -1px 0 rgba(0,0,0,0.45)',
+            'inset 1px 0 0 rgba(255,255,255,0.06)',
+            'inset -1px 0 0 rgba(0,0,0,0.25)',
+          ].join(', '),
       display: 'grid',
       gridTemplateRows: 'auto 1fr',
       padding: 40,
@@ -707,25 +723,37 @@ export default function HardwareBoard({ isDark = false, onOverlayChange }: { isD
       {/* ── Upper catchlight — diffuse overhead light on metal ── */}
       <div style={{
         position: 'absolute', inset: 0, borderRadius: 24,
-        background: 'radial-gradient(ellipse 90% 45% at 50% 0%, rgba(255,255,255,0.11) 0%, transparent 70%)',
+        background: 'radial-gradient(ellipse 85% 40% at 50% 0%, rgba(255,255,255,0.16) 0%, rgba(255,255,255,0.04) 55%, transparent 70%)',
         pointerEvents: 'none', zIndex: 0,
       }} />
       {/* ── Left-edge specular — directional light catch ─────── */}
       <div style={{
         position: 'absolute', inset: 0, borderRadius: 24,
-        background: 'linear-gradient(to right, rgba(255,255,255,0.055) 0px, rgba(255,255,255,0.018) 2px, transparent 24px)',
+        background: 'linear-gradient(to right, rgba(255,255,255,0.09) 0px, rgba(255,255,255,0.04) 2px, rgba(255,255,255,0.01) 8px, transparent 28px)',
+        pointerEvents: 'none', zIndex: 0,
+      }} />
+      {/* ── Right-edge shadow ────────────────────────────────── */}
+      <div style={{
+        position: 'absolute', inset: 0, borderRadius: 24,
+        background: 'linear-gradient(to left, rgba(0,0,0,0.22) 0px, transparent 32px)',
         pointerEvents: 'none', zIndex: 0,
       }} />
       {/* ── Top bevel — machined chamfer ─────────────────────── */}
       <div style={{
         position: 'absolute', inset: 0, borderRadius: 24,
-        background: 'linear-gradient(to bottom, rgba(255,255,255,0.26) 0px, rgba(255,255,255,0.07) 1px, transparent 12px)',
+        background: 'linear-gradient(to bottom, rgba(255,255,255,0.32) 0px, rgba(255,255,255,0.10) 1px, rgba(255,255,255,0.02) 6px, transparent 18px)',
         pointerEvents: 'none', zIndex: 0,
       }} />
       {/* ── Bottom AO ────────────────────────────────────────── */}
       <div style={{
         position: 'absolute', inset: 0, borderRadius: 24,
-        background: 'linear-gradient(to top, rgba(0,0,0,0.38) 0px, transparent 90px)',
+        background: 'linear-gradient(to top, rgba(0,0,0,0.55) 0px, rgba(0,0,0,0.18) 40px, transparent 100px)',
+        pointerEvents: 'none', zIndex: 0,
+      }} />
+      {/* ── Centre spot — slight depth falloff from middle ───── */}
+      <div style={{
+        position: 'absolute', inset: 0, borderRadius: 24,
+        background: 'radial-gradient(ellipse 70% 60% at 50% 42%, transparent 40%, rgba(0,0,0,0.18) 100%)',
         pointerEvents: 'none', zIndex: 0,
       }} />
       {/* ── Smiski keychain — hangs below bottom-right ──────── */}
@@ -739,7 +767,7 @@ export default function HardwareBoard({ isDark = false, onOverlayChange }: { isD
 
       {/* ── SCREEN BEZEL ──────────────────────────────────── */}
       <div style={{
-        background: 'linear-gradient(155deg, #202020 0%, #161616 50%, #0e0e0e 100%)',
+        background: 'linear-gradient(155deg, #252528 0%, #1c1c1f 50%, #141416 100%)',
         borderRadius: 18, padding: 16,
         boxShadow: '0 8px 24px rgba(0,0,0,0.7), 0 2px 6px rgba(0,0,0,0.5), inset 0 2px 8px rgba(0,0,0,0.8), inset 0 1px 0 rgba(255,255,255,0.04)',
         position: 'relative',
@@ -1439,7 +1467,7 @@ export default function HardwareBoard({ isDark = false, onOverlayChange }: { isD
         <div style={{ display:'flex', flexDirection:'column', alignItems:'center', gap:12 }}>
           <div style={{
             width:220, height:220, borderRadius:'50%',
-            background:'linear-gradient(145deg, #383836 0%, #252523 45%, #181816 100%)',
+            background:'linear-gradient(145deg, #303034 0%, #242428 45%, #1a1a1d 100%)',
             boxShadow:'6px 10px 28px rgba(0,0,0,0.85), -2px -3px 8px rgba(80,100,120,0.07), inset 3px 3px 8px rgba(255,255,255,0.045), inset -3px -3px 8px rgba(0,0,0,0.7), inset 0 0 0 1px rgba(255,255,255,0.04)',
             display:'flex', justifyContent:'center', alignItems:'center', position:'relative',
           }}>
@@ -1644,7 +1672,7 @@ export default function HardwareBoard({ isDark = false, onOverlayChange }: { isD
         <div style={{ display:'flex', flexDirection:'column', alignItems:'flex-end', gap:28, paddingRight:8, gridColumn: 3 }}>
           {/* Skeuomorphic clock screen */}
           <div style={{
-            background: 'linear-gradient(160deg, #1e1e1c 0%, #141412 55%, #0d0d0b 100%)',
+            background: 'linear-gradient(160deg, #252528 0%, #1c1c1f 55%, #141416 100%)',
             borderRadius: 7,
             padding: '5px 6px 7px',
             boxShadow: [
@@ -1743,8 +1771,8 @@ export default function HardwareBoard({ isDark = false, onOverlayChange }: { isD
               onClick={() => setIsPoweredOn(p => !p)}
               style={{
                 width:60, height:30, borderRadius:15, cursor:'pointer', flexShrink:0,
-                background: 'linear-gradient(135deg, #1e1e1c 0%, #161614 50%, #0e0e0c 100%)',
-                boxShadow: 'inset 0 2px 6px rgba(0,0,0,0.8), inset 0 -1px 2px rgba(255,255,255,0.05), 2px 3px 8px rgba(0,0,0,0.6), 0 0 0 1px rgba(255,255,255,0.08)',
+                background: 'linear-gradient(135deg, #3a3a42 0%, #2c2c34 50%, #20202a 100%)',
+                boxShadow: 'inset 0 3px 8px rgba(0,0,0,0.85), inset 0 1px 3px rgba(0,0,0,0.6), inset 0 -1px 0 rgba(255,255,255,0.06), 2px 3px 8px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.10)',
                 position:'relative',
               }}
             >
@@ -1778,27 +1806,38 @@ export default function HardwareBoard({ isDark = false, onOverlayChange }: { isD
             </div>
           </div>
 
-          {/* Speaker — perforated dot grille */}
-          <svg
-            viewBox="0 0 100 26"
-            width="100"
-            height="26"
-            style={{ display: 'block', opacity: 0.9 }}
-          >
-            {Array.from({ length: 3 }).flatMap((_, row) =>
-              Array.from({ length: 14 }).map((_, col) => {
-                const cx = 5 + col * 7
-                const cy = 5 + row * 8
-                return (
-                  <g key={`${row}-${col}`}>
-                    <circle cx={cx} cy={cy - 0.5} r={2.5} fill="rgba(0,0,0,0.45)"/>
-                    <circle cx={cx} cy={cy} r={2} fill="#040404"/>
-                    <circle cx={cx + 0.3} cy={cy + 1.8} r={0.65} fill="rgba(255,255,255,0.08)"/>
-                  </g>
-                )
-              })
-            )}
-          </svg>
+          {/* Speaker — perforated dot grille in recessed panel */}
+          <div style={{
+            background: '#1e1e22',
+            borderRadius: 7,
+            padding: '10px 12px',
+            boxShadow: [
+              'inset 0 2px 6px rgba(0,0,0,0.6)',
+              'inset 0 0 0 1px rgba(0,0,0,0.4)',
+              '0 1px 0 rgba(255,255,255,0.07)',
+            ].join(', '),
+          }}>
+            <svg
+              viewBox="0 0 100 26"
+              width="100"
+              height="26"
+              style={{ display: 'block' }}
+            >
+              {Array.from({ length: 3 }).flatMap((_, row) =>
+                Array.from({ length: 14 }).map((_, col) => {
+                  const cx = 5 + col * 7
+                  const cy = 5 + row * 8
+                  return (
+                    <g key={`${row}-${col}`}>
+                      <circle cx={cx} cy={cy - 0.5} r={2.5} fill="rgba(0,0,0,0.6)"/>
+                      <circle cx={cx} cy={cy} r={2} fill="#282830"/>
+                      <circle cx={cx + 0.3} cy={cy + 1.8} r={0.75} fill="rgba(255,255,255,0.22)"/>
+                    </g>
+                  )
+                })
+              )}
+            </svg>
+          </div>
         </div>
       </div>
     </div>
