@@ -64,6 +64,10 @@ export default function SmiskiKeychain({ isDark = false }: { isDark?: boolean })
     return () => { idleTl.current?.kill() }
   }, [startIdle])
 
+  useEffect(() => {
+    return () => { if (hideQuoteTimeoutRef.current) clearTimeout(hideQuoteTimeoutRef.current) }
+  }, [])
+
   // ── Animate tooltip in after it mounts ──────────────────
   useEffect(() => {
     if (quote && tooltipRef.current) {

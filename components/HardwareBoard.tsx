@@ -387,21 +387,17 @@ export default function HardwareBoard({ isDark = false, onOverlayChange }: { isD
     )
   }, [isZoomed])
 
-  // ── Escape key to close
+  // ── Escape key to close overlay or lightbox
   useEffect(() => {
-    if (!isZoomed) return
-    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') handleUnzoom() }
+    if (!isZoomed && !lightboxSrc) return
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key !== 'Escape') return
+      if (lightboxSrc) setLightboxSrc(null)
+      else handleUnzoom()
+    }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
-  }, [isZoomed]) // eslint-disable-line react-hooks/exhaustive-deps -- handleUnzoom is stable (useCallback [])
-
-  // ── Escape key to close lightbox
-  useEffect(() => {
-    if (!lightboxSrc) return
-    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setLightboxSrc(null) }
-    window.addEventListener('keydown', onKey)
-    return () => window.removeEventListener('keydown', onKey)
-  }, [lightboxSrc])
+  }, [isZoomed, lightboxSrc]) // eslint-disable-line react-hooks/exhaustive-deps -- handleUnzoom is stable (useCallback [])
 
   const handleZoom = useCallback(() => {
     if (activeIdxRef.current === 5) return

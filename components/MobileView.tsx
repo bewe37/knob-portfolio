@@ -368,13 +368,13 @@ function Terminal() {
     setStep(s => s + 1)
     setDisplayed('')
     setPhase('typing')
-    const proxy = { n: 0 }
+    const proxy = { n: 0, text: entry.out }
     tweenRef.current = gsap.to(proxy, {
-      n: entry.out.length,
-      duration: entry.out.length * 0.028,
+      n: proxy.text.length,
+      duration: proxy.text.length * 0.028,
       ease: 'none',
-      onUpdate() { setDisplayed(entry.out.slice(0, Math.floor(proxy.n))) },
-      onComplete() { setDisplayed(entry.out); setPhase('idle') },
+      onUpdate() { setDisplayed(proxy.text.slice(0, Math.floor(proxy.n))) },
+      onComplete() { setDisplayed(proxy.text); setPhase('idle') },
     })
   }, [phase, step])
 
