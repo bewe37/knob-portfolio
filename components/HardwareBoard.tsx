@@ -1616,10 +1616,10 @@ export default function HardwareBoard({ isDark = false, onOverlayChange }: { isD
 
       {/* ── CONTROLS AREA ── */}
       <div style={{
-        display: 'flex',
+        display: 'grid',
+        gridTemplateColumns: '1fr 2fr',
         alignItems: 'center',
-        justifyContent: 'center',
-        gap: 36,
+        gap: 32,
         height: '100%',
       }}>
 
@@ -1669,39 +1669,32 @@ export default function HardwareBoard({ isDark = false, onOverlayChange }: { isD
         </div>
 
         {/* ── Unified control module ── */}
-        <div style={{ display: 'flex', alignItems: 'center' }}>
+        <div style={{
+          background: isDark
+            ? 'linear-gradient(160deg, #181819 0%, #111113 55%, #0a0a0c 100%)'
+            : 'linear-gradient(160deg, #303034 0%, #262628 55%, #1e1e20 100%)',
+          borderRadius: 7,
+          padding: '10px 11px',
+          boxShadow: [
+            'inset 0 1px 0 rgba(255,255,255,0.07)',
+            'inset 0 -1px 0 rgba(0,0,0,0.85)',
+            'inset 1px 0 0 rgba(255,255,255,0.04)',
+            'inset -1px 0 0 rgba(0,0,0,0.65)',
+            '4px 6px 18px rgba(0,0,0,0.8)',
+            '0 0 0 1px rgba(0,0,0,0.9)',
+          ].join(', '),
+          display: 'flex',
+          flexDirection: 'column',
+          gap: 8,
+          alignSelf: 'center',
+        }}>
 
-          {/* ── Unified control module ── */}
-          <div style={{
-            background: isDark
-              ? 'linear-gradient(160deg, #181819 0%, #111113 55%, #0a0a0c 100%)'
-              : 'linear-gradient(160deg, #303034 0%, #262628 55%, #1e1e20 100%)',
-            borderRadius: 7,
-            padding: '10px 9px 9px',
-            boxShadow: [
-              'inset 0 1px 0 rgba(255,255,255,0.07)',
-              'inset 0 -1px 0 rgba(0,0,0,0.85)',
-              'inset 1px 0 0 rgba(255,255,255,0.04)',
-              'inset -1px 0 0 rgba(0,0,0,0.65)',
-              '4px 6px 18px rgba(0,0,0,0.8)',
-              '0 0 0 1px rgba(0,0,0,0.9)',
-            ].join(', '),
-            display: 'flex',
-            gap: 9,
-          }}>
-
-            {/* ── Section selector panel ── */}
-            <div style={{ display: 'flex', flexDirection: 'column' }}>
-              {/* Engraved label */}
-              <div style={{ fontSize: 6, letterSpacing: 3, color: 'rgba(255,255,255,0.14)', fontFamily: 'var(--font-jetbrains-mono), monospace', textAlign: 'center', marginBottom: 7, textTransform: 'uppercase' }}>
+            {/* ── Row 1: Section buttons — 3-per-row grid ── */}
+            <div>
+              <div style={{ fontSize: 6, letterSpacing: 3, color: 'rgba(255,255,255,0.14)', fontFamily: 'var(--font-jetbrains-mono), monospace', textAlign: 'center', marginBottom: 6, textTransform: 'uppercase' }}>
                 Sections
               </div>
-              {/* Button stack — no gaps, separated by hairlines */}
-              <div style={{
-                borderRadius: 4,
-                overflow: 'hidden',
-                boxShadow: 'inset 0 0 0 1px rgba(0,0,0,0.9), 0 0 0 0.5px rgba(255,255,255,0.05)',
-              }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 3 }}>
                 {SECTIONS.map((s, i) => {
                   const isActive = i === activeIndex
                   return (
@@ -1709,41 +1702,32 @@ export default function HardwareBoard({ isDark = false, onOverlayChange }: { isD
                       key={s.id}
                       onClick={() => goToSection(i)}
                       style={{
-                        display: 'flex', alignItems: 'center', gap: 8,
-                        padding: '7px 10px',
-                        cursor: 'pointer',
+                        display: 'flex', alignItems: 'center', gap: 6,
+                        padding: '5px 9px',
+                        cursor: 'pointer', userSelect: 'none',
+                        borderRadius: 3,
                         background: isActive
                           ? 'linear-gradient(180deg, #0d1f10 0%, #091408 100%)'
-                          : 'linear-gradient(180deg, #1c1c20 0%, #141416 100%)',
-                        borderBottom: i < SECTIONS.length - 1 ? '1px solid rgba(0,0,0,0.7)' : 'none',
-                        borderTop: i > 0 ? '1px solid rgba(255,255,255,0.03)' : 'none',
+                          : 'linear-gradient(180deg, #1e1e22 0%, #161618 100%)',
                         boxShadow: isActive
-                          ? 'inset 0 1px 3px rgba(0,0,0,0.6)'
-                          : 'inset 0 1px 0 rgba(255,255,255,0.04)',
+                          ? 'inset 0 1px 3px rgba(0,0,0,0.7), 0 0 0 1px rgba(0,0,0,0.9)'
+                          : 'inset 0 1px 0 rgba(255,255,255,0.04), 0 0 0 1px rgba(0,0,0,0.8)',
                         transition: 'background 0.15s',
-                        userSelect: 'none',
-                        minWidth: 92,
                       }}
                     >
-                      {/* LED hole */}
                       <div style={{
-                        width: 6, height: 6, borderRadius: '50%', flexShrink: 0,
-                        background: isActive
-                          ? 'radial-gradient(circle at 38% 35%, #88ffaa, #22dd55)'
-                          : 'radial-gradient(circle at 38% 35%, #1a1e1a, #0a0c0a)',
-                        boxShadow: isActive
-                          ? '0 0 5px #33ff66, 0 0 10px rgba(51,255,102,0.45), inset 0 -1px 1px rgba(0,0,0,0.3)'
-                          : 'inset 0 1px 2px rgba(0,0,0,0.95), inset 0 0 0 0.5px rgba(0,0,0,0.8)',
+                        width: 5, height: 5, borderRadius: '50%', flexShrink: 0,
+                        background: isActive ? 'radial-gradient(circle at 38% 35%, #88ffaa, #22dd55)' : 'radial-gradient(circle at 38% 35%, #1a1e1a, #0a0c0a)',
+                        boxShadow: isActive ? '0 0 5px #33ff66, 0 0 9px rgba(51,255,102,0.4)' : 'inset 0 1px 2px rgba(0,0,0,0.95)',
                         transition: 'all 0.2s',
                       }} />
                       <span style={{
                         fontFamily: 'var(--font-jetbrains-mono), monospace',
-                        fontSize: 9,
-                        letterSpacing: 1.8,
+                        fontSize: 8.5, letterSpacing: 1.5, fontWeight: 700,
                         color: isActive ? 'rgba(51,255,102,0.85)' : 'rgba(255,255,255,0.28)',
                         textShadow: isActive ? '0 0 8px rgba(51,255,102,0.35)' : 'none',
                         transition: 'all 0.2s',
-                        fontWeight: 700,
+                        whiteSpace: 'nowrap',
                       }}>
                         {s.id}
                       </span>
@@ -1753,11 +1737,11 @@ export default function HardwareBoard({ isDark = false, onOverlayChange }: { isD
               </div>
             </div>
 
-            {/* ── Vertical divider ── */}
-            <div style={{ width: 1, alignSelf: 'stretch', background: 'rgba(0,0,0,0.6)', boxShadow: '1px 0 0 rgba(255,255,255,0.03)', flexShrink: 0 }} />
+            {/* ── H-divider ── */}
+            <div style={{ height: 1, background: 'rgba(0,0,0,0.55)', boxShadow: '0 1px 0 rgba(255,255,255,0.03)', margin: '0 -11px' }} />
 
-            {/* ── Right panel: Clock + Terminal + Power/Speaker ── */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 7 }}>
+            {/* ── Row 2: Clock + Terminal side by side ── */}
+            <div style={{ display: 'flex', gap: 8, alignItems: 'stretch' }}>
 
               {/* Clock display */}
               <div style={{ display: 'flex', flexDirection: 'column' }}>
@@ -1783,11 +1767,14 @@ export default function HardwareBoard({ isDark = false, onOverlayChange }: { isD
                 </div>
               </div>
 
+              {/* ── V-divider ── */}
+              <div style={{ width: 1, alignSelf: 'stretch', background: 'rgba(0,0,0,0.55)', boxShadow: '1px 0 0 rgba(255,255,255,0.03)', flexShrink: 0 }} />
+
               {/* Terminal */}
               <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
                 <div style={{ fontSize: 6, letterSpacing: 3, color: 'rgba(255,255,255,0.14)', fontFamily: 'var(--font-jetbrains-mono), monospace', textAlign: 'center', textTransform: 'uppercase' }}>Terminal</div>
                 <div style={{ background: '#060808', borderRadius: 4, padding: '4px', boxShadow: ['inset 0 0 0 1px rgba(0,0,0,1)', 'inset 0 3px 14px rgba(0,0,0,0.98)', 'inset 0 0 40px rgba(0,0,0,0.6)'].join(', ') }}>
-                  <div style={{ background: '#020402', borderRadius: 2, width: 148, height: 80, position: 'relative', overflow: 'hidden' }}>
+                  <div style={{ background: '#020402', borderRadius: 2, width: 220, height: 80, position: 'relative', overflow: 'hidden' }}>
                     <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none', zIndex: 3, backgroundImage: 'repeating-linear-gradient(0deg, rgba(0,0,0,0.16) 0px, rgba(0,0,0,0.16) 1px, transparent 1px, transparent 2px)' }} />
                     <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none', zIndex: 1, background: 'radial-gradient(ellipse 85% 65% at 50% 48%, rgba(8,58,20,0.35) 0%, transparent 100%)' }} />
                     <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: '30%', pointerEvents: 'none', zIndex: 4, background: 'linear-gradient(180deg, rgba(255,255,255,0.022) 0%, transparent 100%)', borderRadius: '2px 2px 0 0' }} />
@@ -1800,12 +1787,17 @@ export default function HardwareBoard({ isDark = false, onOverlayChange }: { isD
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 6, background: '#060808', borderRadius: 4, padding: '5px 9px', boxShadow: ['inset 0 2px 5px rgba(0,0,0,0.9)', 'inset 0 0 0 1px rgba(0,0,0,0.8)', '0 0.5px 0 rgba(255,255,255,0.04)'].join(', ') }}>
                   <span style={{ fontFamily: 'var(--font-jetbrains-mono), monospace', fontSize: 9, color: 'rgba(51,255,102,0.5)', flexShrink: 0, textShadow: '0 0 6px rgba(51,255,102,0.25)' }}>{'>'}</span>
-                  <input ref={termInputRef} value={termInput} onChange={e => setTermInput(e.target.value)} onKeyDown={handleTermSubmit} spellCheck={false} autoComplete="off" style={{ flex: 1, background: 'transparent', border: 'none', outline: 'none', fontFamily: 'var(--font-jetbrains-mono), monospace', fontSize: 9, color: 'rgba(51,255,102,0.95)', caretColor: '#33ff66', textShadow: '0 0 6px rgba(51,255,102,0.3)', width: 120 }} />
+                  <input ref={termInputRef} value={termInput} onChange={e => setTermInput(e.target.value)} onKeyDown={handleTermSubmit} spellCheck={false} autoComplete="off" style={{ flex: 1, background: 'transparent', border: 'none', outline: 'none', fontFamily: 'var(--font-jetbrains-mono), monospace', fontSize: 9, color: 'rgba(51,255,102,0.95)', caretColor: '#33ff66', textShadow: '0 0 6px rgba(51,255,102,0.3)', width: 192 }} />
                 </div>
               </div>
 
-              {/* Power + Speaker */}
-              <div style={{ display: 'flex', alignItems: 'center', gap: 9, marginTop: 'auto' }}>
+            </div>
+
+            {/* ── H-divider ── */}
+            <div style={{ height: 1, background: 'rgba(0,0,0,0.55)', boxShadow: '0 1px 0 rgba(255,255,255,0.03)', margin: '0 -11px' }} />
+
+            {/* ── Row 3: Power + Speaker ── */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: 9 }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
                   <span style={{ fontSize: 8, fontWeight: 700, letterSpacing: 2.5, color: 'rgba(255,255,255,0.35)', textTransform: 'uppercase', fontFamily: 'var(--font-jetbrains-mono), monospace' }}>PWR</span>
                   <div onClick={() => setIsPoweredOn(p => !p)} style={{ width: 52, height: 26, borderRadius: 13, cursor: 'pointer', flexShrink: 0, background: isDark ? 'linear-gradient(135deg, #28282e 0%, #1e1e24 50%, #16161c 100%)' : 'linear-gradient(135deg, #484850 0%, #3a3a42 50%, #2e2e36 100%)', boxShadow: 'inset 0 3px 8px rgba(0,0,0,0.85), inset 0 1px 3px rgba(0,0,0,0.6), inset 0 -1px 0 rgba(255,255,255,0.06), 2px 3px 8px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.10)', position: 'relative' }}>
@@ -1831,11 +1823,8 @@ export default function HardwareBoard({ isDark = false, onOverlayChange }: { isD
                     )}
                   </svg>
                 </div>
-              </div>
 
             </div>
-
-          </div>
 
         </div>
 
