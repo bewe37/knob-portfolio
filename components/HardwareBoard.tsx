@@ -169,7 +169,7 @@ const Bolt = React.forwardRef<HTMLDivElement, { style: React.CSSProperties; onCl
 // ── Component ─────────────────────────────────────────────
 export default function HardwareBoard({ isDark = false, onOverlayChange }: { isDark?: boolean; onOverlayChange?: (open: boolean) => void }) {
   const [activeIndex,   setActiveIndex]   = useState(0)
-  const [phosphorGreen, setPhosphorGreen] = useState(true)
+  const [phosphorGreen] = useState(true)
   const [isZoomed,      setIsZoomed]      = useState(false)
   const [clickedBolts,  setClickedBolts]  = useState<Set<string>>(new Set())
   const boltRefs = useRef<Record<string, HTMLDivElement | null>>({ tl: null, tr: null, bl: null, br: null })
@@ -181,7 +181,6 @@ export default function HardwareBoard({ isDark = false, onOverlayChange }: { isD
   const [dogMode,       setDogMode]       = useState<'walk'|'jump'>('walk')
   const [isPoweredOn,       setIsPoweredOn]       = useState(false)
   const [bootingUp,         setBootingUp]         = useState(false)
-  const [isPolaroidZoomed,  setIsPolaroidZoomed]  = useState(false)
   const [lightboxSrc,       setLightboxSrc]       = useState<string | null>(null)
 
   useEffect(() => {
@@ -218,13 +217,11 @@ export default function HardwareBoard({ isDark = false, onOverlayChange }: { isD
   const isPoweredOnRef        = useRef(false)
   const sdCardRef             = useRef<'ponyo' | 'howls' | null>(null)
   const hasBootedRef          = useRef(false)  // corgi boot plays once only
-  const polaroidRef           = useRef<HTMLDivElement>(null)
-  const polaroidOverlayRef    = useRef<HTMLDivElement>(null)
-  const polaroidCardRef       = useRef<HTMLDivElement>(null)
 
   const screenTextRef     = useRef<HTMLDivElement>(null)
   const screenImgRef      = useRef<HTMLDivElement>(null)
   const screenHoveredRef  = useRef(false)
+  const stripRef          = useRef<HTMLDivElement>(null)
 
   // ── Metal canvas — redraw when mode changes
   useEffect(() => {
@@ -421,24 +418,6 @@ export default function HardwareBoard({ isDark = false, onOverlayChange }: { isD
     })
   }, [])
 
-  // ── Polaroid hover — fan from bottom-left pivot
-  const handlePolaroidEnter = useCallback(() => {
-    if (!polaroidRef.current) return
-    const cards = polaroidRef.current.querySelectorAll<HTMLDivElement>(':scope > div')
-    // back card fans out the most, front stays near upright
-    if (cards[0]) gsap.to(cards[0], { rotation: -30, duration: 0.4, ease: 'power2.out' })
-    if (cards[1]) gsap.to(cards[1], { rotation: -15, duration: 0.4, ease: 'power2.out', delay: 0.04 })
-    if (cards[2]) gsap.to(cards[2], { rotation: 0,   duration: 0.4, ease: 'power2.out', delay: 0.08 })
-  }, [])
-
-  const handlePolaroidLeave = useCallback(() => {
-    if (!polaroidRef.current) return
-    const cards = polaroidRef.current.querySelectorAll<HTMLDivElement>(':scope > div')
-    if (cards[0]) gsap.to(cards[0], { rotation: 2, duration: 0.5, ease: 'elastic.out(1, 0.6)', delay: 0.08 })
-    if (cards[1]) gsap.to(cards[1], { rotation: 2, duration: 0.5, ease: 'elastic.out(1, 0.6)', delay: 0.04 })
-    if (cards[2]) gsap.to(cards[2], { rotation: 2, duration: 0.5, ease: 'elastic.out(1, 0.6)' })
-  }, [])
-
   // ── Screen hover — soft crossfade reveal
   const handleScreenEnter = useCallback(() => {
     const idx = activeIdxRef.current
@@ -487,36 +466,15 @@ export default function HardwareBoard({ isDark = false, onOverlayChange }: { isD
     }
   }, [isPoweredOn])
 
-  // ── Polaroid zoom in
-  useEffect(() => {
-    if (!isPolaroidZoomed || !polaroidOverlayRef.current || !polaroidCardRef.current) return
-    gsap.fromTo(polaroidOverlayRef.current,
-      { opacity: 0 },
-      { opacity: 1, duration: 0.3, ease: 'power2.out' }
-    )
-    gsap.fromTo(polaroidCardRef.current,
-      { scale: 0.82, opacity: 0, y: 24 },
-      { scale: 1, opacity: 1, y: 0, duration: 0.45, ease: 'power3.out', delay: 0.05 }
-    )
-  }, [isPolaroidZoomed])
+  // ── Photo strip hover
+  const handleStripEnter = useCallback(() => {
+    if (!stripRef.current) return
+    gsap.to(stripRef.current, { y: -10, scale: 1.04, rotation: -1, duration: 0.32, ease: 'power2.out' })
+  }, [])
 
-  // ── Escape closes polaroid zoom
-  useEffect(() => {
-    if (!isPolaroidZoomed) return
-    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') handlePolaroidUnzoom() }
-    window.addEventListener('keydown', onKey)
-    return () => window.removeEventListener('keydown', onKey)
-  }, [isPolaroidZoomed]) // eslint-disable-line react-hooks/exhaustive-deps -- handlePolaroidUnzoom is stable (useCallback [])
-
-  const handlePolaroidZoom = useCallback(() => setIsPolaroidZoomed(true), [])
-
-  const handlePolaroidUnzoom = useCallback(() => {
-    if (!polaroidOverlayRef.current || !polaroidCardRef.current) { setIsPolaroidZoomed(false); return }
-    gsap.to(polaroidCardRef.current, { scale: 0.82, opacity: 0, y: 24, duration: 0.28, ease: 'power2.in' })
-    gsap.to(polaroidOverlayRef.current, {
-      opacity: 0, duration: 0.3, ease: 'power2.in', delay: 0.06,
-      onComplete: () => setIsPolaroidZoomed(false),
-    })
+  const handleStripLeave = useCallback(() => {
+    if (!stripRef.current) return
+    gsap.to(stripRef.current, { y: 0, scale: 1, rotation: -2, duration: 0.65, ease: 'elastic.out(1, 0.45)' })
   }, [])
 
   // ── Helpers
@@ -672,10 +630,6 @@ export default function HardwareBoard({ isDark = false, onOverlayChange }: { isD
 
   const handleBootDone = useCallback(() => setBootingUp(false), [])
 
-  const goToSection = useCallback((idx: number) => {
-    changeSection(idx)
-    snapToIndex(idx)
-  }, [changeSection, snapToIndex])
 
   const handleBoltClick = useCallback((id: string) => {
     setClickedBolts(prev => {
@@ -1391,25 +1345,13 @@ export default function HardwareBoard({ isDark = false, onOverlayChange }: { isD
         </div>
       )}
 
-      {/* ── POLAROID ZOOM OVERLAY ─────────────────────────── */}
-      {isPolaroidZoomed && (
+      {/* ── POLAROID ZOOM OVERLAY — REMOVED ─────────────────── */}
+      {false && (
         <div
-          ref={polaroidOverlayRef}
-          onClick={handlePolaroidUnzoom}
-          style={{
-            position: 'absolute', inset: 0, borderRadius: 24, zIndex: 50,
-            background: 'rgba(8,10,12,0.82)',
-            backdropFilter: 'blur(6px)',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            cursor: 'zoom-out',
-            opacity: 0,
-          }}
+          onClick={undefined}
+          style={{ display: 'none' }}
         >
-          <div
-            ref={polaroidCardRef}
-            onClick={e => e.stopPropagation()}
-            style={{ opacity: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 16 }}
-          >
+          <div>
             <div style={{ display: 'flex', gap: 20, alignItems: 'flex-end' }}>
               {[
                 { src: '/austria.jpg',  caption: 'austria - salzburg',     sub: 'winter 2023', rot: -6, filter: 'sepia(0.5) saturate(0.6) brightness(0.8)' },
@@ -1595,166 +1537,76 @@ export default function HardwareBoard({ isDark = false, onOverlayChange }: { isD
           </div>
         </div>
 
-        {/* COL 2 — Sticky note + Polaroid */}
-        <div style={{ display:'flex', justifyContent:'center', alignItems:'center', gap: 20 }}>
-          <div style={{
-            position: 'relative',
-            width: 152,
-            background: 'linear-gradient(165deg, #fffde6 0%, #fff59c 38%, #fdd835 100%)',
-            borderRadius: 2,
-            padding: '24px 15px 18px',
-            transform: 'rotate(-4deg) translateY(14px)',
-            boxShadow: [
-              '1px 2px 3px rgba(0,0,0,0.13)',
-              '4px 7px 18px rgba(0,0,0,0.18)',
-              '8px 16px 32px rgba(0,0,0,0.12)',
-              'inset 0 1px 0 rgba(255,255,255,0.72)',
-              'inset 1px 0 0 rgba(255,255,255,0.45)',
-            ].join(', '),
-          }}>
-            {/* Adhesive strip */}
-            <div style={{
-              position: 'absolute', top: 0, left: 0, right: 0, height: '26%',
-              background: 'linear-gradient(to bottom, rgba(160,130,0,0.17) 0%, rgba(160,130,0,0.04) 100%)',
-              borderRadius: '2px 2px 0 0', pointerEvents: 'none', zIndex: 0,
-            }} />
-            {/* Ruled lines */}
-            <div style={{
-              position: 'absolute', inset: 0, borderRadius: 2, pointerEvents: 'none', zIndex: 0,
-              backgroundImage: 'repeating-linear-gradient(0deg, transparent, transparent 20px, rgba(100,140,190,0.11) 20px, rgba(100,140,190,0.11) 21px)',
-              backgroundPositionY: '30px',
-            }} />
-            {/* Wrinkle 1 — diagonal crease */}
-            <div style={{
-              position: 'absolute', inset: 0, borderRadius: 2, pointerEvents: 'none', zIndex: 1,
-              background: [
-                'linear-gradient(128deg, transparent 28%, rgba(0,0,0,0.045) 33%, transparent 36%)',
-                'linear-gradient(128deg, transparent 33%, rgba(255,255,255,0.18) 36%, transparent 39%)',
-              ].join(', '),
-            }} />
-            {/* Wrinkle 2 — shallow horizontal crease */}
-            <div style={{
-              position: 'absolute', inset: 0, borderRadius: 2, pointerEvents: 'none', zIndex: 1,
-              background: [
-                'linear-gradient(182deg, transparent 62%, rgba(0,0,0,0.035) 65%, transparent 67%)',
-                'linear-gradient(182deg, transparent 65%, rgba(255,255,255,0.13) 67%, transparent 69%)',
-              ].join(', '),
-            }} />
-            {/* Corner curl */}
-            <div style={{
-              position: 'absolute', bottom: 0, right: 0,
-              width: 32, height: 32,
-              background: 'linear-gradient(225deg, rgba(0,0,0,0.14) 0%, transparent 62%)',
-              borderRadius: '0 0 2px 0',
-              pointerEvents: 'none', zIndex: 3,
-            }} />
-            {/* Tape */}
-            <div style={{
-              position: 'absolute', top: -12, left: '50%', transform: 'translateX(-50%) rotate(0.8deg)',
-              width: 52, height: 22,
-              background: 'linear-gradient(180deg, rgba(255,255,255,0.52) 0%, rgba(236,232,198,0.42) 100%)',
-              backdropFilter: 'blur(2px)',
-              borderRadius: 2,
-              boxShadow: '0 1px 4px rgba(0,0,0,0.10), inset 0 1px 1px rgba(255,255,255,0.80)',
-              zIndex: 4,
-            }} />
-            {/* Text */}
-            <div style={{ position: 'relative', zIndex: 2, textAlign: 'center' }}>
-              <div style={{
-                fontFamily: '"Caveat", cursive',
-                fontSize: 16,
-                lineHeight: 1.45,
-                color: '#5a4e2e',
-                fontWeight: 400,
-                textShadow: '0.4px 0.6px 0 rgba(20,15,0,0.16)',
-              }}>
-                Rotate dial to<br />browse projects
-              </div>
-            </div>
-          </div>
-
-          {/* ── Polaroid stack ── */}
+        {/* COL 2 — Photo booth strip */}
+        <div style={{ display:'flex', justifyContent:'center', alignItems:'center' }}>
           <div
-            ref={polaroidRef}
-            onMouseEnter={handlePolaroidEnter}
-            onMouseLeave={handlePolaroidLeave}
-            onClick={handlePolaroidZoom}
+            ref={stripRef}
+            onMouseEnter={handleStripEnter}
+            onMouseLeave={handleStripLeave}
             style={{
               position: 'relative',
-              marginLeft: 32,
-              width: 145,
-              height: 195,
-              flexShrink: 0,
-              cursor: 'pointer',
+              width: 82,
+              background: '#f4f0ea',
+              padding: '8px 6px 10px',
+              transform: 'rotate(-2deg)',
+              transformOrigin: 'center center',
+              boxShadow: [
+                '3px 10px 28px rgba(0,0,0,0.60)',
+                '1px 4px 8px rgba(0,0,0,0.32)',
+                'inset 0 0 0 1px rgba(0,0,0,0.07)',
+              ].join(', '),
+              willChange: 'transform',
             }}
           >
-            {/* Back card */}
+            {/* Tape at top */}
             <div style={{
-              position: 'absolute', inset: 0,
-              background: '#f5f2ec',
-              padding: '9px 9px 24px 9px',
-              transform: 'rotate(0deg)',
-              transformOrigin: 'top center',
-              boxShadow: '3px 6px 18px rgba(0,0,0,0.28)',
-            }}>
-              <div style={{ position: 'relative', overflow: 'hidden', height: 138, background: '#ddd' }}>
-                <img src="/korea.jpg" alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', filter: 'sepia(0.5) saturate(0.6) brightness(0.8)' }} />
-                <div style={{ position: 'absolute', inset: 0, background: 'radial-gradient(ellipse 88% 82% at 50% 50%, transparent 45%, rgba(30,20,10,0.38) 100%)' }} />
-              </div>
-              <div style={{ marginTop: 6, textAlign: 'center', fontFamily: '"Caveat", cursive', fontWeight: 600, color: '#3a3020', fontSize: 13 }}>
-                toronto, on
-              </div>
-            </div>
+              position: 'absolute', top: -11, left: '50%',
+              transform: 'translateX(-50%) rotate(0.6deg)',
+              width: 48, height: 20,
+              background: 'linear-gradient(180deg, rgba(255,255,255,0.55) 0%, rgba(230,226,195,0.45) 100%)',
+              backdropFilter: 'blur(2px)',
+              borderRadius: 2,
+              boxShadow: '0 1px 4px rgba(0,0,0,0.12), inset 0 1px 1px rgba(255,255,255,0.82)',
+              zIndex: 4,
+            }} />
 
-            {/* Mid card */}
-            <div style={{
-              position: 'absolute', inset: 0,
-              background: '#f5f2ec',
-              padding: '9px 9px 24px 9px',
-              transform: 'rotate(0deg)',
-              transformOrigin: 'top center',
-              boxShadow: '3px 6px 18px rgba(0,0,0,0.30)',
-            }}>
-              <div style={{ position: 'relative', overflow: 'hidden', height: 138, background: '#ddd' }}>
-                <img src="/austria.jpg" alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', filter: 'sepia(0.2) saturate(0.85) brightness(0.88)' }} />
-                <div style={{ position: 'absolute', inset: 0, background: 'radial-gradient(ellipse 88% 82% at 50% 50%, transparent 45%, rgba(30,20,10,0.38) 100%)' }} />
+            {/* 4 photo frames */}
+            {([
+              { src: '/nyc.jpg',     filter: 'saturate(0.82) brightness(0.90) contrast(1.04)' },
+              { src: '/austria.jpg', filter: 'sepia(0.18) saturate(0.78) brightness(0.88)' },
+              { src: '/korea.jpg',   filter: 'saturate(0.80) brightness(0.88) contrast(1.02)' },
+              { src: '/nyc.jpg',     filter: 'sepia(0.32) saturate(0.68) brightness(0.84)' },
+            ] as { src: string; filter: string }[]).map(({ src, filter }, i, arr) => (
+              <div key={i} style={{
+                position: 'relative',
+                overflow: 'hidden',
+                height: 48,
+                marginBottom: i < arr.length - 1 ? 4 : 0,
+              }}>
+                <img src={src} alt="" style={{
+                  width: '100%', height: '100%',
+                  objectFit: 'cover', objectPosition: 'center',
+                  display: 'block', filter,
+                }} />
+                {/* Subtle vignette */}
+                <div style={{
+                  position: 'absolute', inset: 0,
+                  background: 'radial-gradient(ellipse 90% 85% at 50% 50%, transparent 48%, rgba(8,5,2,0.30) 100%)',
+                  pointerEvents: 'none',
+                }} />
               </div>
-              <div style={{ marginTop: 6, textAlign: 'center', fontFamily: '"Caveat", cursive', fontWeight: 600, color: '#3a3020', fontSize: 13 }}>
-                good boi
-              </div>
-            </div>
+            ))}
 
-            {/* Front card — top */}
+            {/* Bottom date label */}
             <div style={{
-              position: 'absolute', inset: 0,
-              background: '#f5f2ec',
-              padding: '9px 9px 24px 9px',
-              transform: 'rotate(0deg)',
-              transformOrigin: 'top center',
-              boxShadow: '3px 6px 18px rgba(0,0,0,0.32), 1px 2px 5px rgba(0,0,0,0.18)',
+              marginTop: 8, textAlign: 'center',
+              fontFamily: '"Caveat", cursive',
+              fontSize: 11, color: 'rgba(55,42,22,0.60)',
+              letterSpacing: 0.5,
             }}>
-              {/* Tape */}
-              <div style={{
-                position: 'absolute', top: -12, left: '50%',
-                transform: 'translateX(-50%) rotate(-1.4deg)',
-                width: 58, height: 22,
-                background: 'linear-gradient(180deg, rgba(255,255,255,0.48) 0%, rgba(238,235,205,0.40) 100%)',
-                backdropFilter: 'blur(2px)', borderRadius: 2,
-                boxShadow: '0 1px 4px rgba(0,0,0,0.12), inset 0 1px 1px rgba(255,255,255,0.72)',
-                zIndex: 5,
-              }} />
-              <div style={{ position: 'relative', overflow: 'hidden', height: 128 }}>
-                <img src="/nyc.jpg" alt="NYC – Employees Only" style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center', display: 'block', filter: 'sepia(0.38) saturate(0.72) brightness(0.84) contrast(0.88)' }} />
-                <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none', background: 'radial-gradient(ellipse 88% 82% at 50% 50%, transparent 45%, rgba(30,20,10,0.38) 100%)' }} />
-                <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none', background: 'rgba(210,180,120,0.10)', mixBlendMode: 'multiply' }} />
-              </div>
-              <div style={{ marginTop: 6, textAlign: 'center', fontFamily: '"Caveat", cursive', fontWeight: 600, color: '#3a3020', textShadow: '0.3px 0.3px 0 rgba(20,12,0,0.12)' }}>
-                <div style={{ fontSize: 15, letterSpacing: '0.2px', lineHeight: 1.2 }}>nyc – employees only</div>
-                <div style={{ fontSize: 12, opacity: 0.62, marginTop: 2, letterSpacing: '0.3px' }}>summer 2025</div>
-              </div>
+              2025
             </div>
           </div>
-
         </div>
 
         {/* COL 3 — Aux controls */}
