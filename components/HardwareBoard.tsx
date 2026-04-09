@@ -1668,186 +1668,197 @@ export default function HardwareBoard({ isDark = false, onOverlayChange }: { isD
         </div>
 
         {/* COL 2 — Section buttons + Terminal */}
-        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 10 }}>
+        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'flex-end', paddingBottom: 32 }}>
 
-          {/* ── Section shortcut buttons ── */}
+          {/* ── Unified control module ── */}
           <div style={{
             background: isDark
               ? 'linear-gradient(160deg, #181819 0%, #111113 55%, #0a0a0c 100%)'
               : 'linear-gradient(160deg, #303034 0%, #262628 55%, #1e1e20 100%)',
             borderRadius: 7,
-            padding: '8px 7px',
+            padding: '10px 9px 9px',
             boxShadow: [
               'inset 0 1px 0 rgba(255,255,255,0.07)',
               'inset 0 -1px 0 rgba(0,0,0,0.85)',
               'inset 1px 0 0 rgba(255,255,255,0.04)',
               'inset -1px 0 0 rgba(0,0,0,0.65)',
-              '3px 4px 14px rgba(0,0,0,0.75)',
+              '4px 6px 18px rgba(0,0,0,0.8)',
               '0 0 0 1px rgba(0,0,0,0.9)',
             ].join(', '),
             display: 'flex',
-            flexDirection: 'column',
-            gap: 5,
+            gap: 9,
           }}>
-            <div style={{ fontSize: 5.5, letterSpacing: 2.5, color: 'rgba(255,255,255,0.18)', fontFamily: 'var(--font-jetbrains-mono), monospace', textAlign: 'center', marginBottom: 3 }}>
-              SECTIONS
+
+            {/* ── Section selector panel ── */}
+            <div style={{ display: 'flex', flexDirection: 'column' }}>
+              {/* Engraved label */}
+              <div style={{ fontSize: 6, letterSpacing: 3, color: 'rgba(255,255,255,0.14)', fontFamily: 'var(--font-jetbrains-mono), monospace', textAlign: 'center', marginBottom: 7, textTransform: 'uppercase' }}>
+                Sections
+              </div>
+              {/* Button stack — no gaps, separated by hairlines */}
+              <div style={{
+                borderRadius: 4,
+                overflow: 'hidden',
+                boxShadow: 'inset 0 0 0 1px rgba(0,0,0,0.9), 0 0 0 0.5px rgba(255,255,255,0.05)',
+              }}>
+                {SECTIONS.map((s, i) => {
+                  const isActive = i === activeIndex
+                  return (
+                    <div
+                      key={s.id}
+                      onClick={() => goToSection(i)}
+                      style={{
+                        display: 'flex', alignItems: 'center', gap: 8,
+                        padding: '7px 10px',
+                        cursor: 'pointer',
+                        background: isActive
+                          ? 'linear-gradient(180deg, #0d1f10 0%, #091408 100%)'
+                          : 'linear-gradient(180deg, #1c1c20 0%, #141416 100%)',
+                        borderBottom: i < SECTIONS.length - 1 ? '1px solid rgba(0,0,0,0.7)' : 'none',
+                        borderTop: i > 0 ? '1px solid rgba(255,255,255,0.03)' : 'none',
+                        boxShadow: isActive
+                          ? 'inset 0 1px 3px rgba(0,0,0,0.6)'
+                          : 'inset 0 1px 0 rgba(255,255,255,0.04)',
+                        transition: 'background 0.15s',
+                        userSelect: 'none',
+                        minWidth: 92,
+                      }}
+                    >
+                      {/* LED hole */}
+                      <div style={{
+                        width: 6, height: 6, borderRadius: '50%', flexShrink: 0,
+                        background: isActive
+                          ? 'radial-gradient(circle at 38% 35%, #88ffaa, #22dd55)'
+                          : 'radial-gradient(circle at 38% 35%, #1a1e1a, #0a0c0a)',
+                        boxShadow: isActive
+                          ? '0 0 5px #33ff66, 0 0 10px rgba(51,255,102,0.45), inset 0 -1px 1px rgba(0,0,0,0.3)'
+                          : 'inset 0 1px 2px rgba(0,0,0,0.95), inset 0 0 0 0.5px rgba(0,0,0,0.8)',
+                        transition: 'all 0.2s',
+                      }} />
+                      <span style={{
+                        fontFamily: 'var(--font-jetbrains-mono), monospace',
+                        fontSize: 9,
+                        letterSpacing: 1.8,
+                        color: isActive ? 'rgba(51,255,102,0.85)' : 'rgba(255,255,255,0.28)',
+                        textShadow: isActive ? '0 0 8px rgba(51,255,102,0.35)' : 'none',
+                        transition: 'all 0.2s',
+                        fontWeight: 700,
+                      }}>
+                        {s.id}
+                      </span>
+                    </div>
+                  )
+                })}
+              </div>
             </div>
-            {SECTIONS.map((s, i) => {
-              const isActive = i === activeIndex
-              return (
-                <div
-                  key={s.id}
-                  onClick={() => goToSection(i)}
-                  style={{
-                    display: 'flex', alignItems: 'center', gap: 7,
-                    padding: '5px 8px',
-                    borderRadius: 4,
-                    cursor: 'pointer',
-                    background: isActive
-                      ? 'linear-gradient(180deg, rgba(51,255,102,0.10) 0%, rgba(51,255,102,0.05) 100%)'
-                      : 'linear-gradient(180deg, rgba(255,255,255,0.04) 0%, rgba(0,0,0,0.08) 100%)',
-                    border: isActive
-                      ? '1px solid rgba(51,255,102,0.22)'
-                      : '1px solid rgba(255,255,255,0.06)',
-                    boxShadow: isActive
-                      ? 'inset 0 1px 0 rgba(51,255,102,0.08)'
-                      : 'inset 0 1px 0 rgba(255,255,255,0.04), inset 0 -1px 0 rgba(0,0,0,0.4)',
-                    transition: 'all 0.15s',
-                    userSelect: 'none',
-                    minWidth: 88,
-                  }}
-                  onMouseEnter={e => { if (!isActive) (e.currentTarget as HTMLDivElement).style.background = 'linear-gradient(180deg, rgba(255,255,255,0.07) 0%, rgba(0,0,0,0.04) 100%)' }}
-                  onMouseLeave={e => { if (!isActive) (e.currentTarget as HTMLDivElement).style.background = 'linear-gradient(180deg, rgba(255,255,255,0.04) 0%, rgba(0,0,0,0.08) 100%)' }}
-                >
-                  {/* LED */}
+
+            {/* ── Terminal panel ── */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+              {/* Engraved label */}
+              <div style={{ fontSize: 6, letterSpacing: 3, color: 'rgba(255,255,255,0.14)', fontFamily: 'var(--font-jetbrains-mono), monospace', textAlign: 'center', textTransform: 'uppercase' }}>
+                Terminal
+              </div>
+
+              {/* CRT screen — recessed bezel */}
+              <div style={{
+                background: '#060808',
+                borderRadius: 4,
+                padding: '4px',
+                boxShadow: [
+                  'inset 0 0 0 1px rgba(0,0,0,1)',
+                  'inset 0 3px 14px rgba(0,0,0,0.98)',
+                  'inset 0 0 40px rgba(0,0,0,0.6)',
+                ].join(', '),
+              }}>
+                <div style={{
+                  background: '#020402',
+                  borderRadius: 2,
+                  width: 180,
+                  height: 156,
+                  position: 'relative',
+                  overflow: 'hidden',
+                }}>
+                  {/* Scanlines */}
                   <div style={{
-                    width: 5, height: 5, borderRadius: '50%', flexShrink: 0,
-                    background: isActive ? '#33ff66' : 'rgba(255,255,255,0.10)',
-                    boxShadow: isActive ? '0 0 5px #33ff66, 0 0 10px rgba(51,255,102,0.4)' : 'none',
-                    transition: 'all 0.15s',
+                    position: 'absolute', inset: 0, pointerEvents: 'none', zIndex: 3,
+                    backgroundImage: 'repeating-linear-gradient(0deg, rgba(0,0,0,0.16) 0px, rgba(0,0,0,0.16) 1px, transparent 1px, transparent 2px)',
                   }} />
-                  <span style={{
-                    fontFamily: 'var(--font-jetbrains-mono), monospace',
-                    fontSize: 8,
-                    letterSpacing: 1.5,
-                    color: isActive ? 'rgba(51,255,102,0.9)' : 'rgba(255,255,255,0.35)',
-                    transition: 'color 0.15s',
-                  }}>
-                    {s.id}
-                  </span>
+                  {/* Phosphor bloom */}
+                  <div style={{
+                    position: 'absolute', inset: 0, pointerEvents: 'none', zIndex: 1,
+                    background: 'radial-gradient(ellipse 85% 65% at 50% 48%, rgba(8,58,20,0.35) 0%, transparent 100%)',
+                  }} />
+                  {/* Glass glare */}
+                  <div style={{
+                    position: 'absolute', top: 0, left: 0, right: 0, height: '30%', pointerEvents: 'none', zIndex: 4,
+                    background: 'linear-gradient(180deg, rgba(255,255,255,0.022) 0%, transparent 100%)',
+                    borderRadius: '2px 2px 0 0',
+                  }} />
+                  {/* Output */}
+                  <div
+                    ref={termScrollRef}
+                    className="term-scroll"
+                    style={{
+                      position: 'absolute', inset: 0, zIndex: 2,
+                      padding: '8px 9px 5px',
+                      overflowY: 'auto',
+                      display: 'flex', flexDirection: 'column', gap: 0,
+                    }}
+                  >
+                    {termLines.map((line, i) => (
+                      <div key={i} style={{
+                        fontFamily: 'var(--font-jetbrains-mono), monospace',
+                        fontSize: 8.5,
+                        lineHeight: 1.6,
+                        whiteSpace: 'pre',
+                        color: line.type === 'in'  ? 'rgba(51,255,102,1)'
+                             : line.type === 'err' ? 'rgba(255,90,70,0.9)'
+                             : line.type === 'sys' ? 'rgba(51,255,102,0.38)'
+                             : 'rgba(51,255,102,0.68)',
+                        textShadow: '0 0 7px rgba(51,255,102,0.28)',
+                      }}>{line.text}</div>
+                    ))}
+                  </div>
                 </div>
-              )
-            })}
-          </div>
-
-          {/* ── Terminal ── */}
-          <div style={{
-            background: isDark
-              ? 'linear-gradient(160deg, #181819 0%, #111113 55%, #0a0a0c 100%)'
-              : 'linear-gradient(160deg, #303034 0%, #262628 55%, #1e1e20 100%)',
-            borderRadius: 7,
-            padding: '6px 6px 6px',
-            boxShadow: [
-              'inset 0 1px 0 rgba(255,255,255,0.07)',
-              'inset 0 -1px 0 rgba(0,0,0,0.85)',
-              'inset 1px 0 0 rgba(255,255,255,0.04)',
-              'inset -1px 0 0 rgba(0,0,0,0.65)',
-              '3px 4px 14px rgba(0,0,0,0.75)',
-              '0 0 0 1px rgba(0,0,0,0.9)',
-            ].join(', '),
-            display: 'flex',
-            flexDirection: 'column',
-            gap: 5,
-          }}>
-            {/* Top bar */}
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 3px 2px' }}>
-              <span style={{ fontSize: 5.5, letterSpacing: 2.5, color: 'rgba(255,255,255,0.18)', fontFamily: 'var(--font-jetbrains-mono), monospace' }}>TERMINAL</span>
-              <div style={{ display: 'flex', gap: 4 }}>
-                {['rgba(255,80,80,0.5)', 'rgba(255,180,40,0.5)', 'rgba(51,255,102,0.4)'].map((c, i) => (
-                  <div key={i} style={{ width: 5, height: 5, borderRadius: '50%', background: c }} />
-                ))}
               </div>
-            </div>
 
-            {/* Screen */}
-            <div style={{
-              background: '#030504',
-              borderRadius: 4,
-              width: 176,
-              height: 148,
-              position: 'relative',
-              overflow: 'hidden',
-              boxShadow: 'inset 0 0 0 1px rgba(0,0,0,1), inset 0 2px 12px rgba(0,0,0,0.98)',
-            }}>
-              {/* Scanlines */}
+              {/* Input — recessed into housing */}
               <div style={{
-                position: 'absolute', inset: 0, pointerEvents: 'none', zIndex: 3,
-                backgroundImage: 'repeating-linear-gradient(0deg, rgba(0,0,0,0.13) 0px, rgba(0,0,0,0.13) 1px, transparent 1px, transparent 2px)',
-              }} />
-              {/* Phosphor glow */}
-              <div style={{
-                position: 'absolute', inset: 0, pointerEvents: 'none', zIndex: 1,
-                background: 'radial-gradient(ellipse 90% 70% at 50% 50%, rgba(6,52,18,0.25) 0%, transparent 100%)',
-              }} />
-              {/* Output lines */}
-              <div
-                ref={termScrollRef}
-                className="term-scroll"
-                style={{
-                  position: 'absolute', inset: 0, zIndex: 2,
-                  padding: '7px 8px 4px',
-                  overflowY: 'auto',
-                  display: 'flex', flexDirection: 'column', gap: 1,
-                }}
-              >
-                {termLines.map((line, i) => (
-                  <div key={i} style={{
+                display: 'flex', alignItems: 'center', gap: 6,
+                background: '#060808',
+                borderRadius: 4,
+                padding: '5px 9px',
+                boxShadow: [
+                  'inset 0 2px 5px rgba(0,0,0,0.9)',
+                  'inset 0 0 0 1px rgba(0,0,0,0.8)',
+                  '0 0.5px 0 rgba(255,255,255,0.04)',
+                ].join(', '),
+              }}>
+                <span style={{ fontFamily: 'var(--font-jetbrains-mono), monospace', fontSize: 9, color: 'rgba(51,255,102,0.5)', flexShrink: 0, textShadow: '0 0 6px rgba(51,255,102,0.25)' }}>{'>'}</span>
+                <input
+                  ref={termInputRef}
+                  value={termInput}
+                  onChange={e => setTermInput(e.target.value)}
+                  onKeyDown={handleTermSubmit}
+                  spellCheck={false}
+                  autoComplete="off"
+                  style={{
+                    flex: 1,
+                    background: 'transparent',
+                    border: 'none',
+                    outline: 'none',
                     fontFamily: 'var(--font-jetbrains-mono), monospace',
-                    fontSize: 8.5,
-                    lineHeight: 1.55,
-                    whiteSpace: 'pre',
-                    color: line.type === 'in'  ? 'rgba(51,255,102,0.95)'
-                         : line.type === 'err' ? 'rgba(255,100,80,0.85)'
-                         : line.type === 'sys' ? 'rgba(51,255,102,0.45)'
-                         : 'rgba(51,255,102,0.72)',
+                    fontSize: 9,
+                    color: 'rgba(51,255,102,0.95)',
+                    caretColor: '#33ff66',
                     textShadow: '0 0 6px rgba(51,255,102,0.3)',
-                  }}>{line.text}</div>
-                ))}
+                    width: 150,
+                  }}
+                />
               </div>
             </div>
 
-            {/* Input row */}
-            <div style={{
-              display: 'flex', alignItems: 'center', gap: 5,
-              background: '#030504',
-              borderRadius: 4,
-              padding: '4px 8px',
-              border: '1px solid rgba(51,255,102,0.12)',
-              boxShadow: 'inset 0 1px 4px rgba(0,0,0,0.8)',
-            }}>
-              <span style={{ fontFamily: 'var(--font-jetbrains-mono), monospace', fontSize: 8.5, color: 'rgba(51,255,102,0.6)', flexShrink: 0 }}>{'>'}</span>
-              <input
-                ref={termInputRef}
-                value={termInput}
-                onChange={e => setTermInput(e.target.value)}
-                onKeyDown={handleTermSubmit}
-                spellCheck={false}
-                autoComplete="off"
-                style={{
-                  flex: 1,
-                  background: 'transparent',
-                  border: 'none',
-                  outline: 'none',
-                  fontFamily: 'var(--font-jetbrains-mono), monospace',
-                  fontSize: 8.5,
-                  color: 'rgba(51,255,102,0.95)',
-                  caretColor: '#33ff66',
-                  textShadow: '0 0 6px rgba(51,255,102,0.3)',
-                }}
-              />
-            </div>
           </div>
-
         </div>
 
         {/* COL 3 — Aux controls */}
