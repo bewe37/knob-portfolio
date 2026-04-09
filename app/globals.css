@@ -482,3 +482,6 @@ html.dark body {
   border-bottom: none;
 }
 
+/* ── Terminal scroll — hide scrollbar across browsers ── */
+.term-scroll::-webkit-scrollbar { display: none; }
+
