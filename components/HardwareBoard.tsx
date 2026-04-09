@@ -1614,11 +1614,12 @@ export default function HardwareBoard({ isDark = false, onOverlayChange }: { isD
         </div>
       )}
 
-      {/* ── CONTROLS AREA — 3 columns: dial | selector | aux ── */}
+      {/* ── CONTROLS AREA ── */}
       <div style={{
-        display: 'grid',
-        gridTemplateColumns: '1fr 1fr 1fr',
+        display: 'flex',
         alignItems: 'center',
+        justifyContent: 'center',
+        gap: 36,
         height: '100%',
       }}>
 
@@ -1667,8 +1668,8 @@ export default function HardwareBoard({ isDark = false, onOverlayChange }: { isD
           </div>
         </div>
 
-        {/* COL 2 — Section buttons + Terminal */}
-        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'flex-end', paddingBottom: 32 }}>
+        {/* ── Unified control module ── */}
+        <div style={{ display: 'flex', alignItems: 'center' }}>
 
           {/* ── Unified control module ── */}
           <div style={{
@@ -1752,117 +1753,94 @@ export default function HardwareBoard({ isDark = false, onOverlayChange }: { isD
               </div>
             </div>
 
-            {/* ── Terminal panel ── */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-              {/* Engraved label */}
-              <div style={{ fontSize: 6, letterSpacing: 3, color: 'rgba(255,255,255,0.14)', fontFamily: 'var(--font-jetbrains-mono), monospace', textAlign: 'center', textTransform: 'uppercase' }}>
-                Terminal
-              </div>
+            {/* ── Vertical divider ── */}
+            <div style={{ width: 1, alignSelf: 'stretch', background: 'rgba(0,0,0,0.6)', boxShadow: '1px 0 0 rgba(255,255,255,0.03)', flexShrink: 0 }} />
 
-              {/* CRT screen — recessed bezel */}
-              <div style={{
-                background: '#060808',
-                borderRadius: 4,
-                padding: '4px',
-                boxShadow: [
-                  'inset 0 0 0 1px rgba(0,0,0,1)',
-                  'inset 0 3px 14px rgba(0,0,0,0.98)',
-                  'inset 0 0 40px rgba(0,0,0,0.6)',
-                ].join(', '),
-              }}>
-                <div style={{
-                  background: '#020402',
-                  borderRadius: 2,
-                  width: 180,
-                  height: 156,
-                  position: 'relative',
-                  overflow: 'hidden',
-                }}>
-                  {/* Scanlines */}
-                  <div style={{
-                    position: 'absolute', inset: 0, pointerEvents: 'none', zIndex: 3,
-                    backgroundImage: 'repeating-linear-gradient(0deg, rgba(0,0,0,0.16) 0px, rgba(0,0,0,0.16) 1px, transparent 1px, transparent 2px)',
-                  }} />
-                  {/* Phosphor bloom */}
-                  <div style={{
-                    position: 'absolute', inset: 0, pointerEvents: 'none', zIndex: 1,
-                    background: 'radial-gradient(ellipse 85% 65% at 50% 48%, rgba(8,58,20,0.35) 0%, transparent 100%)',
-                  }} />
-                  {/* Glass glare */}
-                  <div style={{
-                    position: 'absolute', top: 0, left: 0, right: 0, height: '30%', pointerEvents: 'none', zIndex: 4,
-                    background: 'linear-gradient(180deg, rgba(255,255,255,0.022) 0%, transparent 100%)',
-                    borderRadius: '2px 2px 0 0',
-                  }} />
-                  {/* Output */}
-                  <div
-                    ref={termScrollRef}
-                    className="term-scroll"
-                    style={{
-                      position: 'absolute', inset: 0, zIndex: 2,
-                      padding: '8px 9px 5px',
-                      overflowY: 'auto',
-                      display: 'flex', flexDirection: 'column', gap: 0,
-                    }}
-                  >
-                    {termLines.map((line, i) => (
-                      <div key={i} style={{
-                        fontFamily: 'var(--font-jetbrains-mono), monospace',
-                        fontSize: 8.5,
-                        lineHeight: 1.6,
-                        whiteSpace: 'pre',
-                        color: line.type === 'in'  ? 'rgba(51,255,102,1)'
-                             : line.type === 'err' ? 'rgba(255,90,70,0.9)'
-                             : line.type === 'sys' ? 'rgba(51,255,102,0.38)'
-                             : 'rgba(51,255,102,0.68)',
-                        textShadow: '0 0 7px rgba(51,255,102,0.28)',
-                      }}>{line.text}</div>
-                    ))}
+            {/* ── Right panel: Clock + Terminal + Power/Speaker ── */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 7 }}>
+
+              {/* Clock display */}
+              <div style={{ display: 'flex', flexDirection: 'column' }}>
+                <div style={{ fontSize: 6, letterSpacing: 3, color: 'rgba(255,255,255,0.14)', fontFamily: 'var(--font-jetbrains-mono), monospace', textAlign: 'center', marginBottom: 5, textTransform: 'uppercase' }}>Clock</div>
+                <div style={{ background: '#040404', borderRadius: 4, padding: '8px 13px 9px', position: 'relative', overflow: 'hidden', width: 148, height: 50, display: 'flex', alignItems: 'center', boxShadow: ['inset 0 0 0 1px rgba(0,0,0,1)', 'inset 0 3px 16px rgba(0,0,0,0.98)', 'inset 0 0 40px rgba(0,0,0,0.5)'].join(', ') }}>
+                  <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none', zIndex: 2, backgroundImage: 'repeating-linear-gradient(0deg, rgba(0,0,0,0.18) 0px, rgba(0,0,0,0.18) 1px, transparent 1px, transparent 2px)' }} />
+                  <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none', zIndex: 1, background: `radial-gradient(ellipse 85% 65% at 50% 50%, ${phosphorGreen ? 'rgba(6,52,18,0.3)' : 'rgba(52,32,6,0.25)'} 0%, transparent 100%)`, transition: 'background 0.3s' }} />
+                  <div style={{ position: 'relative', zIndex: 3, fontFamily: 'var(--font-jetbrains-mono), monospace', opacity: showDog ? 0 : 1, transition: 'opacity 0.15s' }}>
+                    <div style={{ fontSize: 6.5, letterSpacing: 3, color: screenColor, opacity: 0.45, marginBottom: 4, textTransform: 'uppercase', fontWeight: 700 }}>TOR · LOCAL</div>
+                    <div style={{ fontSize: 20, letterSpacing: 1.5, color: screenColor, textShadow: `0 0 14px ${screenGlow}, 0 0 5px ${screenGlow}`, fontVariantNumeric: 'tabular-nums', lineHeight: 1 }}>{torontoTime}</div>
                   </div>
+                  {showDog && (
+                    <div style={{ position: 'absolute', zIndex: 5, pointerEvents: 'none', top: '50%', marginTop: -18, ...(dogMode === 'walk' ? { animation: 'dogWalkRight 3.8s linear forwards' } : { left: '50%', marginLeft: -28, animation: 'dogJump 0.6s ease-in-out infinite' }) }}>
+                      <div style={dogMode === 'walk' ? { animation: 'dogBounce 0.55s ease-in-out infinite' } : {}}>
+                        <pre style={{ margin: 0, padding: 0, fontSize: 8.5, lineHeight: 1.35, letterSpacing: 0.5, color: screenColor, textShadow: `0 0 6px ${screenGlow}`, fontFamily: 'var(--font-jetbrains-mono), monospace', whiteSpace: 'pre' }}>
+                          {dogFrame === 0 ? ` ∧_∧  \n(${phosphorGreen ? '●' : '◉'}ω${phosphorGreen ? '●' : '◉'})─\n ∪ ∪  ` : ` ∧_∧  \n(${phosphorGreen ? '●' : '◉'}ω${phosphorGreen ? '●' : '◉'})─\n ∩ ∩  `}
+                        </pre>
+                      </div>
+                    </div>
+                  )}
+                  <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: '38%', background: 'linear-gradient(180deg, rgba(255,255,255,0.028) 0%, transparent 100%)', pointerEvents: 'none', zIndex: 4, borderRadius: '4px 4px 0 0' }} />
+                  <div ref={screenBlackoutRef} style={{ position: 'absolute', inset: 0, background: '#040404', borderRadius: 4, pointerEvents: 'none', zIndex: 7 }} />
                 </div>
               </div>
 
-              {/* Input — recessed into housing */}
-              <div style={{
-                display: 'flex', alignItems: 'center', gap: 6,
-                background: '#060808',
-                borderRadius: 4,
-                padding: '5px 9px',
-                boxShadow: [
-                  'inset 0 2px 5px rgba(0,0,0,0.9)',
-                  'inset 0 0 0 1px rgba(0,0,0,0.8)',
-                  '0 0.5px 0 rgba(255,255,255,0.04)',
-                ].join(', '),
-              }}>
-                <span style={{ fontFamily: 'var(--font-jetbrains-mono), monospace', fontSize: 9, color: 'rgba(51,255,102,0.5)', flexShrink: 0, textShadow: '0 0 6px rgba(51,255,102,0.25)' }}>{'>'}</span>
-                <input
-                  ref={termInputRef}
-                  value={termInput}
-                  onChange={e => setTermInput(e.target.value)}
-                  onKeyDown={handleTermSubmit}
-                  spellCheck={false}
-                  autoComplete="off"
-                  style={{
-                    flex: 1,
-                    background: 'transparent',
-                    border: 'none',
-                    outline: 'none',
-                    fontFamily: 'var(--font-jetbrains-mono), monospace',
-                    fontSize: 9,
-                    color: 'rgba(51,255,102,0.95)',
-                    caretColor: '#33ff66',
-                    textShadow: '0 0 6px rgba(51,255,102,0.3)',
-                    width: 150,
-                  }}
-                />
+              {/* Terminal */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
+                <div style={{ fontSize: 6, letterSpacing: 3, color: 'rgba(255,255,255,0.14)', fontFamily: 'var(--font-jetbrains-mono), monospace', textAlign: 'center', textTransform: 'uppercase' }}>Terminal</div>
+                <div style={{ background: '#060808', borderRadius: 4, padding: '4px', boxShadow: ['inset 0 0 0 1px rgba(0,0,0,1)', 'inset 0 3px 14px rgba(0,0,0,0.98)', 'inset 0 0 40px rgba(0,0,0,0.6)'].join(', ') }}>
+                  <div style={{ background: '#020402', borderRadius: 2, width: 148, height: 80, position: 'relative', overflow: 'hidden' }}>
+                    <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none', zIndex: 3, backgroundImage: 'repeating-linear-gradient(0deg, rgba(0,0,0,0.16) 0px, rgba(0,0,0,0.16) 1px, transparent 1px, transparent 2px)' }} />
+                    <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none', zIndex: 1, background: 'radial-gradient(ellipse 85% 65% at 50% 48%, rgba(8,58,20,0.35) 0%, transparent 100%)' }} />
+                    <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: '30%', pointerEvents: 'none', zIndex: 4, background: 'linear-gradient(180deg, rgba(255,255,255,0.022) 0%, transparent 100%)', borderRadius: '2px 2px 0 0' }} />
+                    <div ref={termScrollRef} className="term-scroll" style={{ position: 'absolute', inset: 0, zIndex: 2, padding: '7px 9px 5px', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 0 }}>
+                      {termLines.map((line, i) => (
+                        <div key={i} style={{ fontFamily: 'var(--font-jetbrains-mono), monospace', fontSize: 8.5, lineHeight: 1.6, whiteSpace: 'pre', color: line.type === 'in' ? 'rgba(51,255,102,1)' : line.type === 'err' ? 'rgba(255,90,70,0.9)' : line.type === 'sys' ? 'rgba(51,255,102,0.38)' : 'rgba(51,255,102,0.68)', textShadow: '0 0 7px rgba(51,255,102,0.28)' }}>{line.text}</div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6, background: '#060808', borderRadius: 4, padding: '5px 9px', boxShadow: ['inset 0 2px 5px rgba(0,0,0,0.9)', 'inset 0 0 0 1px rgba(0,0,0,0.8)', '0 0.5px 0 rgba(255,255,255,0.04)'].join(', ') }}>
+                  <span style={{ fontFamily: 'var(--font-jetbrains-mono), monospace', fontSize: 9, color: 'rgba(51,255,102,0.5)', flexShrink: 0, textShadow: '0 0 6px rgba(51,255,102,0.25)' }}>{'>'}</span>
+                  <input ref={termInputRef} value={termInput} onChange={e => setTermInput(e.target.value)} onKeyDown={handleTermSubmit} spellCheck={false} autoComplete="off" style={{ flex: 1, background: 'transparent', border: 'none', outline: 'none', fontFamily: 'var(--font-jetbrains-mono), monospace', fontSize: 9, color: 'rgba(51,255,102,0.95)', caretColor: '#33ff66', textShadow: '0 0 6px rgba(51,255,102,0.3)', width: 120 }} />
+                </div>
               </div>
+
+              {/* Power + Speaker */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: 9, marginTop: 'auto' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
+                  <span style={{ fontSize: 8, fontWeight: 700, letterSpacing: 2.5, color: 'rgba(255,255,255,0.35)', textTransform: 'uppercase', fontFamily: 'var(--font-jetbrains-mono), monospace' }}>PWR</span>
+                  <div onClick={() => setIsPoweredOn(p => !p)} style={{ width: 52, height: 26, borderRadius: 13, cursor: 'pointer', flexShrink: 0, background: isDark ? 'linear-gradient(135deg, #28282e 0%, #1e1e24 50%, #16161c 100%)' : 'linear-gradient(135deg, #484850 0%, #3a3a42 50%, #2e2e36 100%)', boxShadow: 'inset 0 3px 8px rgba(0,0,0,0.85), inset 0 1px 3px rgba(0,0,0,0.6), inset 0 -1px 0 rgba(255,255,255,0.06), 2px 3px 8px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.10)', position: 'relative' }}>
+                    <div style={{ position: 'absolute', top: 3, left: 3, width: 20, height: 20, borderRadius: '50%', background: 'radial-gradient(circle at 38% 32%, #2a1014 0%, #160a0c 55%, #0c0608 100%)', boxShadow: isPoweredOn ? 'inset 0 1px 2px rgba(255,255,255,0.08), inset 0 -1px 1px rgba(0,0,0,0.6), 0 2px 6px rgba(0,0,0,0.75)' : undefined, transform: isPoweredOn ? 'translateX(26px)' : 'translateX(0)', transition: 'transform 0.28s cubic-bezier(0.34,1.56,0.64,1)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                      <div className={isPoweredOn ? '' : 'led-standby'} style={{ width: 8, height: 8, borderRadius: '50%', background: isPoweredOn ? 'radial-gradient(circle at 35% 30%, #ff6666 0%, #ee1122 45%, #aa0010 100%)' : 'radial-gradient(circle at 35% 30%, #c82030 0%, #8a1018 55%, #4a0008 100%)', boxShadow: isPoweredOn ? '0 0 4px 1px rgba(255,30,40,0.9), 0 0 10px 3px rgba(200,10,20,0.55), inset 0 1px 1px rgba(255,140,140,0.5)' : undefined, transition: 'background 0.35s', flexShrink: 0 }} />
+                    </div>
+                  </div>
+                </div>
+                <div style={{ background: isDark ? '#141418' : '#242428', borderRadius: 5, padding: '5px 8px', boxShadow: ['inset 0 2px 6px rgba(0,0,0,0.6)', 'inset 0 0 0 1px rgba(0,0,0,0.4)', '0 1px 0 rgba(255,255,255,0.07)'].join(', '), flex: 1 }}>
+                  <svg viewBox="0 0 72 16" width="72" height="16" style={{ display: 'block' }}>
+                    {Array.from({ length: 2 }).flatMap((_, row) =>
+                      Array.from({ length: 10 }).map((_, col) => {
+                        const cx = 4 + col * 7
+                        const cy = 4 + row * 9
+                        return (
+                          <g key={`${row}-${col}`}>
+                            <circle cx={cx} cy={cy - 0.5} r={2} fill="rgba(0,0,0,0.6)"/>
+                            <circle cx={cx} cy={cy} r={1.6} fill="#282830"/>
+                            <circle cx={cx + 0.3} cy={cy + 1.4} r={0.6} fill="rgba(255,255,255,0.22)"/>
+                          </g>
+                        )
+                      })
+                    )}
+                  </svg>
+                </div>
+              </div>
+
             </div>
 
           </div>
+
         </div>
 
-        {/* COL 3 — Aux controls */}
-        <div style={{ display:'flex', flexDirection:'column', alignItems:'flex-end', gap:28, paddingRight:8, gridColumn: 3 }}>
+        {/* COL 3 removed — clock, power, speaker now inside unified module */}
+        <div style={{ display: 'none' }}>
           {/* Skeuomorphic clock screen */}
           <div style={{
             background: isDark
