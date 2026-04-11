@@ -167,7 +167,7 @@ const Bolt = React.forwardRef<HTMLDivElement, { style: React.CSSProperties; onCl
 )
 
 // ── Component ─────────────────────────────────────────────
-export default function HardwareBoard({ isDark = false, onOverlayChange }: { isDark?: boolean; onOverlayChange?: (open: boolean) => void }) {
+export default function HardwareBoard({ isDark = false, onOverlayChange, onDarkToggle }: { isDark?: boolean; onOverlayChange?: (open: boolean) => void; onDarkToggle?: () => void }) {
   const [activeIndex,   setActiveIndex]   = useState(0)
   const [phosphorGreen, setPhosphorGreen] = useState(true)
   const [isZoomed,      setIsZoomed]      = useState(false)
@@ -183,11 +183,6 @@ export default function HardwareBoard({ isDark = false, onOverlayChange }: { isD
   const [bootingUp,         setBootingUp]         = useState(false)
   const [isPolaroidZoomed,  setIsPolaroidZoomed]  = useState(false)
   const [lightboxSrc,       setLightboxSrc]       = useState<string | null>(null)
-  const [termLines, setTermLines] = useState<{type:'sys'|'in'|'out'|'err', text:string}[]>([
-    {type:'sys', text:'SYS.PORTFOLIO.OS v2.1.0'},
-    {type:'sys', text:'ready. type "help" for commands.'},
-  ])
-  const [termInput, setTermInput] = useState('')
 
   useEffect(() => {
     onOverlayChange?.(isZoomed || lightboxSrc !== null)
@@ -226,8 +221,6 @@ export default function HardwareBoard({ isDark = false, onOverlayChange }: { isD
   const polaroidRef           = useRef<HTMLDivElement>(null)
   const polaroidOverlayRef    = useRef<HTMLDivElement>(null)
   const polaroidCardRef       = useRef<HTMLDivElement>(null)
-  const termScrollRef         = useRef<HTMLDivElement>(null)
-  const termInputRef          = useRef<HTMLInputElement>(null)
 
   const screenTextRef     = useRef<HTMLDivElement>(null)
   const screenImgRef      = useRef<HTMLDivElement>(null)
@@ -411,6 +404,7 @@ export default function HardwareBoard({ isDark = false, onOverlayChange }: { isD
   }, [isZoomed, lightboxSrc]) // eslint-disable-line react-hooks/exhaustive-deps -- handleUnzoom is stable (useCallback [])
 
   const handleZoom = useCallback(() => {
+    if (!isPoweredOnRef.current) return
     if (activeIdxRef.current === 5) return
     if (activeIdxRef.current === SECTIONS.length - 1) return
     setIsZoomed(true)
@@ -683,71 +677,6 @@ export default function HardwareBoard({ isDark = false, onOverlayChange }: { isD
     changeSection(idx)
     snapToIndex(idx)
   }, [changeSection, snapToIndex])
-
-  // ── Terminal auto-scroll
-  useEffect(() => {
-    if (termScrollRef.current) termScrollRef.current.scrollTop = termScrollRef.current.scrollHeight
-  }, [termLines])
-
-  // ── Terminal command handler
-  const handleTermSubmit = useCallback((e?: React.KeyboardEvent) => {
-    if (e && e.key !== 'Enter') return
-    const cmd = termInput.trim().toLowerCase()
-    if (!cmd) return
-
-    const next: {type:'sys'|'in'|'out'|'err', text:string}[] = [
-      ...termLines,
-      { type: 'in', text: `> ${cmd}` },
-    ]
-
-    if (cmd === 'help') {
-      next.push(
-        { type: 'out', text: 'available commands:' },
-        { type: 'out', text: '  ls            list all sections' },
-        { type: 'out', text: '  open <id>     navigate to section' },
-        { type: 'out', text: '  whoami        about bryan' },
-        { type: 'out', text: '  contact       contact info' },
-        { type: 'out', text: '  photos        open photo gallery' },
-        { type: 'out', text: '  clear         clear terminal' },
-      )
-    } else if (cmd === 'ls') {
-      SECTIONS.forEach(s => next.push({ type: 'out', text: `  ${s.id.padEnd(8)} ${s.title}` }))
-    } else if (cmd.startsWith('open ')) {
-      const id = cmd.slice(5).trim().toUpperCase()
-      const idx = SECTIONS.findIndex(s => s.id === id)
-      if (idx === -1) {
-        next.push({ type: 'err', text: `not found: "${id}". run "ls" to list sections.` })
-      } else {
-        goToSection(idx)
-        next.push({ type: 'out', text: `loading ${SECTIONS[idx].id} — ${SECTIONS[idx].title}` })
-      }
-    } else if (cmd === 'whoami') {
-      next.push(
-        { type: 'out', text: 'georgius bryan winata' },
-        { type: 'out', text: 'product designer' },
-        { type: 'out', text: 'amd · safe software · vosyn' },
-        { type: 'out', text: 'based in toronto, on' },
-      )
-    } else if (cmd === 'contact') {
-      next.push(
-        { type: 'out', text: 'email     bryanwinata112@gmail.com' },
-        { type: 'out', text: 'linkedin  linkedin.com/in/gbryanw' },
-        { type: 'out', text: 'x         @gbryanwt' },
-      )
-    } else if (cmd === 'photos') {
-      setIsPolaroidZoomed(true)
-      next.push({ type: 'out', text: 'opening photo gallery...' })
-    } else if (cmd === 'clear') {
-      setTermLines([{ type: 'sys', text: 'terminal cleared.' }])
-      setTermInput('')
-      return
-    } else {
-      next.push({ type: 'err', text: `unknown command: "${cmd}". try "help".` })
-    }
-
-    setTermLines(next)
-    setTermInput('')
-  }, [termInput, termLines, goToSection])
 
   const handleBoltClick = useCallback((id: string) => {
     setClickedBolts(prev => {
@@ -1614,19 +1543,18 @@ export default function HardwareBoard({ isDark = false, onOverlayChange }: { isD
         </div>
       )}
 
-      {/* ── CONTROLS AREA ── */}
+      {/* ── CONTROLS AREA — 2 columns: dial | aux panel ── */}
       <div style={{
         display: 'grid',
-        gridTemplateColumns: '1fr 2fr',
+        gridTemplateColumns: '1fr 1fr',
         alignItems: 'center',
-        gap: 32,
         height: '100%',
       }}>
 
-        {/* COL 1 — Dial */}
-        <div style={{ display:'flex', flexDirection:'column', alignItems:'center', gap:12 }}>
+        {/* COL 1 — Dial + Notepad */}
+        <div style={{ display:'flex', alignItems:'center', justifyContent:'flex-start', gap: 20 }}>
           <div style={{
-            width:220, height:220, borderRadius:'50%',
+            width:200, height:200, borderRadius:'50%',
             background: isDark
               ? 'linear-gradient(145deg, #222226 0%, #18181c 45%, #101014 100%)'
               : 'linear-gradient(145deg, #3e3e44 0%, #323238 45%, #28282e 100%)',
@@ -1638,7 +1566,7 @@ export default function HardwareBoard({ isDark = false, onOverlayChange }: { isD
               {SECTIONS.map((_, i) => {
                 const angleDeg = START_OFFSET + i * STEP
                 const rad = (angleDeg - 90) * (Math.PI / 180)
-                const x = Math.cos(rad) * 90, y = Math.sin(rad) * 90
+                const x = Math.cos(rad) * 82, y = Math.sin(rad) * 82
                 const isActive = i === activeIndex
                 return (
                   <div key={i} style={{
@@ -1655,7 +1583,7 @@ export default function HardwareBoard({ isDark = false, onOverlayChange }: { isD
 
             {/* Metal knob */}
             <div ref={knobRef} style={{
-              width:160, height:160, borderRadius:'50%', position:'relative',
+              width:144, height:144, borderRadius:'50%', position:'relative',
               cursor:'grab', flexShrink:0,
               boxShadow:'10px 14px 30px rgba(0,0,0,0.9), -4px -4px 12px rgba(80,105,130,0.12), 0 0 0 1.5px rgba(255,255,255,0.09), 0 0 0 3px rgba(0,0,0,0.6)',
             }}>
@@ -1666,170 +1594,190 @@ export default function HardwareBoard({ isDark = false, onOverlayChange }: { isD
               </div>
             </div>
           </div>
-        </div>
 
-        {/* ── Unified control module ── */}
-        <div style={{
-          background: isDark
-            ? 'linear-gradient(160deg, #181819 0%, #111113 55%, #0a0a0c 100%)'
-            : 'linear-gradient(160deg, #303034 0%, #262628 55%, #1e1e20 100%)',
-          borderRadius: 7,
-          padding: '10px 11px',
-          boxShadow: [
-            'inset 0 1px 0 rgba(255,255,255,0.07)',
-            'inset 0 -1px 0 rgba(0,0,0,0.85)',
-            'inset 1px 0 0 rgba(255,255,255,0.04)',
-            'inset -1px 0 0 rgba(0,0,0,0.65)',
-            '4px 6px 18px rgba(0,0,0,0.8)',
-            '0 0 0 1px rgba(0,0,0,0.9)',
-          ].join(', '),
-          display: 'flex',
-          flexDirection: 'column',
-          gap: 8,
-          alignSelf: 'center',
-        }}>
-
-            {/* ── Row 1: Section buttons — 3-per-row grid ── */}
-            <div>
-              <div style={{ fontSize: 6, letterSpacing: 3, color: 'rgba(255,255,255,0.14)', fontFamily: 'var(--font-jetbrains-mono), monospace', textAlign: 'center', marginBottom: 6, textTransform: 'uppercase' }}>
-                Sections
-              </div>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 3 }}>
-                {SECTIONS.map((s, i) => {
-                  const isActive = i === activeIndex
-                  return (
-                    <div
-                      key={s.id}
-                      onClick={() => goToSection(i)}
-                      style={{
-                        display: 'flex', alignItems: 'center', gap: 6,
-                        padding: '5px 9px',
-                        cursor: 'pointer', userSelect: 'none',
-                        borderRadius: 3,
-                        background: isActive
-                          ? 'linear-gradient(180deg, #0d1f10 0%, #091408 100%)'
-                          : 'linear-gradient(180deg, #1e1e22 0%, #161618 100%)',
-                        boxShadow: isActive
-                          ? 'inset 0 1px 3px rgba(0,0,0,0.7), 0 0 0 1px rgba(0,0,0,0.9)'
-                          : 'inset 0 1px 0 rgba(255,255,255,0.04), 0 0 0 1px rgba(0,0,0,0.8)',
-                        transition: 'background 0.15s',
-                      }}
-                    >
-                      <div style={{
-                        width: 5, height: 5, borderRadius: '50%', flexShrink: 0,
-                        background: isActive ? 'radial-gradient(circle at 38% 35%, #88ffaa, #22dd55)' : 'radial-gradient(circle at 38% 35%, #1a1e1a, #0a0c0a)',
-                        boxShadow: isActive ? '0 0 5px #33ff66, 0 0 9px rgba(51,255,102,0.4)' : 'inset 0 1px 2px rgba(0,0,0,0.95)',
-                        transition: 'all 0.2s',
-                      }} />
-                      <span style={{
-                        fontFamily: 'var(--font-jetbrains-mono), monospace',
-                        fontSize: 8.5, letterSpacing: 1.5, fontWeight: 700,
-                        color: isActive ? 'rgba(51,255,102,0.85)' : 'rgba(255,255,255,0.28)',
-                        textShadow: isActive ? '0 0 8px rgba(51,255,102,0.35)' : 'none',
-                        transition: 'all 0.2s',
-                        whiteSpace: 'nowrap',
-                      }}>
-                        {s.id}
-                      </span>
-                    </div>
-                  )
-                })}
-              </div>
+          {/* ── Polaroid stack — fills space beside the knob ── */}
+          <div ref={polaroidRef} onMouseEnter={handlePolaroidEnter} onMouseLeave={handlePolaroidLeave} onClick={handlePolaroidZoom} style={{ position: 'relative', width: 145, height: 195, flexShrink: 0, cursor: 'pointer' }}>
+            <div style={{ position: 'absolute', inset: 0, background: '#f5f2ec', padding: '9px 9px 24px 9px', transformOrigin: 'top center', boxShadow: '3px 6px 18px rgba(0,0,0,0.28)' }}>
+              <div style={{ position: 'relative', overflow: 'hidden', height: 138, background: '#ddd' }}><img src="/korea.jpg" alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', filter: 'sepia(0.5) saturate(0.6) brightness(0.8)' }} /></div>
+              <div style={{ marginTop: 6, textAlign: 'center', fontFamily: '"Caveat", cursive', fontWeight: 600, color: '#3a3020', fontSize: 13 }}>toronto, on</div>
             </div>
-
-            {/* ── H-divider ── */}
-            <div style={{ height: 1, background: 'rgba(0,0,0,0.55)', boxShadow: '0 1px 0 rgba(255,255,255,0.03)', margin: '0 -11px' }} />
-
-            {/* ── Row 2: Clock + Terminal side by side ── */}
-            <div style={{ display: 'flex', gap: 8, alignItems: 'stretch' }}>
-
-              {/* Clock display */}
-              <div style={{ display: 'flex', flexDirection: 'column' }}>
-                <div style={{ fontSize: 6, letterSpacing: 3, color: 'rgba(255,255,255,0.14)', fontFamily: 'var(--font-jetbrains-mono), monospace', textAlign: 'center', marginBottom: 5, textTransform: 'uppercase' }}>Clock</div>
-                <div style={{ background: '#040404', borderRadius: 4, padding: '8px 13px 9px', position: 'relative', overflow: 'hidden', width: 148, height: 50, display: 'flex', alignItems: 'center', boxShadow: ['inset 0 0 0 1px rgba(0,0,0,1)', 'inset 0 3px 16px rgba(0,0,0,0.98)', 'inset 0 0 40px rgba(0,0,0,0.5)'].join(', ') }}>
-                  <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none', zIndex: 2, backgroundImage: 'repeating-linear-gradient(0deg, rgba(0,0,0,0.18) 0px, rgba(0,0,0,0.18) 1px, transparent 1px, transparent 2px)' }} />
-                  <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none', zIndex: 1, background: `radial-gradient(ellipse 85% 65% at 50% 50%, ${phosphorGreen ? 'rgba(6,52,18,0.3)' : 'rgba(52,32,6,0.25)'} 0%, transparent 100%)`, transition: 'background 0.3s' }} />
-                  <div style={{ position: 'relative', zIndex: 3, fontFamily: 'var(--font-jetbrains-mono), monospace', opacity: showDog ? 0 : 1, transition: 'opacity 0.15s' }}>
-                    <div style={{ fontSize: 6.5, letterSpacing: 3, color: screenColor, opacity: 0.45, marginBottom: 4, textTransform: 'uppercase', fontWeight: 700 }}>TOR · LOCAL</div>
-                    <div style={{ fontSize: 20, letterSpacing: 1.5, color: screenColor, textShadow: `0 0 14px ${screenGlow}, 0 0 5px ${screenGlow}`, fontVariantNumeric: 'tabular-nums', lineHeight: 1 }}>{torontoTime}</div>
-                  </div>
-                  {showDog && (
-                    <div style={{ position: 'absolute', zIndex: 5, pointerEvents: 'none', top: '50%', marginTop: -18, ...(dogMode === 'walk' ? { animation: 'dogWalkRight 3.8s linear forwards' } : { left: '50%', marginLeft: -28, animation: 'dogJump 0.6s ease-in-out infinite' }) }}>
-                      <div style={dogMode === 'walk' ? { animation: 'dogBounce 0.55s ease-in-out infinite' } : {}}>
-                        <pre style={{ margin: 0, padding: 0, fontSize: 8.5, lineHeight: 1.35, letterSpacing: 0.5, color: screenColor, textShadow: `0 0 6px ${screenGlow}`, fontFamily: 'var(--font-jetbrains-mono), monospace', whiteSpace: 'pre' }}>
-                          {dogFrame === 0 ? ` ∧_∧  \n(${phosphorGreen ? '●' : '◉'}ω${phosphorGreen ? '●' : '◉'})─\n ∪ ∪  ` : ` ∧_∧  \n(${phosphorGreen ? '●' : '◉'}ω${phosphorGreen ? '●' : '◉'})─\n ∩ ∩  `}
-                        </pre>
-                      </div>
-                    </div>
-                  )}
-                  <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: '38%', background: 'linear-gradient(180deg, rgba(255,255,255,0.028) 0%, transparent 100%)', pointerEvents: 'none', zIndex: 4, borderRadius: '4px 4px 0 0' }} />
-                  <div ref={screenBlackoutRef} style={{ position: 'absolute', inset: 0, background: '#040404', borderRadius: 4, pointerEvents: 'none', zIndex: 7 }} />
-                </div>
-              </div>
-
-              {/* ── V-divider ── */}
-              <div style={{ width: 1, alignSelf: 'stretch', background: 'rgba(0,0,0,0.55)', boxShadow: '1px 0 0 rgba(255,255,255,0.03)', flexShrink: 0 }} />
-
-              {/* Terminal */}
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
-                <div style={{ fontSize: 6, letterSpacing: 3, color: 'rgba(255,255,255,0.14)', fontFamily: 'var(--font-jetbrains-mono), monospace', textAlign: 'center', textTransform: 'uppercase' }}>Terminal</div>
-                <div style={{ background: '#060808', borderRadius: 4, padding: '4px', boxShadow: ['inset 0 0 0 1px rgba(0,0,0,1)', 'inset 0 3px 14px rgba(0,0,0,0.98)', 'inset 0 0 40px rgba(0,0,0,0.6)'].join(', ') }}>
-                  <div style={{ background: '#020402', borderRadius: 2, width: 220, height: 80, position: 'relative', overflow: 'hidden' }}>
-                    <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none', zIndex: 3, backgroundImage: 'repeating-linear-gradient(0deg, rgba(0,0,0,0.16) 0px, rgba(0,0,0,0.16) 1px, transparent 1px, transparent 2px)' }} />
-                    <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none', zIndex: 1, background: 'radial-gradient(ellipse 85% 65% at 50% 48%, rgba(8,58,20,0.35) 0%, transparent 100%)' }} />
-                    <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: '30%', pointerEvents: 'none', zIndex: 4, background: 'linear-gradient(180deg, rgba(255,255,255,0.022) 0%, transparent 100%)', borderRadius: '2px 2px 0 0' }} />
-                    <div ref={termScrollRef} className="term-scroll" style={{ position: 'absolute', inset: 0, zIndex: 2, padding: '7px 9px 5px', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 0 }}>
-                      {termLines.map((line, i) => (
-                        <div key={i} style={{ fontFamily: 'var(--font-jetbrains-mono), monospace', fontSize: 8.5, lineHeight: 1.6, whiteSpace: 'pre', color: line.type === 'in' ? 'rgba(51,255,102,1)' : line.type === 'err' ? 'rgba(255,90,70,0.9)' : line.type === 'sys' ? 'rgba(51,255,102,0.38)' : 'rgba(51,255,102,0.68)', textShadow: '0 0 7px rgba(51,255,102,0.28)' }}>{line.text}</div>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 6, background: '#060808', borderRadius: 4, padding: '5px 9px', boxShadow: ['inset 0 2px 5px rgba(0,0,0,0.9)', 'inset 0 0 0 1px rgba(0,0,0,0.8)', '0 0.5px 0 rgba(255,255,255,0.04)'].join(', ') }}>
-                  <span style={{ fontFamily: 'var(--font-jetbrains-mono), monospace', fontSize: 9, color: 'rgba(51,255,102,0.5)', flexShrink: 0, textShadow: '0 0 6px rgba(51,255,102,0.25)' }}>{'>'}</span>
-                  <input ref={termInputRef} value={termInput} onChange={e => setTermInput(e.target.value)} onKeyDown={handleTermSubmit} spellCheck={false} autoComplete="off" style={{ flex: 1, background: 'transparent', border: 'none', outline: 'none', fontFamily: 'var(--font-jetbrains-mono), monospace', fontSize: 9, color: 'rgba(51,255,102,0.95)', caretColor: '#33ff66', textShadow: '0 0 6px rgba(51,255,102,0.3)', width: 192 }} />
-                </div>
-              </div>
-
+            <div style={{ position: 'absolute', inset: 0, background: '#f5f2ec', padding: '9px 9px 24px 9px', transformOrigin: 'top center', boxShadow: '3px 6px 18px rgba(0,0,0,0.30)' }}>
+              <div style={{ position: 'relative', overflow: 'hidden', height: 138, background: '#ddd' }}><img src="/austria.jpg" alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', filter: 'sepia(0.2) saturate(0.85) brightness(0.88)' }} /></div>
+              <div style={{ marginTop: 6, textAlign: 'center', fontFamily: '"Caveat", cursive', fontWeight: 600, color: '#3a3020', fontSize: 13 }}>good boi</div>
             </div>
-
-            {/* ── H-divider ── */}
-            <div style={{ height: 1, background: 'rgba(0,0,0,0.55)', boxShadow: '0 1px 0 rgba(255,255,255,0.03)', margin: '0 -11px' }} />
-
-            {/* ── Row 3: Power + Speaker ── */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: 9 }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
-                  <span style={{ fontSize: 8, fontWeight: 700, letterSpacing: 2.5, color: 'rgba(255,255,255,0.35)', textTransform: 'uppercase', fontFamily: 'var(--font-jetbrains-mono), monospace' }}>PWR</span>
-                  <div onClick={() => setIsPoweredOn(p => !p)} style={{ width: 52, height: 26, borderRadius: 13, cursor: 'pointer', flexShrink: 0, background: isDark ? 'linear-gradient(135deg, #28282e 0%, #1e1e24 50%, #16161c 100%)' : 'linear-gradient(135deg, #484850 0%, #3a3a42 50%, #2e2e36 100%)', boxShadow: 'inset 0 3px 8px rgba(0,0,0,0.85), inset 0 1px 3px rgba(0,0,0,0.6), inset 0 -1px 0 rgba(255,255,255,0.06), 2px 3px 8px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.10)', position: 'relative' }}>
-                    <div style={{ position: 'absolute', top: 3, left: 3, width: 20, height: 20, borderRadius: '50%', background: 'radial-gradient(circle at 38% 32%, #2a1014 0%, #160a0c 55%, #0c0608 100%)', boxShadow: isPoweredOn ? 'inset 0 1px 2px rgba(255,255,255,0.08), inset 0 -1px 1px rgba(0,0,0,0.6), 0 2px 6px rgba(0,0,0,0.75)' : undefined, transform: isPoweredOn ? 'translateX(26px)' : 'translateX(0)', transition: 'transform 0.28s cubic-bezier(0.34,1.56,0.64,1)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                      <div className={isPoweredOn ? '' : 'led-standby'} style={{ width: 8, height: 8, borderRadius: '50%', background: isPoweredOn ? 'radial-gradient(circle at 35% 30%, #ff6666 0%, #ee1122 45%, #aa0010 100%)' : 'radial-gradient(circle at 35% 30%, #c82030 0%, #8a1018 55%, #4a0008 100%)', boxShadow: isPoweredOn ? '0 0 4px 1px rgba(255,30,40,0.9), 0 0 10px 3px rgba(200,10,20,0.55), inset 0 1px 1px rgba(255,140,140,0.5)' : undefined, transition: 'background 0.35s', flexShrink: 0 }} />
-                    </div>
-                  </div>
-                </div>
-                <div style={{ background: isDark ? '#141418' : '#242428', borderRadius: 5, padding: '5px 8px', boxShadow: ['inset 0 2px 6px rgba(0,0,0,0.6)', 'inset 0 0 0 1px rgba(0,0,0,0.4)', '0 1px 0 rgba(255,255,255,0.07)'].join(', '), flex: 1 }}>
-                  <svg viewBox="0 0 72 16" width="72" height="16" style={{ display: 'block' }}>
-                    {Array.from({ length: 2 }).flatMap((_, row) =>
-                      Array.from({ length: 10 }).map((_, col) => {
-                        const cx = 4 + col * 7
-                        const cy = 4 + row * 9
-                        return (
-                          <g key={`${row}-${col}`}>
-                            <circle cx={cx} cy={cy - 0.5} r={2} fill="rgba(0,0,0,0.6)"/>
-                            <circle cx={cx} cy={cy} r={1.6} fill="#282830"/>
-                            <circle cx={cx + 0.3} cy={cy + 1.4} r={0.6} fill="rgba(255,255,255,0.22)"/>
-                          </g>
-                        )
-                      })
-                    )}
-                  </svg>
-                </div>
-
+            <div style={{ position: 'absolute', inset: 0, background: '#f5f2ec', padding: '9px 9px 24px 9px', transformOrigin: 'top center', boxShadow: '3px 6px 18px rgba(0,0,0,0.32)' }}>
+              <div style={{ position: 'absolute', top: -12, left: '50%', transform: 'translateX(-50%) rotate(-1.4deg)', width: 58, height: 22, background: 'linear-gradient(180deg, rgba(255,255,255,0.48) 0%, rgba(238,235,205,0.40) 100%)', backdropFilter: 'blur(2px)', borderRadius: 2, boxShadow: '0 1px 4px rgba(0,0,0,0.12)', zIndex: 5 }} />
+              <div style={{ position: 'relative', overflow: 'hidden', height: 128 }}><img src="/nyc.jpg" alt="NYC" style={{ width: '100%', height: '100%', objectFit: 'cover', filter: 'sepia(0.38) saturate(0.72) brightness(0.84) contrast(0.88)' }} /></div>
+              <div style={{ marginTop: 6, textAlign: 'center', fontFamily: '"Caveat", cursive', fontWeight: 600, color: '#3a3020' }}><div style={{ fontSize: 15 }}>nyc – employees only</div><div style={{ fontSize: 12, opacity: 0.62, marginTop: 2 }}>summer 2025</div></div>
             </div>
+          </div>
 
         </div>
 
-        {/* COL 3 removed — clock, power, speaker now inside unified module */}
-        <div style={{ display: 'none' }}>
+        {/* COL 2 — Right panel: module + aux controls */}
+        <div style={{ display:'flex', flexDirection:'row', alignItems:'stretch', justifyContent:'center', gap: 14 }}>
+
+          {/* ═══ Retro skeuomorphic I/O module ═══ */}
+          <div style={{
+            position: 'relative',
+            background: isDark
+              ? 'linear-gradient(155deg, #181819 0%, #111113 50%, #0a0a0c 100%)'
+              : 'linear-gradient(155deg, #323236 0%, #28282c 50%, #202024 100%)',
+            borderRadius: 10,
+            padding: '20px 18px',
+            boxShadow: [
+              'inset 0 1px 0 rgba(255,255,255,0.08)',
+              'inset 0 -1px 0 rgba(0,0,0,0.9)',
+              'inset 1px 0 0 rgba(255,255,255,0.04)',
+              'inset -1px 0 0 rgba(0,0,0,0.7)',
+              '0 6px 14px rgba(0,0,0,0.7)',
+              '0 0 0 1px rgba(0,0,0,0.95)',
+            ].join(', '),
+            transition: 'background 0.5s ease',
+            display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 14,
+          }}>
+            {/* Phillips-head screws — 4 corners */}
+            {[
+              { top: 5, left: 5 }, { top: 5, right: 5 },
+              { bottom: 5, left: 5 }, { bottom: 5, right: 5 },
+            ].map((pos, i) => (
+              <div key={i} style={{
+                position: 'absolute', ...pos,
+                width: 7, height: 7, borderRadius: '50%',
+                background: 'radial-gradient(circle at 35% 30%, #585860 0%, #35353c 55%, #1a1a20 100%)',
+                boxShadow: 'inset 0 0 0 0.5px rgba(0,0,0,0.8), 0 1px 1px rgba(0,0,0,0.5)',
+              }}>
+                <div style={{ position:'absolute', top:'50%', left:'15%', right:'15%', height:0.8, background:'rgba(0,0,0,0.75)', transform:'translateY(-50%) rotate(35deg)', borderRadius: 1 }} />
+              </div>
+            ))}
+
+            {/* Button grid — 2×2 */}
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 46px)', gap: 10, justifyContent: 'center' }}>
+              {([
+                { href: 'https://drive.google.com/file/d/1E8AUWkgri9AAHSLil1fQK9KBzZUQbtnK/view?usp=sharing', label: 'Resume', icon: (
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+                )},
+                { href: 'mailto:bryanwinata112@gmail.com', label: 'Email', icon: (
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+                )},
+                { href: 'https://x.com/gbryanwt', label: 'X', icon: (
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.744l7.737-8.835L1.254 2.25H8.08l4.253 5.622zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+                )},
+                { href: 'https://linkedin.com/in/gbryanw', label: 'LinkedIn', icon: (
+                  <svg width="17" height="17" viewBox="0 0 24 24" fill="currentColor"><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"/><rect x="2" y="9" width="4" height="12"/><circle cx="4" cy="4" r="2"/></svg>
+                )},
+              ] as { href: string; label: string; icon: React.ReactNode }[]).map(({ href, label, icon }) => (
+                <a
+                  key={label}
+                  href={href}
+                  target={href.startsWith('mailto') ? undefined : '_blank'}
+                  rel="noopener noreferrer"
+                  title={label}
+                  onMouseEnter={e => {
+                    const el = e.currentTarget
+                    el.style.transform = 'translateY(2px)'
+                    el.style.boxShadow = '0 2px 0 rgba(0,0,0,0.9), 0 3px 5px rgba(0,0,0,0.55), inset 0 1px 3px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.07)'
+                  }}
+                  onMouseLeave={e => {
+                    const el = e.currentTarget
+                    el.style.transform = 'translateY(0)'
+                    el.style.boxShadow = '0 4px 0 rgba(0,0,0,0.9), 0 5px 8px rgba(0,0,0,0.55), inset 0 1px 0 rgba(255,255,255,0.12), inset 0 -1px 2px rgba(0,0,0,0.5)'
+                  }}
+                  onMouseDown={e => {
+                    const el = e.currentTarget
+                    el.style.transform = 'translateY(3px)'
+                    el.style.boxShadow = '0 1px 0 rgba(0,0,0,0.9), inset 0 2px 4px rgba(0,0,0,0.6)'
+                  }}
+                  onMouseUp={e => {
+                    const el = e.currentTarget
+                    el.style.transform = 'translateY(2px)'
+                    el.style.boxShadow = '0 2px 0 rgba(0,0,0,0.9), 0 3px 5px rgba(0,0,0,0.55), inset 0 1px 3px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.07)'
+                  }}
+                  style={{
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    width: 46, height: 46, borderRadius: 7,
+                    textDecoration: 'none',
+                    color: isDark ? '#a8b4c4' : '#b8c0d0',
+                    background: isDark
+                      ? 'linear-gradient(160deg, #3a3c46 0%, #2a2c36 50%, #1e2028 100%)'
+                      : 'linear-gradient(160deg, #4a4c54 0%, #3a3c44 50%, #2a2c34 100%)',
+                    boxShadow: '0 4px 0 rgba(0,0,0,0.9), 0 5px 8px rgba(0,0,0,0.55), inset 0 1px 0 rgba(255,255,255,0.12), inset 0 -1px 2px rgba(0,0,0,0.5)',
+                    transition: 'background 0.3s ease, color 0.3s ease',
+                    cursor: 'pointer',
+                    userSelect: 'none',
+                  }}
+                >
+                  {icon}
+                </a>
+              ))}
+            </div>
+
+            {/* ── Speaker — perforated dot grille, matches button grid width (102px) ── */}
+            <div style={{
+              background: 'linear-gradient(180deg, #0a0b0f 0%, #14161c 50%, #0a0b0f 100%)',
+              borderRadius: 5,
+              padding: '6px 10px',
+              width: 102, height: 30,
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              boxShadow: [
+                'inset 0 2px 4px rgba(0,0,0,0.9)',
+                'inset 0 -1px 1px rgba(255,255,255,0.04)',
+                'inset 0 0 0 1px rgba(0,0,0,0.9)',
+                '0 1px 0 rgba(255,255,255,0.05)',
+              ].join(', '),
+            }}>
+              <svg viewBox="0 0 100 26" width="80" height="22" style={{ display: 'block' }}>
+                {Array.from({ length: 3 }).flatMap((_, row) =>
+                  Array.from({ length: 14 }).map((_, col) => {
+                    const cx = 5 + col * 7
+                    const cy = 5 + row * 8
+                    return (
+                      <g key={`${row}-${col}`}>
+                        <circle cx={cx} cy={cy - 0.5} r={2.5} fill="rgba(0,0,0,0.75)"/>
+                        <circle cx={cx} cy={cy} r={2} fill="#1e1e24"/>
+                        <circle cx={cx + 0.3} cy={cy + 1.8} r={0.75} fill="rgba(255,255,255,0.18)"/>
+                      </g>
+                    )
+                  })
+                )}
+              </svg>
+            </div>
+          </div>
+
+          {/* ── Aux panel: matching recessed enclosure containing clock + power + speaker ── */}
+          <div style={{
+            position: 'relative',
+            background: isDark
+              ? 'linear-gradient(155deg, #181819 0%, #111113 50%, #0a0a0c 100%)'
+              : 'linear-gradient(155deg, #323236 0%, #28282c 50%, #202024 100%)',
+            borderRadius: 10,
+            padding: '18px 16px 18px',
+            boxShadow: [
+              'inset 0 1px 0 rgba(255,255,255,0.08)',
+              'inset 0 -1px 0 rgba(0,0,0,0.9)',
+              'inset 1px 0 0 rgba(255,255,255,0.04)',
+              'inset -1px 0 0 rgba(0,0,0,0.7)',
+              '0 6px 14px rgba(0,0,0,0.7)',
+              '0 0 0 1px rgba(0,0,0,0.95)',
+            ].join(', '),
+            transition: 'background 0.5s ease',
+            display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 14,
+          }}>
+            {/* Phillips-head screws — 4 corners */}
+            {[
+              { top: 5, left: 5 }, { top: 5, right: 5 },
+              { bottom: 5, left: 5 }, { bottom: 5, right: 5 },
+            ].map((pos, i) => (
+              <div key={i} style={{
+                position: 'absolute', ...pos,
+                width: 7, height: 7, borderRadius: '50%',
+                background: 'radial-gradient(circle at 35% 30%, #585860 0%, #35353c 55%, #1a1a20 100%)',
+                boxShadow: 'inset 0 0 0 0.5px rgba(0,0,0,0.8), 0 1px 1px rgba(0,0,0,0.5)',
+              }}>
+                <div style={{ position:'absolute', top:'50%', left:'15%', right:'15%', height:0.8, background:'rgba(0,0,0,0.75)', transform:'translateY(-50%) rotate(35deg)', borderRadius: 1 }} />
+              </div>
+            ))}
+
           {/* Skeuomorphic clock screen */}
           <div style={{
             background: isDark
@@ -1850,10 +1798,10 @@ export default function HardwareBoard({ isDark = false, onOverlayChange }: { isD
             <div style={{
               background: '#040404',
               borderRadius: 4,
-              padding: '9px 13px 10px',
+              padding: '12px 16px 14px',
               position: 'relative',
               overflow: 'hidden',
-              width: 148, height: 62,
+              width: 204, height: 86,
               display: 'flex', alignItems: 'center',
               boxShadow: [
                 'inset 0 0 0 1px rgba(0,0,0,1)',
@@ -1874,11 +1822,11 @@ export default function HardwareBoard({ isDark = false, onOverlayChange }: { isD
               }} />
               {/* Clock — always rendered, dimmed when dog is on screen */}
               <div style={{ position:'relative', zIndex:3, fontFamily:'var(--font-jetbrains-mono), monospace', opacity: showDog ? 0 : 1, transition:'opacity 0.15s' }}>
-                <div style={{ fontSize:6.5, letterSpacing:3, color:screenColor, opacity:0.45, marginBottom:5, textTransform:'uppercase', fontWeight:700 }}>
+                <div style={{ fontSize:8, letterSpacing:3.5, color:screenColor, opacity:0.45, marginBottom:7, textTransform:'uppercase', fontWeight:700 }}>
                   TOR · LOCAL
                 </div>
                 <div style={{
-                  fontSize:20, letterSpacing:1.5, color:screenColor,
+                  fontSize:28, letterSpacing:2, color:screenColor,
                   textShadow:`0 0 14px ${screenGlow}, 0 0 5px ${screenGlow}`,
                   fontVariantNumeric:'tabular-nums', lineHeight:1,
                 }}>
@@ -1924,15 +1872,13 @@ export default function HardwareBoard({ isDark = false, onOverlayChange }: { isD
             </div>
           </div>
 
-          {/* Power toggle */}
-          <div style={{ display:'flex', alignItems:'center', gap:12 }}>
-            <span style={{ fontSize:10, fontWeight:700, letterSpacing:2.5, color:'rgba(255,255,255,0.45)', textTransform:'uppercase', textShadow:'0 1px 2px rgba(0,0,0,0.9)', fontFamily:'var(--font-jetbrains-mono), monospace' }}>
-              Power
-            </span>
+          {/* Power toggle + dark/light fader — horizontal row */}
+          <div style={{ display:'flex', alignItems:'center', gap:10, width: 204 }}>
+            {/* Power toggle */}
             <div
               onClick={() => setIsPoweredOn(p => !p)}
               style={{
-                width:60, height:30, borderRadius:15, cursor:'pointer', flexShrink:0,
+                width:56, height:30, borderRadius:15, cursor:'pointer', flexShrink:0,
                 background: isDark
                   ? 'linear-gradient(135deg, #28282e 0%, #1e1e24 50%, #16161c 100%)'
                   : 'linear-gradient(135deg, #484850 0%, #3a3a42 50%, #2e2e36 100%)',
@@ -1948,13 +1894,11 @@ export default function HardwareBoard({ isDark = false, onOverlayChange }: { isD
                   boxShadow: isPoweredOn
                     ? 'inset 0 1px 2px rgba(255,255,255,0.08), inset 0 -1px 1px rgba(0,0,0,0.6), 0 2px 6px rgba(0,0,0,0.75)'
                     : undefined,
-                  transform: isPoweredOn ? 'translateX(30px)' : 'translateX(0)',
+                  transform: isPoweredOn ? 'translateX(26px)' : 'translateX(0)',
                   transition:'transform 0.28s cubic-bezier(0.34,1.56,0.64,1)',
                   display:'flex', alignItems:'center', justifyContent:'center',
                 }}
               >
-                {/* LED indicator dot */}
-                {/* LED indicator dot */}
                 <div className={isPoweredOn ? '' : 'led-standby'} style={{
                   width: 9, height: 9, borderRadius: '50%',
                   background: isPoweredOn
@@ -1968,42 +1912,77 @@ export default function HardwareBoard({ isDark = false, onOverlayChange }: { isD
                 }} />
               </div>
             </div>
-          </div>
 
-          {/* Speaker — perforated dot grille in recessed panel */}
-          <div style={{
-            background: isDark ? '#141418' : '#242428',
-            borderRadius: 7,
-            padding: '10px 12px',
-            boxShadow: [
-              'inset 0 2px 6px rgba(0,0,0,0.6)',
-              'inset 0 0 0 1px rgba(0,0,0,0.4)',
-              '0 1px 0 rgba(255,255,255,0.07)',
-            ].join(', '),
-          }}>
-            <svg
-              viewBox="0 0 100 26"
-              width="100"
-              height="26"
-              style={{ display: 'block' }}
-            >
-              {Array.from({ length: 3 }).flatMap((_, row) =>
-                Array.from({ length: 14 }).map((_, col) => {
-                  const cx = 5 + col * 7
-                  const cy = 5 + row * 8
-                  return (
-                    <g key={`${row}-${col}`}>
-                      <circle cx={cx} cy={cy - 0.5} r={2.5} fill="rgba(0,0,0,0.6)"/>
-                      <circle cx={cx} cy={cy} r={2} fill="#282830"/>
-                      <circle cx={cx + 0.3} cy={cy + 1.8} r={0.75} fill="rgba(255,255,255,0.22)"/>
-                    </g>
-                  )
-                })
-              )}
+          {/* ── Minimal theme slider — rail + thumb, nothing else ── */}
+          <div
+            onClick={onDarkToggle}
+            style={{
+              position: 'relative',
+              flex: 1, height: 30,
+              borderRadius: 5,
+              background: 'linear-gradient(180deg, #0a0b0f 0%, #14161c 50%, #0a0b0f 100%)',
+              boxShadow: [
+                'inset 0 2px 4px rgba(0,0,0,0.95)',
+                'inset 0 -1px 1px rgba(255,255,255,0.04)',
+                'inset 0 0 0 1px rgba(0,0,0,0.95)',
+                '0 1px 0 rgba(255,255,255,0.06)',
+              ].join(', '),
+              cursor: 'pointer',
+              display: 'flex', alignItems: 'center',
+              padding: '0 10px',
+            }}
+          >
+            {/* Sun glyph — left end */}
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke={isDark ? 'rgba(255,255,255,0.22)' : '#e8b830'} strokeWidth="2.5" strokeLinecap="round" style={{ flexShrink: 0, transition: 'stroke 0.4s ease', zIndex: 1 }}>
+              <circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
+            </svg>
+
+            {/* Rail — flexes between the glyphs */}
+            <div style={{
+              position: 'relative',
+              flex: 1,
+              height: 3,
+              margin: '0 8px',
+              borderRadius: 2,
+              background: 'linear-gradient(180deg, #000 0%, #0a0a0e 100%)',
+              boxShadow: 'inset 0 1px 2px rgba(0,0,0,1), 0 1px 0 rgba(255,255,255,0.05)',
+            }}>
+              {/* Thumb — small circular cap that slides along the rail */}
+              <div
+                className="theme-thumb"
+                style={{
+                  position: 'absolute',
+                  top: '50%',
+                  left: isDark ? '100%' : '0%',
+                  width: 14, height: 14,
+                  marginTop: -7, marginLeft: -7,
+                  borderRadius: '50%',
+                  background: isDark
+                    ? 'radial-gradient(circle at 35% 30%, #5a5e68 0%, #353842 45%, #1a1c22 100%)'
+                    : 'radial-gradient(circle at 35% 30%, #e4e4e8 0%, #a8aab4 45%, #5a5c66 100%)',
+                  boxShadow: [
+                    'inset 0 0.5px 0 rgba(255,255,255,0.35)',
+                    'inset 0 -0.5px 0 rgba(0,0,0,0.5)',
+                    '0 2px 4px rgba(0,0,0,0.7)',
+                    '0 0 0 0.5px rgba(0,0,0,0.9)',
+                  ].join(', '),
+                  transition: 'left 0.55s cubic-bezier(0.34,1.28,0.64,1), background 0.55s ease',
+                  pointerEvents: 'none',
+                  zIndex: 2,
+                }}
+              />
+            </div>
+
+            {/* Moon glyph — right end */}
+            <svg width="10" height="10" viewBox="0 0 24 24" fill={isDark ? '#8898c8' : 'rgba(255,255,255,0.22)'} style={{ flexShrink: 0, transition: 'fill 0.4s ease', zIndex: 1 }}>
+              <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
             </svg>
           </div>
-        </div>
-      </div>
+          </div>{/* end power+fader row */}
+          </div>{/* end aux panel */}
+
+        </div>{/* end COL 2 */}
+      </div>{/* end grid */}
 
     </div>
   )

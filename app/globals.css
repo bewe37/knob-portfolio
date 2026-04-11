@@ -58,7 +58,7 @@ body {
 
 
 body {
-  transition: background-color 0.5s ease;
+  transition: background-color 0.7s ease, background-image 0.7s ease;
   /* Skeuomorphic surface — linen texture + center lighting + corner vignette */
   background-color: #bec9d2;
   background-image:
@@ -91,12 +91,7 @@ body {
 /* ── Dark mode body ─────────────────────────────────────── */
 html.dark body {
   background-color: #07090c;
-  background-image:
-    radial-gradient(ellipse 55% 22% at 50% 0%, rgba(100,120,180,0.13) 0%, transparent 100%),
-    radial-gradient(ellipse at 50% 50%, transparent 35%, rgba(0,0,0,0.75) 100%),
-    radial-gradient(ellipse 130% 110% at 50% 44%, #0d1116 0%, #090c10 40%, #050709 100%);
-  background-size: 100% 100%, 100% 100%, 100% 100%;
-  background-repeat: no-repeat, no-repeat, no-repeat;
+  transition: background-color 0.7s ease;
 }
 
 /* ── Smiski glow-in-dark ─────────────────────────────────── */
@@ -484,4 +479,9 @@ html.dark body {
 
 /* ── Terminal scroll — hide scrollbar across browsers ── */
 .term-scroll::-webkit-scrollbar { display: none; }
+
+/* ── Theme slider thumb ── */
+.theme-thumb {
+  will-change: transform;
+}
 
