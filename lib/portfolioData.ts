@@ -95,7 +95,7 @@ export const SECTION_DETAILS: SectionDetail[] = [
     screenCover: '/AMDThumbnail.png',
     password: 'amdx', // change this to your preferred password
     passwordDesc: "This case study is protected under NDA. If you'd like to learn more about the work, feel free to reach out directly and I'd be happy to walk you through it.",
-    overview: "Designed the conversational AI feature for AMD Software, an AI assistant embedded within the Adrenalin overlay that lets users control settings, get recommendations, and troubleshoot through natural language. The work covered interaction design, conversation flows, and the UI layer that sits between the user and the model.",
+    overview: "In the summer of 2025, I joined AMD as a Product Design Intern — landing on one of the biggest redesigns AMD Software had seen in years. AMD Software is a desktop app used by millions of gamers and power users to manage GPU performance, record gameplay, and monitor their system in real time. After years without a major refresh, the team committed to rebuilding it from the ground up.\n\nMy focus was the Overlay View, a lightweight interface that sits on top of any application, designed for quick in-session control without breaking your flow.",
     role: 'Product Design Intern',
     year: '2025',
     specs: [
@@ -104,7 +104,80 @@ export const SECTION_DETAILS: SectionDetail[] = [
     ],
     sections: [],
     lockedSections: [
-      // Add full case study sections here after NDA clearance
+      {
+        label: 'PROBLEM SPACE',
+        title: 'Metrics without action.',
+        body: 'The overlay existed purely to surface system metrics like frame rate, GPU temp, and memory usage, but stopped there. If you wanted to actually change something, you had to leave what you were doing, open the full app, and navigate through panels. For users mid-game, that friction was a dealbreaker.',
+        image: '/AMDOverlayProblem.png',
+      },
+      {
+        label: 'THE GOALS',
+        title: 'The reframe that changed everything.',
+        body: 'The overlay needed to evolve from something you glance at into something you act through. That meant rethinking the interaction model entirely and finding a role for AI that actually made sense in a fast, compact space.',
+        contents: [
+          { title: 'Overlay View', body: 'Lightweight interface that provides quick, in-context access to system information and controls.' },
+          { title: 'Full View', body: 'Primary application interface that provides comprehensive access to advanced settings.' },
+        ],
+      },
+      {
+        label: 'SOLUTION — NEW INTERACTION MODEL',
+        title: 'From just conversation to actionable output.',
+        contents: [
+          {
+            title: 'Conversational AI embedded in the overlay.',
+            body: 'I embedded a conversational AI assistant directly into the overlay where each prompt delivers one structured, outcome-focused response. When a user asks about a setting or feature, the AI generates a pinnable widget as its output, turning the response into a persistent, actionable control right inside the overlay.',
+            image: '/AMDChatbotInteraction.png',
+          },
+          {
+            title: 'Keeping what matters within reach.',
+            body: 'Pinned widgets live in a dedicated panel that stays accessible every time the overlay opens, keeping the most important controls always within reach.',
+            image: '/AMDPinnedWidgets.png',
+          },
+          {
+            title: 'User-controlled customization.',
+            body: 'Beyond pinning chat outputs, I designed the overlay to let users add widgets manually, giving them the flexibility to tailor the experience to their own needs rather than relying only on AI suggestions.',
+            image: '/AMDManualWidgets.png',
+          },
+          {
+            title: 'Slash command for quick shortcuts.',
+            body: 'Slash commands are shortcuts that start with "/" and act as a central hub for interacting with the AI assistant, helping users discover and access the full range of available actions and requests in one place.',
+            image: '/AMDSlashCommand.png',
+          },
+        ],
+      },
+      {
+        label: 'SOLUTION — KEY FEATURES',
+        title: 'Supporting key features.',
+        contents: [
+          {
+            title: 'Screen recording & in-game support.',
+            body: 'Screen recording and performance adjustments, two of AMD\'s most-used features, were surfaced directly in the overlay. No more navigating the full app mid-session.',
+            image: '/AMDScreenRecording.png',
+          },
+          {
+            image: '/AMDPerformanceAdjust.png',
+          },
+        ],
+      },
+      {
+        label: 'THE BIGGER PICTURE',
+        title: "What's next for AMD Software?",
+        body: "While the engineering team prepared the back-end foundation for the overlay view, the design team continued developing concepts for the Full View. The Full View remains essential for deeper configuration and long-term control. Redesigning it ensures users can clearly understand, explore, and manage more complex settings, making it a critical foundation for the overall AMD Software experience.",
+      },
+      {
+        label: 'RETROSPECTIVE',
+        title: 'What I learned.',
+        contents: [
+          {
+            title: 'Alignment with PM is key.',
+            body: 'Our ability to move quickly came from staying closely aligned with the product manager throughout ideation.',
+          },
+          {
+            title: 'Not Everyone Is a Tech Wizard.',
+            body: "Always put ourselves in the boots of casual users because not everyone has the same level of technical knowledge or patience when navigating complex software.",
+          },
+        ],
+      },
     ],
   },
   {
