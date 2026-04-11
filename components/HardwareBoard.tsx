@@ -1675,8 +1675,8 @@ export default function HardwareBoard({ isDark = false, onOverlayChange, onDarkT
                   title={label}
                   onMouseEnter={e => {
                     const el = e.currentTarget
-                    el.style.transform = 'translateY(2px)'
-                    el.style.boxShadow = '0 2px 0 rgba(0,0,0,0.9), 0 3px 5px rgba(0,0,0,0.55), inset 0 1px 3px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.07)'
+                    el.style.transform = 'translateY(1px)'
+                    el.style.boxShadow = '0 3px 0 rgba(0,0,0,0.9), 0 4px 6px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.10), inset 0 -1px 2px rgba(0,0,0,0.5)'
                   }}
                   onMouseLeave={e => {
                     const el = e.currentTarget
@@ -1690,8 +1690,8 @@ export default function HardwareBoard({ isDark = false, onOverlayChange, onDarkT
                   }}
                   onMouseUp={e => {
                     const el = e.currentTarget
-                    el.style.transform = 'translateY(2px)'
-                    el.style.boxShadow = '0 2px 0 rgba(0,0,0,0.9), 0 3px 5px rgba(0,0,0,0.55), inset 0 1px 3px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.07)'
+                    el.style.transform = 'translateY(1px)'
+                    el.style.boxShadow = '0 3px 0 rgba(0,0,0,0.9), 0 4px 6px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.10), inset 0 -1px 2px rgba(0,0,0,0.5)'
                   }}
                   style={{
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
@@ -1702,7 +1702,7 @@ export default function HardwareBoard({ isDark = false, onOverlayChange, onDarkT
                       ? 'linear-gradient(160deg, #3a3c46 0%, #2a2c36 50%, #1e2028 100%)'
                       : 'linear-gradient(160deg, #4a4c54 0%, #3a3c44 50%, #2a2c34 100%)',
                     boxShadow: '0 4px 0 rgba(0,0,0,0.9), 0 5px 8px rgba(0,0,0,0.55), inset 0 1px 0 rgba(255,255,255,0.12), inset 0 -1px 2px rgba(0,0,0,0.5)',
-                    transition: 'background 0.3s ease, color 0.3s ease',
+                    transition: 'background 0.3s ease, color 0.3s ease, transform 0.12s ease-out, box-shadow 0.12s ease-out',
                     cursor: 'pointer',
                     userSelect: 'none',
                   }}
@@ -1947,30 +1947,41 @@ export default function HardwareBoard({ isDark = false, onOverlayChange, onDarkT
               background: 'linear-gradient(180deg, #000 0%, #0a0a0e 100%)',
               boxShadow: 'inset 0 1px 2px rgba(0,0,0,1), 0 1px 0 rgba(255,255,255,0.05)',
             }}>
-              {/* Thumb — small circular cap that slides along the rail */}
+              {/* Thumb — machined aluminum fader cap */}
               <div
                 className="theme-thumb"
                 style={{
                   position: 'absolute',
                   top: '50%',
                   left: isDark ? '100%' : '0%',
-                  width: 14, height: 14,
-                  marginTop: -7, marginLeft: -7,
-                  borderRadius: '50%',
+                  width: 14, height: 16,
+                  marginTop: -8, marginLeft: -7,
+                  borderRadius: 1.5,
                   background: isDark
-                    ? 'radial-gradient(circle at 35% 30%, #5a5e68 0%, #353842 45%, #1a1c22 100%)'
-                    : 'radial-gradient(circle at 35% 30%, #e4e4e8 0%, #a8aab4 45%, #5a5c66 100%)',
+                    ? 'linear-gradient(180deg, #4e5159 0%, #3a3d45 25%, #282a32 55%, #181a20 100%)'
+                    : 'linear-gradient(180deg, #e8e8ec 0%, #c0c2c8 25%, #86888f 55%, #4a4c54 100%)',
                   boxShadow: [
-                    'inset 0 0.5px 0 rgba(255,255,255,0.35)',
-                    'inset 0 -0.5px 0 rgba(0,0,0,0.5)',
-                    '0 2px 4px rgba(0,0,0,0.7)',
-                    '0 0 0 0.5px rgba(0,0,0,0.9)',
+                    'inset 0 1px 0 rgba(255,255,255,0.5)',
+                    'inset 0 -1px 0 rgba(0,0,0,0.55)',
+                    'inset 1px 0 0 rgba(255,255,255,0.12)',
+                    'inset -1px 0 0 rgba(0,0,0,0.4)',
+                    '0 2px 4px rgba(0,0,0,0.75)',
+                    '0 0 0 0.5px rgba(0,0,0,0.95)',
                   ].join(', '),
                   transition: 'left 0.55s cubic-bezier(0.34,1.28,0.64,1), background 0.55s ease',
                   pointerEvents: 'none',
                   zIndex: 2,
+                  display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 1.5,
                 }}
-              />
+              >
+                {/* Center indicator line — like a real fader cap */}
+                <div style={{
+                  width: 7, height: 1,
+                  background: isDark ? 'rgba(0,0,0,0.7)' : 'rgba(0,0,0,0.55)',
+                  boxShadow: isDark ? '0 1px 0 rgba(255,255,255,0.12)' : '0 1px 0 rgba(255,255,255,0.6)',
+                  borderRadius: 0.5,
+                }} />
+              </div>
             </div>
 
             {/* Moon glyph — right end */}
