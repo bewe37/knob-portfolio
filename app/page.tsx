@@ -12,7 +12,7 @@ const MOBILE_BP = 768
 export default function Home() {
   const [isMobile,    setIsMobile]    = useState(false)
   const [scale,       setScale]       = useState(1)
-  const [isDark,      setIsDark]      = useState(false)
+  const [isDark,      setIsDark]      = useState(true)
   const [isOverlay,   setIsOverlay]   = useState(false)
 
   useEffect(() => {
