@@ -108,54 +108,76 @@ export const SECTION_DETAILS: SectionDetail[] = [
         label: 'PROBLEM SPACE',
         title: 'Metrics without action.',
         body: 'The overlay existed purely to surface system metrics like frame rate, GPU temp, and memory usage, but stopped there. If you wanted to actually change something, you had to leave what you were doing, open the full app, and navigate through panels. For users mid-game, that friction was a dealbreaker.',
-        image: '/AMDOverlayProblem.png',
+        image: '/MetricsIssue.png',
       },
       {
         label: 'THE GOALS',
         title: 'The reframe that changed everything.',
         body: 'The overlay needed to evolve from something you glance at into something you act through. That meant rethinking the interaction model entirely and finding a role for AI that actually made sense in a fast, compact space.',
         contents: [
-          { title: 'Overlay View', body: 'Lightweight interface that provides quick, in-context access to system information and controls.' },
-          { title: 'Full View', body: 'Primary application interface that provides comprehensive access to advanced settings.' },
+          { title: 'Overlay View', body: 'Lightweight interface that provides quick, in-context access to system information and controls.', highlight: true },
+          { title: 'Full View', body: 'Primary application interface that provides comprehensive access to advanced settings.', highlight: true },
         ],
       },
       {
-        label: 'SOLUTION — NEW INTERACTION MODEL',
-        title: 'From just conversation to actionable output.',
+        label: 'INITIAL EXPLORATION',
+        title: 'The common multi-message chatbot.',
+        body: 'The first concept introduced a traditional multi-message chatbot within the Overlay View. Users could engage in threaded conversations and refine requests over time. While familiar, the interface quickly became visually dense and required users to manage chat history in a space meant for quick interactions.',
+        image: '/InitialChat.png',
+        contents: [
+          {
+            title: 'Key Insights',
+            body: 'The overlay is designed for fast, in-the-moment adjustments, not extended conversations. The chat format added cognitive load and slowed the path from question to action.',
+          },
+        ],
+      },
+      {
+        label: 'RETHINKING THE INTERACTION MODEL',
         contents: [
           {
             title: 'Conversational AI embedded in the overlay.',
             body: 'I embedded a conversational AI assistant directly into the overlay where each prompt delivers one structured, outcome-focused response. When a user asks about a setting or feature, the AI generates a pinnable widget as its output, turning the response into a persistent, actionable control right inside the overlay.',
-            image: '/AMDChatbotInteraction.png',
+            videos: ['/Conversational.mp4'],
+          },
+          {
+            title: 'Natural language controls.',
+            body: "Just type or say what you're experiencing, like \"my game is stuttering\" or \"my fan is too loud,\" and the AI reads your live hardware data, figures out what's actually wrong, and hands you a one-tap fix on the spot. No more jumping between menus or searching for answers online. It understands your rig, your game, and the moment you're in.",
+            videos: ['/ConversationalAI.mp4'],
           },
           {
             title: 'Keeping what matters within reach.',
             body: 'Pinned widgets live in a dedicated panel that stays accessible every time the overlay opens, keeping the most important controls always within reach.',
-            image: '/AMDPinnedWidgets.png',
+            image: '/PinnedWidgets.png',
           },
           {
             title: 'User-controlled customization.',
             body: 'Beyond pinning chat outputs, I designed the overlay to let users add widgets manually, giving them the flexibility to tailor the experience to their own needs rather than relying only on AI suggestions.',
-            image: '/AMDManualWidgets.png',
+            videos: ['/AddWidget.mp4'],
           },
           {
             title: 'Slash command for quick shortcuts.',
             body: 'Slash commands are shortcuts that start with "/" and act as a central hub for interacting with the AI assistant, helping users discover and access the full range of available actions and requests in one place.',
-            image: '/AMDSlashCommand.png',
+            image: '/SlashCommands.png',
           },
         ],
       },
       {
-        label: 'SOLUTION — KEY FEATURES',
-        title: 'Supporting key features.',
+        label: 'IN GAME MODE',
         contents: [
           {
-            title: 'Screen recording & in-game support.',
-            body: 'Screen recording and performance adjustments, two of AMD\'s most-used features, were surfaced directly in the overlay. No more navigating the full app mid-session.',
-            image: '/AMDScreenRecording.png',
+            title: 'Now playing modal.',
+            body: "Most gamers don't stop to think mid-session, they act. So instead of asking the AI to do something, we created a modal that puts the most-reached-for controls & features one click away.",
+            image: '/InGameModal.png',
           },
           {
-            image: '/AMDPerformanceAdjust.png',
+            title: 'One-click solution to graphics settings.',
+            body: "While the software offers powerful configuration options, users often struggle to determine which settings actually improve performance for their specific system during gameplay. To address this, I initiated the idea of an in game widget with simplified slider controls, enabling quick performance adjustments without manually tweaking multiple parameters.",
+            videos: ['/InGame.mp4'],
+          },
+          {
+            title: 'Faster access to screen recording.',
+            body: 'The in-game mode prioritizes high-usage features like screen recording, allowing users to start capturing directly through AMD Chat or a keyboard shortcut without navigating the full application.',
+            videos: ['/Recording.mp4'],
           },
         ],
       },
@@ -163,20 +185,6 @@ export const SECTION_DETAILS: SectionDetail[] = [
         label: 'THE BIGGER PICTURE',
         title: "What's next for AMD Software?",
         body: "While the engineering team prepared the back-end foundation for the overlay view, the design team continued developing concepts for the Full View. The Full View remains essential for deeper configuration and long-term control. Redesigning it ensures users can clearly understand, explore, and manage more complex settings, making it a critical foundation for the overall AMD Software experience.",
-      },
-      {
-        label: 'RETROSPECTIVE',
-        title: 'What I learned.',
-        contents: [
-          {
-            title: 'Alignment with PM is key.',
-            body: 'Our ability to move quickly came from staying closely aligned with the product manager throughout ideation.',
-          },
-          {
-            title: 'Not Everyone Is a Tech Wizard.',
-            body: "Always put ourselves in the boots of casual users because not everyone has the same level of technical knowledge or patience when navigating complex software.",
-          },
-        ],
       },
     ],
   },

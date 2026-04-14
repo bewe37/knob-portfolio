@@ -435,9 +435,9 @@ export default function HardwareBoard({ isDark = false, onOverlayChange, onDarkT
   const handlePolaroidLeave = useCallback(() => {
     if (!polaroidRef.current) return
     const cards = polaroidRef.current.querySelectorAll<HTMLDivElement>(':scope > div')
-    if (cards[0]) gsap.to(cards[0], { rotation: 2, duration: 0.5, ease: 'elastic.out(1, 0.6)', delay: 0.08 })
-    if (cards[1]) gsap.to(cards[1], { rotation: 2, duration: 0.5, ease: 'elastic.out(1, 0.6)', delay: 0.04 })
-    if (cards[2]) gsap.to(cards[2], { rotation: 2, duration: 0.5, ease: 'elastic.out(1, 0.6)' })
+    if (cards[0]) gsap.to(cards[0], { rotation: -8, duration: 0.5, ease: 'elastic.out(1, 0.6)', delay: 0.08 })
+    if (cards[1]) gsap.to(cards[1], { rotation: -4, duration: 0.5, ease: 'elastic.out(1, 0.6)', delay: 0.04 })
+    if (cards[2]) gsap.to(cards[2], { rotation: 2,  duration: 0.5, ease: 'elastic.out(1, 0.6)' })
   }, [])
 
   // ── Screen hover — soft crossfade reveal
@@ -1597,15 +1597,15 @@ export default function HardwareBoard({ isDark = false, onOverlayChange, onDarkT
 
           {/* ── Polaroid stack — fills space beside the knob ── */}
           <div ref={polaroidRef} onMouseEnter={handlePolaroidEnter} onMouseLeave={handlePolaroidLeave} onClick={handlePolaroidZoom} style={{ position: 'relative', width: 145, height: 195, flexShrink: 0, cursor: 'pointer' }}>
-            <div style={{ position: 'absolute', inset: 0, background: '#f5f2ec', padding: '9px 9px 24px 9px', transformOrigin: 'top center', boxShadow: '3px 6px 18px rgba(0,0,0,0.28)' }}>
+            <div style={{ position: 'absolute', inset: 0, background: '#f5f2ec', padding: '9px 9px 24px 9px', transformOrigin: 'top center', transform: 'rotate(-8deg)', boxShadow: '3px 6px 18px rgba(0,0,0,0.28)' }}>
               <div style={{ position: 'relative', overflow: 'hidden', height: 138, background: '#ddd' }}><img src="/korea.jpg" alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', filter: 'sepia(0.5) saturate(0.6) brightness(0.8)' }} /></div>
               <div style={{ marginTop: 6, textAlign: 'center', fontFamily: '"Caveat", cursive', fontWeight: 600, color: '#3a3020', fontSize: 13 }}>toronto, on</div>
             </div>
-            <div style={{ position: 'absolute', inset: 0, background: '#f5f2ec', padding: '9px 9px 24px 9px', transformOrigin: 'top center', boxShadow: '3px 6px 18px rgba(0,0,0,0.30)' }}>
+            <div style={{ position: 'absolute', inset: 0, background: '#f5f2ec', padding: '9px 9px 24px 9px', transformOrigin: 'top center', transform: 'rotate(-4deg)', boxShadow: '3px 6px 18px rgba(0,0,0,0.30)' }}>
               <div style={{ position: 'relative', overflow: 'hidden', height: 138, background: '#ddd' }}><img src="/austria.jpg" alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', filter: 'sepia(0.2) saturate(0.85) brightness(0.88)' }} /></div>
               <div style={{ marginTop: 6, textAlign: 'center', fontFamily: '"Caveat", cursive', fontWeight: 600, color: '#3a3020', fontSize: 13 }}>good boi</div>
             </div>
-            <div style={{ position: 'absolute', inset: 0, background: '#f5f2ec', padding: '9px 9px 24px 9px', transformOrigin: 'top center', boxShadow: '3px 6px 18px rgba(0,0,0,0.32)' }}>
+            <div style={{ position: 'absolute', inset: 0, background: '#f5f2ec', padding: '9px 9px 24px 9px', transformOrigin: 'top center', transform: 'rotate(2deg)', boxShadow: '3px 6px 18px rgba(0,0,0,0.32)' }}>
               <div style={{ position: 'absolute', top: -12, left: '50%', transform: 'translateX(-50%) rotate(-1.4deg)', width: 58, height: 22, background: 'linear-gradient(180deg, rgba(255,255,255,0.48) 0%, rgba(238,235,205,0.40) 100%)', backdropFilter: 'blur(2px)', borderRadius: 2, boxShadow: '0 1px 4px rgba(0,0,0,0.12)', zIndex: 5 }} />
               <div style={{ position: 'relative', overflow: 'hidden', height: 128 }}><img src="/nyc.jpg" alt="NYC" style={{ width: '100%', height: '100%', objectFit: 'cover', filter: 'sepia(0.38) saturate(0.72) brightness(0.84) contrast(0.88)' }} /></div>
               <div style={{ marginTop: 6, textAlign: 'center', fontFamily: '"Caveat", cursive', fontWeight: 600, color: '#3a3020' }}><div style={{ fontSize: 15 }}>nyc – employees only</div><div style={{ fontSize: 12, opacity: 0.62, marginTop: 2 }}>summer 2025</div></div>
