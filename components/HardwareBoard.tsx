@@ -1821,13 +1821,13 @@ export default function HardwareBoard({ isDark = false, onOverlayChange, onDarkT
                 transition: 'background 0.3s',
               }} />
               {/* Clock — always rendered, dimmed when dog is on screen */}
-              <div style={{ position:'relative', zIndex:3, fontFamily:'var(--font-jetbrains-mono), monospace', opacity: showDog ? 0 : 1, transition:'opacity 0.15s' }}>
+              <div style={{ position:'relative', zIndex:3, fontFamily:'var(--font-jetbrains-mono), monospace', opacity: showDog ? 0 : 0.72, transition:'opacity 0.15s' }}>
                 <div style={{ fontSize:8, letterSpacing:3.5, color:screenColor, opacity:0.45, marginBottom:7, textTransform:'uppercase', fontWeight:700 }}>
                   TOR · LOCAL
                 </div>
                 <div style={{
                   fontSize:28, letterSpacing:2, color:screenColor,
-                  textShadow:`0 0 14px ${screenGlow}, 0 0 5px ${screenGlow}`,
+                  textShadow:`0 0 8px ${screenGlow}`,
                   fontVariantNumeric:'tabular-nums', lineHeight:1,
                 }}>
                   {torontoTime}
