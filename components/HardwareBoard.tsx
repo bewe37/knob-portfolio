@@ -427,9 +427,9 @@ export default function HardwareBoard({ isDark = false, onOverlayChange, onDarkT
     if (!polaroidRef.current) return
     const cards = polaroidRef.current.querySelectorAll<HTMLDivElement>(':scope > div')
     // back card fans out the most, front stays near upright
-    if (cards[0]) gsap.to(cards[0], { rotation: -30, duration: 0.4, ease: 'power2.out' })
-    if (cards[1]) gsap.to(cards[1], { rotation: -15, duration: 0.4, ease: 'power2.out', delay: 0.04 })
-    if (cards[2]) gsap.to(cards[2], { rotation: 0,   duration: 0.4, ease: 'power2.out', delay: 0.08 })
+    if (cards[0]) gsap.to(cards[0], { rotation: -12, duration: 0.4, ease: 'power2.out' })
+    if (cards[1]) gsap.to(cards[1], { rotation: -6,  duration: 0.4, ease: 'power2.out', delay: 0.04 })
+    if (cards[2]) gsap.to(cards[2], { rotation: 2,   duration: 0.4, ease: 'power2.out', delay: 0.08 })
   }, [])
 
   const handlePolaroidLeave = useCallback(() => {
@@ -1942,7 +1942,7 @@ export default function HardwareBoard({ isDark = false, onOverlayChange, onDarkT
               position: 'relative',
               flex: 1,
               height: 3,
-              margin: '0 8px',
+              margin: '0 14px',
               borderRadius: 2,
               background: 'linear-gradient(180deg, #000 0%, #0a0a0e 100%)',
               boxShadow: 'inset 0 1px 2px rgba(0,0,0,1), 0 1px 0 rgba(255,255,255,0.05)',
