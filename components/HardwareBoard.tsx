@@ -5,6 +5,7 @@ import gsap from 'gsap'
 import PCBView from './PCBView'
 import { LoadingScreen } from './LoadingScreen'
 import SmiskiKeychain from './SmiskiKeychain'
+import BeforeAfterSlider from './BeforeAfterSlider'
 import { SECTIONS, SECTION_DETAILS } from '@/lib/portfolioData'
 
 
@@ -1085,7 +1086,10 @@ export default function HardwareBoard({ isDark = false, onOverlayChange, onDarkT
                     </div>
                     {/* TOC */}
                     <div ref={tocPanelRef} style={{ position:'absolute', top:0, left:0, width:'100%', opacity:0 }}>
-                      {((details as Record<string,any>).sections as Array<{label:string}> | undefined)?.map((sec, i) => (
+                      {(((details as Record<string,any>).sections?.length > 0
+                        ? (details as Record<string,any>).sections
+                        : (unlockedSet.has(activeIndex) ? (details as Record<string,any>).lockedSections : [])
+                      ) as Array<{label:string}> | undefined)?.map((sec, i) => (
                         <div
                           key={i}
                           onClick={() => scrollToSection(i)}
@@ -1367,7 +1371,7 @@ export default function HardwareBoard({ isDark = false, onOverlayChange, onDarkT
                   {/* ── Locked sections — shown after correct password */}
                   {(details as any).password && unlockedSet.has(activeIndex) && (
                     ((details as any).lockedSections as Array<any>)?.map((sec: any, si: number, arr: any[]) => (
-                      <div key={`locked-${si}`} style={{ marginBottom: si < arr.length - 1 ? 20 : 28 }}>
+                      <div key={`locked-${si}`} ref={el => { sectionElsRef.current[si] = el }} style={{ marginBottom: si < arr.length - 1 ? 48 : 28 }}>
                         <div style={{ marginBottom:14 }}>
                           <div style={{ display:'flex', alignItems:'center', gap:12, marginBottom:16 }}>
                             <span style={{ fontSize:9, letterSpacing:2.5, color:amberLabel }}>{sec.label}</span>
@@ -1375,7 +1379,87 @@ export default function HardwareBoard({ isDark = false, onOverlayChange, onDarkT
                           </div>
                           {sec.title && <div style={{ fontSize:16, fontWeight:700, letterSpacing:-0.3, color:amber, lineHeight:1.25 }}>{sec.title}</div>}
                         </div>
-                        {sec.body && <p style={{ fontSize:13, lineHeight:1.8, color:amberDim, letterSpacing:0.1, marginBottom:12 }}>{sec.body}</p>}
+                        {sec.body && <p style={{ fontSize:13, lineHeight:1.8, color:amberDim, letterSpacing:0.1, marginBottom:20, marginTop:10 }}>{sec.body}</p>}
+                        {sec.image && (
+                          <div style={{ border:`1px solid ${amberFaint}`, borderRadius:4, marginBottom:12, overflow:'hidden', cursor:'zoom-in' }} onClick={() => setLightboxSrc(sec.image)}>
+                            <img src={sec.image} alt={sec.title ?? ''} style={{ display:'block', width:'100%', height:'auto' }} />
+                          </div>
+                        )}
+                        {sec.images && sec.images.map((src: string, ii: number) => (
+                          <div key={ii} style={{ border:`1px solid ${amberFaint}`, borderRadius:4, marginBottom:8, overflow:'hidden', cursor:'zoom-in' }} onClick={() => setLightboxSrc(src)}>
+                            <img src={src} alt={`${sec.title ?? ''} ${ii+1}`} style={{ display:'block', width:'100%', height:'auto' }} />
+                          </div>
+                        ))}
+                        {sec.videos && sec.videos.map((src: string, ii: number) => (
+                          <div key={ii} style={{ border:`1px solid ${amberFaint}`, borderRadius:4, marginBottom:8, overflow:'hidden' }}>
+                            <video src={src} autoPlay loop muted playsInline style={{ display:'block', width:'100%', height:'auto' }} />
+                          </div>
+                        ))}
+                        {sec.bento && (
+                          <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:6, marginBottom:16 }}>
+                            {sec.bento.map((item: any, bi: number) => (
+                              <div
+                                key={bi}
+                                onClick={() => item.image && setLightboxSrc(item.image)}
+                                style={{
+                                  gridColumn: item.span === 2 ? 'span 2' : 'span 1',
+                                  height: item.span === 2 ? 'auto' : 200,
+                                  borderRadius: 4,
+                                  overflow: 'hidden',
+                                  border: `1px solid ${amberFaint}`,
+                                  background: `rgba(${modalRGB},0.03)`,
+                                  cursor: item.image ? 'zoom-in' : 'default',
+                                  position: 'relative',
+                                }}
+                              >
+                                {item.image && <img src={item.image} alt={item.label ?? ''} style={{ display:'block', width:'100%', height: item.span === 2 ? 'auto' : '100%', objectFit:'cover' }} />}
+                                {item.video && <video src={item.video} autoPlay loop muted playsInline style={{ display:'block', width:'100%', height: item.span === 2 ? 'auto' : '100%', objectFit:'cover' }} />}
+                                {item.label && (
+                                  <div style={{
+                                    position:'absolute', bottom:0, left:0, right:0,
+                                    padding:'20px 10px 8px',
+                                    background:'linear-gradient(to top, rgba(0,0,0,0.72) 0%, transparent 100%)',
+                                    fontSize:8, letterSpacing:2, color:'rgba(255,255,255,0.6)',
+                                    fontFamily:'var(--font-jetbrains-mono), monospace',
+                                    pointerEvents:'none',
+                                  }}>
+                                    {item.label}
+                                  </div>
+                                )}
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                        {sec.contents && sec.contents.map((blk: any, bi: number) => (
+                          <div key={bi} style={{ marginBottom:32 }}>
+                            {blk.highlight ? (
+                              <div style={{ border:`1px solid ${amberFaint}`, borderRadius:4, padding:'12px 14px', background:`rgba(${modalRGB},0.04)`, marginBottom:8 }}>
+                                {blk.title && <div style={{ fontSize:13, fontWeight:700, color:amber, marginBottom:4 }}>{blk.title}</div>}
+                                {blk.body && <p style={{ fontSize:12, lineHeight:1.7, color:amberDim, margin:0 }}>{blk.body}</p>}
+                              </div>
+                            ) : (
+                              <>
+                                {blk.title && <div style={{ fontSize:16, fontWeight:700, color:amber, marginBottom:8, letterSpacing:-0.3, lineHeight:1.25 }}>{blk.title}</div>}
+                                {blk.body && <p style={{ fontSize:13, lineHeight:1.8, color:amberDim, letterSpacing:0.1, marginBottom:20 }}>{blk.body}</p>}
+                                {blk.beforeAfter && (
+                                  <div style={{ marginBottom:8 }}>
+                                    <BeforeAfterSlider before={blk.beforeAfter.before} after={blk.beforeAfter.after} beforeLabel={blk.beforeAfter.beforeLabel} afterLabel={blk.beforeAfter.afterLabel} accentColor={amber} />
+                                  </div>
+                                )}
+                                {blk.image && (
+                                  <div style={{ border:`1px solid ${amberFaint}`, borderRadius:4, marginBottom:8, overflow:'hidden', cursor:'zoom-in' }} onClick={() => setLightboxSrc(blk.image)}>
+                                    <img src={blk.image} alt={blk.title ?? ''} style={{ display:'block', width:'100%', height:'auto' }} />
+                                  </div>
+                                )}
+                                {blk.videos && blk.videos.map((src: string, vi: number) => (
+                                  <div key={vi} style={{ border:`1px solid ${amberFaint}`, borderRadius:4, marginBottom:8, overflow:'hidden' }}>
+                                    <video src={src} autoPlay loop muted playsInline style={{ display:'block', width:'100%', height:'auto' }} />
+                                  </div>
+                                ))}
+                              </>
+                            )}
+                          </div>
+                        ))}
                       </div>
                     ))
                   )}

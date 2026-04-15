@@ -95,7 +95,7 @@ export const SECTION_DETAILS: SectionDetail[] = [
     screenCover: '/AMDThumbnail.png',
     password: 'amdx', // change this to your preferred password
     passwordDesc: "This case study is protected under NDA. If you'd like to learn more about the work, feel free to reach out directly and I'd be happy to walk you through it.",
-    overview: "In the summer of 2025, I joined AMD as a Product Design Intern — landing on one of the biggest redesigns AMD Software had seen in years. AMD Software is a desktop app used by millions of gamers and power users to manage GPU performance, record gameplay, and monitor their system in real time. After years without a major refresh, the team committed to rebuilding it from the ground up.\n\nMy focus was the Overlay View, a lightweight interface that sits on top of any application, designed for quick in-session control without breaking your flow.",
+    overview: "In the summer of 2025, I joined AMD as a Product Design Intern contributing to one of the largest redesigns AMD Software had undertaken in recent years. My focus was reworking the Overlay View, a lightweight interface that sits on top of any application, designed for quick, in-session control. At the time, the overlay was limited to displaying system metrics. My role was to evolve it into something users could interact with and act through, without leaving whatever they were doing.",
     role: 'Product Design Intern',
     year: '2025',
     specs: [
@@ -105,18 +105,42 @@ export const SECTION_DETAILS: SectionDetail[] = [
     sections: [],
     lockedSections: [
       {
+        label: 'HIGHLIGHTS',
+        bento: [
+          { video: '/ConvAI.mp4', label: 'AMD CHAT',          span: 2 },
+          { video: '/Recording.mp4',      label: 'IN-GAME MODE',      span: 1 },
+          { image: '/DSHighlight.png',    label: 'VISUAL COMPONENTS', span: 1 },
+        ],
+      },
+      {
+        label: 'CONTEXT',
+        title: 'What the overlay used to be.',
+        body: "Two versions ago, the AMD Software overlay gave users direct access to the controls they needed most, all without leaving their session. It was compact and fast, built around the reality that users don't stop mid-game to dig through a settings panel. Over major updates, that got stripped back to metrics only, and everything else moved into the full application.",
+        image: '/OldOverlay.png',
+      },
+      {
         label: 'PROBLEM SPACE',
-        title: 'Metrics without action.',
-        body: 'The overlay existed purely to surface system metrics like frame rate, GPU temp, and memory usage, but stopped there. If you wanted to actually change something, you had to leave what you were doing, open the full app, and navigate through panels. For users mid-game, that friction was a dealbreaker.',
-        image: '/MetricsIssue.png',
+        contents: [
+          {
+            title: 'Metrics without action.',
+            body: "What replaced it was an overlay stripped down to just displaying system information. Useful to glance at, but nothing more. Any actual change still meant closing the overlay, opening the full application, and navigating through panels to find the right setting. For users mid-session, that's enough friction to just not bother.",
+            image: '/MetricsIssues.png',
+          },
+          {
+            title: 'Heavy use of technical language.',
+            body: "This wasn't a new problem. Even the original overlay used terminology that casual users struggled to parse. But as more features moved into the full application, settings became more numerous and granular, making it harder to know what each option did or how it would affect your system without prior technical knowledge.",
+            image: '/Technical.png',
+          },
+        ],
       },
       {
         label: 'THE GOALS',
-        title: 'The reframe that changed everything.',
-        body: 'The overlay needed to evolve from something you glance at into something you act through. That meant rethinking the interaction model entirely and finding a role for AI that actually made sense in a fast, compact space.',
+        title: 'Redefining what the overlay should do.',
         contents: [
-          { title: 'Overlay View', body: 'Lightweight interface that provides quick, in-context access to system information and controls.', highlight: true },
-          { title: 'Full View', body: 'Primary application interface that provides comprehensive access to advanced settings.', highlight: true },
+          {
+            body: 'Restore quick access to the controls users lost, and use AI to help users understand and interact with technical features through natural language, without needing prior knowledge to get the most out of the software.',
+            highlight: true,
+          },
         ],
       },
       {
@@ -128,6 +152,7 @@ export const SECTION_DETAILS: SectionDetail[] = [
           {
             title: 'Key Insights',
             body: 'The overlay is designed for fast, in-the-moment adjustments, not extended conversations. The chat format added cognitive load and slowed the path from question to action.',
+            highlight: true,
           },
         ],
       },
@@ -135,18 +160,23 @@ export const SECTION_DETAILS: SectionDetail[] = [
         label: 'RETHINKING THE INTERACTION MODEL',
         contents: [
           {
-            title: 'Conversational AI embedded in the overlay.',
-            body: 'I embedded a conversational AI assistant directly into the overlay where each prompt delivers one structured, outcome-focused response. When a user asks about a setting or feature, the AI generates a pinnable widget as its output, turning the response into a persistent, actionable control right inside the overlay.',
-            videos: ['/Conversational.mp4'],
-          },
-          {
-            title: 'Natural language controls.',
-            body: "Just type or say what you're experiencing, like \"my game is stuttering\" or \"my fan is too loud,\" and the AI reads your live hardware data, figures out what's actually wrong, and hands you a one-tap fix on the spot. No more jumping between menus or searching for answers online. It understands your rig, your game, and the moment you're in.",
+            title: 'From just conversation to actionable output.',
+            body: 'Instead of continuing a thread, responses can transform into pinnable widgets, allowing users to take immediate action. Just type or say what you\'re experiencing, like "my game is stuttering" or "my fan is too loud," and the AI reads your live hardware data, figures out what\'s actually wrong, and hands you a one-tap fix on the spot.',
             videos: ['/ConversationalAI.mp4'],
           },
           {
+            title: 'Introducing "pinnable widget" as an output.',
+            body: 'I designed the assistant to adapt its responses based on user intent. For explanations or recommendations, it provides concise text outputs. When a user requests a specific feature, the assistant generates a pinnable widget instead, turning guidance into an actionable and persistent control within the Overlay View.',
+            videos: ['/Conversational.mp4'],
+          },
+        ],
+      },
+      {
+        label: 'WIDGETS PANEL',
+        contents: [
+          {
             title: 'Keeping what matters within reach.',
-            body: 'Pinned widgets live in a dedicated panel that stays accessible every time the overlay opens, keeping the most important controls always within reach.',
+            body: 'To support the pinning interaction, I introduced a dedicated widgets panel within the overlay. This panel allows pinned controls to remain persistently accessible each time the overlay is opened, ensuring important information and actions are available without interrupting the overall experience.',
             image: '/PinnedWidgets.png',
           },
           {
@@ -154,10 +184,20 @@ export const SECTION_DETAILS: SectionDetail[] = [
             body: 'Beyond pinning chat outputs, I designed the overlay to let users add widgets manually, giving them the flexibility to tailor the experience to their own needs rather than relying only on AI suggestions.',
             videos: ['/AddWidget.mp4'],
           },
+        ],
+      },
+      {
+        label: 'OVERALL STRUCTURE',
+        title: 'Structuring the overlay experience.',
+        body: 'To preserve familiar scanning patterns and maintain consistency with the current overlay layout, I kept key system information on the right, where pinnable widgets live as persistent controls. The center becomes the space for contextual actions, with AMD Chat serving as the primary interaction point.',
+        contents: [
           {
-            title: 'Slash command for quick shortcuts.',
-            body: 'Slash commands are shortcuts that start with "/" and act as a central hub for interacting with the AI assistant, helping users discover and access the full range of available actions and requests in one place.',
-            image: '/SlashCommands.png',
+            beforeAfter: {
+              before: '/StructureDiagram.png',
+              after: '/StructureAfter.png',
+              beforeLabel: 'DIAGRAM',
+              afterLabel: 'DESIGN',
+            },
           },
         ],
       },
@@ -166,7 +206,7 @@ export const SECTION_DETAILS: SectionDetail[] = [
         contents: [
           {
             title: 'Now playing modal.',
-            body: "Most gamers don't stop to think mid-session, they act. So instead of asking the AI to do something, we created a modal that puts the most-reached-for controls & features one click away.",
+            body: "Most gamers don't stop to think mid-session, they act. So instead of asking the AI to do something, we added a modal that puts the most-reached-for controls & features one click away.",
             image: '/InGameModal.png',
           },
           {
