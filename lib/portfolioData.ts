@@ -107,7 +107,7 @@ export const SECTION_DETAILS: SectionDetail[] = [
       {
         label: 'HIGHLIGHTS',
         bento: [
-          { video: '/ConvAI.mp4', label: 'AMD CHAT',          span: 2 },
+          { video: '/Convai.mp4', label: 'AMD CHAT',          span: 2 },
           { video: '/Recording.mp4',      label: 'IN-GAME MODE',      span: 1 },
           { image: '/DSHighlight.png',    label: 'VISUAL COMPONENTS', span: 1 },
         ],
