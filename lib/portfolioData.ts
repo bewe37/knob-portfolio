@@ -230,7 +230,7 @@ export const SECTION_DETAILS: SectionDetail[] = [
   },
   {
     cover: '/amdDSHighlight.png',
-    screenCover: '/AMDHighlight.png',
+    screenCover: '/AMDHighlight2.png',
     overview: "When I joined AMD's UX team, the product didn't have a shared design foundation. Designers organized files differently, colors were applied inconsistently, and components varied from screen to screen. The team was also preparing for a full software redesign — which meant the inconsistency wasn't just a current problem, it was about to be a much bigger one.\n\nI took on building the design system from the ground up: not as a cleanup effort, but as the structural layer the redesign would be built on top of.",
     role: 'Design System Designer',
     year: '2025',
@@ -292,7 +292,7 @@ export const SECTION_DETAILS: SectionDetail[] = [
   },
   {
     cover: '/SafeThumbnails.png',
-    screenCover: '/SafeHighlight.png',
+    screenCover: '/SafeHighlight2.png',
     overview: "During my internship at Safe Software, I led the end-to-end redesign of the annotation experience in FME Form, a data integration platform used to build complex spatial workflows.\n\nAnnotations play a key role in helping users document logic, explain decisions, and maintain clarity across workflows. However, as workflows grew in complexity, annotations began to introduce more problems than they solved — cluttering the canvas, reducing readability, and making navigation more difficult.",
     role: 'Product Design Intern',
     year: '2025',
@@ -390,7 +390,7 @@ export const SECTION_DETAILS: SectionDetail[] = [
   },
   {
     cover: '/blueprintHighlight.png',
-    screenCover: '/BlueprintHighlightImage.png',
+    screenCover: '/BlueprintHighlight2.png',
     overview: "Fix the 6ix is a Toronto-based non-profit community that distributes gift cards to people who need them most. But keeping track of those cards has always been a manual process: volunteers submit spreadsheets, coordinators piece together the data, and figuring out what's been used, donated, or sitting idle takes more effort than it should.\n\nReGiftCard is the dashboard built to fix that. It gives the Fix the 6ix team a single place to monitor unused gift cards, follow how each one moves through spending or donation, and spot the gaps before they become problems. Less time wrestling with files, more time focused on the people they're actually trying to help.",
     role: 'Lead Designer',
     year: '2026',
