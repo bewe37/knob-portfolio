@@ -3,6 +3,8 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 import gsap from 'gsap'
 import { SECTIONS, SECTION_DETAILS } from '@/lib/portfolioData'
+import VideoPlayer from './VideoPlayer'
+import BeforeAfterSlider from './BeforeAfterSlider'
 
 const GREEN  = '#33ff66'
 const DIM    = 'rgba(51,255,102,0.82)'
@@ -16,6 +18,10 @@ function CaseStudy({ index, onClose }: { index: number; onClose: () => void }) {
   const details = SECTION_DETAILS[index]
   const wrapRef = useRef<HTMLDivElement>(null)
   const [lightbox, setLightbox] = useState<string | null>(null)
+  const [lightboxVideo, setLightboxVideo] = useState<string | null>(null)
+  const [unlocked, setUnlocked] = useState(false)
+  const [pwInput, setPwInput] = useState('')
+  const [pwError, setPwError] = useState(false)
 
   useEffect(() => {
     if (wrapRef.current) {
@@ -38,10 +44,16 @@ function CaseStudy({ index, onClose }: { index: number; onClose: () => void }) {
 
   // ESC key
   useEffect(() => {
-    const fn = (e: KeyboardEvent) => { if (e.key === 'Escape') close() }
+    const fn = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        if (lightboxVideo) { setLightboxVideo(null); return }
+        if (lightbox) { setLightbox(null); return }
+        close()
+      }
+    }
     window.addEventListener('keydown', fn)
     return () => window.removeEventListener('keydown', fn)
-  }, [close])
+  }, [close, lightbox, lightboxVideo])
 
   return (
     <div style={{
@@ -149,8 +161,8 @@ function CaseStudy({ index, onClose }: { index: number; onClose: () => void }) {
               {blk.videos && (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                   {blk.videos.map((src: string, ii: number) => (
-                    <div key={ii} style={{ border: `1px solid ${FAINT}`, borderRadius: 4, overflow: 'hidden' }}>
-                      <video src={src} autoPlay loop muted playsInline style={{ display: 'block', width: '100%', height: 'auto' }} />
+                    <div key={ii} style={{ border: `1px solid ${FAINT}`, borderRadius: 4, overflow: 'hidden', cursor: 'zoom-in' }} onClick={() => setLightboxVideo(src)}>
+                      <video src={src} autoPlay loop muted playsInline style={{ display: 'block', width: '100%', height: 'auto', pointerEvents: 'none' }} />
                     </div>
                   ))}
                 </div>
@@ -207,6 +219,153 @@ function CaseStudy({ index, onClose }: { index: number; onClose: () => void }) {
         )})}
 
 
+        {/* Password gate */}
+        {(details as any).password && !unlocked && (
+          <div style={{ marginTop: 8, marginBottom: 32 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 20 }}>
+              <div style={{ width: 4, height: 4, background: `rgba(${RGB},0.5)`, borderRadius: 1, flexShrink: 0 }} />
+              <span style={{ fontSize: 9, letterSpacing: 2.5, color: LABEL }}>NDA — ENTER PASSWORD TO UNLOCK</span>
+              <div style={{ flex: 1, height: 1, background: `linear-gradient(90deg, ${FAINT}, transparent)` }} />
+            </div>
+            {(details as any).passwordDesc && (
+              <p style={{ fontSize: 13, lineHeight: 1.8, color: DIM, marginBottom: 16 }}>{(details as any).passwordDesc}</p>
+            )}
+            <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
+              <input
+                type="password"
+                value={pwInput}
+                onChange={e => { setPwInput(e.target.value); setPwError(false) }}
+                onKeyDown={e => {
+                  if (e.key === 'Enter') {
+                    if (pwInput === (details as any).password) { setUnlocked(true) }
+                    else { setPwError(true) }
+                  }
+                }}
+                placeholder="••••••••"
+                style={{
+                  background: 'transparent',
+                  border: `1px solid ${pwError ? 'rgba(255,70,50,0.7)' : FAINT}`,
+                  borderRadius: 3, padding: '8px 14px',
+                  color: GREEN,
+                  fontFamily: 'var(--font-jetbrains-mono), monospace',
+                  fontSize: 13, letterSpacing: 3,
+                  outline: 'none', flex: 1,
+                  transition: 'border-color 0.2s',
+                }}
+              />
+              <button
+                onClick={() => {
+                  if (pwInput === (details as any).password) { setUnlocked(true) }
+                  else { setPwError(true) }
+                }}
+                style={{
+                  background: `rgba(${RGB},0.07)`,
+                  border: `1px solid ${FAINT}`,
+                  borderRadius: 3, padding: '8px 16px',
+                  color: GREEN,
+                  fontFamily: 'var(--font-jetbrains-mono), monospace',
+                  fontSize: 9, letterSpacing: 2.5,
+                  cursor: 'pointer', flexShrink: 0,
+                }}
+              >
+                UNLOCK
+              </button>
+            </div>
+            {pwError && (
+              <div style={{ marginTop: 10, fontSize: 10, letterSpacing: 1.5, color: 'rgba(255,70,50,0.85)' }}>
+                ACCESS DENIED
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Locked sections — shown after correct password */}
+        {(details as any).password && unlocked && (
+          ((details as any).lockedSections as Array<any>)?.map((sec: any, si: number) => {
+            const renderLockedBlock = (blk: any, bi: number) => (
+              <div key={bi} style={{ marginBottom: 28 }}>
+                {blk.highlight ? (
+                  <div style={{ border: `1px solid ${FAINT}`, borderRadius: 4, padding: '12px 14px', background: `rgba(${RGB},0.04)`, marginBottom: 8 }}>
+                    {blk.title && <div style={{ fontSize: 13, fontWeight: 700, color: GREEN, marginBottom: 4 }}>{blk.title}</div>}
+                    {blk.body && <p style={{ fontSize: 12, lineHeight: 1.7, color: DIM, margin: 0 }}>{blk.body}</p>}
+                  </div>
+                ) : (
+                  <>
+                    {blk.title && <div style={{ fontSize: 16, fontWeight: 700, color: GREEN, marginBottom: 8, letterSpacing: -0.3, lineHeight: 1.25 }}>{blk.title}</div>}
+                    {blk.body && <p style={{ fontSize: 13, lineHeight: 1.85, color: DIM, marginBottom: 12 }}>{blk.body}</p>}
+                    {blk.beforeAfter && (
+                      <div style={{ marginBottom: 8 }}>
+                        <BeforeAfterSlider before={blk.beforeAfter.before} after={blk.beforeAfter.after} beforeLabel={blk.beforeAfter.beforeLabel} afterLabel={blk.beforeAfter.afterLabel} accentColor={GREEN} />
+                      </div>
+                    )}
+                    {blk.image && (
+                      <div style={{ border: `1px solid ${FAINT}`, borderRadius: 4, marginBottom: 8, overflow: 'hidden', cursor: 'zoom-in' }} onClick={() => setLightbox(blk.image)}>
+                        <img src={blk.image} alt={blk.title ?? ''} style={{ display: 'block', width: '100%', height: 'auto' }} />
+                      </div>
+                    )}
+                    {blk.videos && blk.videos.map((src: string, vi: number) => (
+                      <div key={vi} style={{ border: `1px solid ${FAINT}`, borderRadius: 4, marginBottom: 8, overflow: 'hidden', cursor: 'zoom-in' }} onClick={() => setLightboxVideo(src)}>
+                        <video src={src} autoPlay loop muted playsInline style={{ display: 'block', width: '100%', height: 'auto', pointerEvents: 'none' }} />
+                      </div>
+                    ))}
+                  </>
+                )}
+              </div>
+            )
+            return (
+              <div key={`locked-${si}`} style={{ marginBottom: 28 }}>
+                <div style={{ marginBottom: 14 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 16 }}>
+                    <span style={{ fontSize: 9, letterSpacing: 2.5, color: LABEL }}>{sec.label}</span>
+                    <div style={{ flex: 1, height: 1, background: `linear-gradient(90deg, ${FAINT}, transparent)` }} />
+                  </div>
+                  {sec.title && <div style={{ fontSize: 16, fontWeight: 700, letterSpacing: -0.3, color: GREEN, lineHeight: 1.25 }}>{sec.title}</div>}
+                </div>
+                {sec.body && <p style={{ fontSize: 13, lineHeight: 1.85, color: DIM, marginBottom: 12 }}>{sec.body}</p>}
+                {sec.image && (
+                  <div style={{ border: `1px solid ${FAINT}`, borderRadius: 4, marginBottom: 8, overflow: 'hidden', cursor: 'zoom-in' }} onClick={() => setLightbox(sec.image)}>
+                    <img src={sec.image} alt={sec.title ?? ''} style={{ display: 'block', width: '100%', height: 'auto' }} />
+                  </div>
+                )}
+                {sec.bento && (
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 6, marginBottom: 16 }}>
+                    {sec.bento.map((item: any, bi: number) => (
+                      <div
+                        key={bi}
+                        onClick={() => { if (item.image) setLightbox(item.image); else if (item.video) setLightboxVideo(item.video) }}
+                        style={{
+                          gridColumn: item.span === 2 ? 'span 2' : 'span 1',
+                          height: item.span === 2 ? 'auto' : 160,
+                          borderRadius: 4, overflow: 'hidden',
+                          border: `1px solid ${FAINT}`,
+                          cursor: (item.image || item.video) ? 'zoom-in' : 'default',
+                          position: 'relative',
+                        }}
+                      >
+                        {item.image && <img src={item.image} alt={item.label ?? ''} style={{ display: 'block', width: '100%', height: item.span === 2 ? 'auto' : '100%', objectFit: 'cover' }} />}
+                        {item.video && <video src={item.video} autoPlay loop muted playsInline style={{ display: 'block', width: '100%', height: item.span === 2 ? 'auto' : '100%', objectFit: 'cover', pointerEvents: 'none' }} />}
+                        {item.label && (
+                          <div style={{
+                            position: 'absolute', bottom: 0, left: 0, right: 0,
+                            padding: '16px 8px 6px',
+                            background: 'linear-gradient(to top, rgba(0,0,0,0.7) 0%, transparent 100%)',
+                            fontSize: 8, letterSpacing: 2, color: 'rgba(255,255,255,0.6)',
+                            fontFamily: 'var(--font-jetbrains-mono), monospace',
+                            pointerEvents: 'none',
+                          }}>
+                            {item.label}
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                )}
+                {sec.contents && sec.contents.map((blk: any, bi: number) => renderLockedBlock(blk, bi))}
+              </div>
+            )
+          })
+        )}
+
         {/* Contacts at root level (COM-05) */}
         {details.contacts && !details.sections && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
@@ -233,7 +392,7 @@ function CaseStudy({ index, onClose }: { index: number; onClose: () => void }) {
         </div>
       </div>
 
-      {/* Lightbox */}
+      {/* Image Lightbox */}
       {lightbox && (
         <div onClick={() => setLightbox(null)} style={{
           position: 'fixed', inset: 0, zIndex: 300,
@@ -242,6 +401,24 @@ function CaseStudy({ index, onClose }: { index: number; onClose: () => void }) {
           padding: 20,
         }}>
           <img src={lightbox} alt="enlarged" style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain' }} />
+        </div>
+      )}
+
+      {/* Video Lightbox */}
+      {lightboxVideo && (
+        <div onClick={() => setLightboxVideo(null)} style={{
+          position: 'fixed', inset: 0, zIndex: 300,
+          background: 'rgba(0,0,0,0.92)',
+          backdropFilter: 'blur(16px)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          padding: 20,
+        }}>
+          <VideoPlayer
+            src={lightboxVideo}
+            accentColor={GREEN}
+            accentRGB={RGB}
+            onClose={() => setLightboxVideo(null)}
+          />
         </div>
       )}
     </div>

@@ -6,6 +6,7 @@ import PCBView from './PCBView'
 import { LoadingScreen } from './LoadingScreen'
 import SmiskiKeychain from './SmiskiKeychain'
 import BeforeAfterSlider from './BeforeAfterSlider'
+import VideoPlayer from './VideoPlayer'
 import { SECTIONS, SECTION_DETAILS } from '@/lib/portfolioData'
 
 
@@ -184,10 +185,11 @@ export default function HardwareBoard({ isDark = false, onOverlayChange, onDarkT
   const [bootingUp,         setBootingUp]         = useState(false)
   const [isPolaroidZoomed,  setIsPolaroidZoomed]  = useState(false)
   const [lightboxSrc,       setLightboxSrc]       = useState<string | null>(null)
+  const [lightboxVideo,     setLightboxVideo]     = useState<string | null>(null)
 
   useEffect(() => {
-    onOverlayChange?.(isZoomed || lightboxSrc !== null)
-  }, [isZoomed, lightboxSrc, onOverlayChange])
+    onOverlayChange?.(isZoomed || lightboxSrc !== null || lightboxVideo !== null)
+  }, [isZoomed, lightboxSrc, lightboxVideo, onOverlayChange])
   const [tocVisible,        setTocVisible]        = useState(false)
   const [activeSec,         setActiveSec]         = useState(-1)
   const [unlockedSet,       setUnlockedSet]       = useState<Set<number>>(new Set())
@@ -394,15 +396,16 @@ export default function HardwareBoard({ isDark = false, onOverlayChange, onDarkT
 
   // ── Escape key to close overlay or lightbox
   useEffect(() => {
-    if (!isZoomed && !lightboxSrc) return
+    if (!isZoomed && !lightboxSrc && !lightboxVideo) return
     const onKey = (e: KeyboardEvent) => {
       if (e.key !== 'Escape') return
       if (lightboxSrc) setLightboxSrc(null)
+      else if (lightboxVideo) setLightboxVideo(null)
       else handleUnzoom()
     }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
-  }, [isZoomed, lightboxSrc]) // eslint-disable-line react-hooks/exhaustive-deps -- handleUnzoom is stable (useCallback [])
+  }, [isZoomed, lightboxSrc, lightboxVideo]) // eslint-disable-line react-hooks/exhaustive-deps -- handleUnzoom is stable (useCallback [])
 
   const handleZoom = useCallback(() => {
     if (!isPoweredOnRef.current) return
@@ -1172,8 +1175,8 @@ export default function HardwareBoard({ isDark = false, onOverlayChange, onDarkT
                           {blk.videos && (
                             <div>
                               {blk.videos.map((src, ii) => (
-                                <div key={ii} style={{ border:`1px solid ${amberFaint}`, borderRadius:4, marginBottom: ii < blk.videos!.length - 1 ? 8 : 0, overflow:'hidden' }}>
-                                  <video src={src} autoPlay loop muted playsInline style={{ display:'block', width:'100%', height:'auto' }} />
+                                <div key={ii} style={{ border:`1px solid ${amberFaint}`, borderRadius:4, marginBottom: ii < blk.videos!.length - 1 ? 8 : 0, overflow:'hidden', cursor:'zoom-in' }} onClick={() => setLightboxVideo(src)}>
+                                  <video src={src} autoPlay loop muted playsInline style={{ display:'block', width:'100%', height:'auto', pointerEvents:'none' }} />
                                 </div>
                               ))}
                             </div>
@@ -1391,8 +1394,8 @@ export default function HardwareBoard({ isDark = false, onOverlayChange, onDarkT
                           </div>
                         ))}
                         {sec.videos && sec.videos.map((src: string, ii: number) => (
-                          <div key={ii} style={{ border:`1px solid ${amberFaint}`, borderRadius:4, marginBottom:8, overflow:'hidden' }}>
-                            <video src={src} autoPlay loop muted playsInline style={{ display:'block', width:'100%', height:'auto' }} />
+                          <div key={ii} style={{ border:`1px solid ${amberFaint}`, borderRadius:4, marginBottom:8, overflow:'hidden', cursor:'zoom-in' }} onClick={() => setLightboxVideo(src)}>
+                            <video src={src} autoPlay loop muted playsInline style={{ display:'block', width:'100%', height:'auto', pointerEvents:'none' }} />
                           </div>
                         ))}
                         {sec.bento && (
@@ -1400,7 +1403,7 @@ export default function HardwareBoard({ isDark = false, onOverlayChange, onDarkT
                             {sec.bento.map((item: any, bi: number) => (
                               <div
                                 key={bi}
-                                onClick={() => item.image && setLightboxSrc(item.image)}
+                                onClick={() => { if (item.image) setLightboxSrc(item.image); else if (item.video) setLightboxVideo(item.video) }}
                                 style={{
                                   gridColumn: item.span === 2 ? 'span 2' : 'span 1',
                                   height: item.span === 2 ? 'auto' : 200,
@@ -1408,12 +1411,12 @@ export default function HardwareBoard({ isDark = false, onOverlayChange, onDarkT
                                   overflow: 'hidden',
                                   border: `1px solid ${amberFaint}`,
                                   background: `rgba(${modalRGB},0.03)`,
-                                  cursor: item.image ? 'zoom-in' : 'default',
+                                  cursor: (item.image || item.video) ? 'zoom-in' : 'default',
                                   position: 'relative',
                                 }}
                               >
                                 {item.image && <img src={item.image} alt={item.label ?? ''} style={{ display:'block', width:'100%', height: item.span === 2 ? 'auto' : '100%', objectFit:'cover' }} />}
-                                {item.video && <video src={item.video} autoPlay loop muted playsInline style={{ display:'block', width:'100%', height: item.span === 2 ? 'auto' : '100%', objectFit:'cover' }} />}
+                                {item.video && <video src={item.video} autoPlay loop muted playsInline style={{ display:'block', width:'100%', height: item.span === 2 ? 'auto' : '100%', objectFit:'cover', pointerEvents:'none' }} />}
                                 {item.label && (
                                   <div style={{
                                     position:'absolute', bottom:0, left:0, right:0,
@@ -1452,8 +1455,8 @@ export default function HardwareBoard({ isDark = false, onOverlayChange, onDarkT
                                   </div>
                                 )}
                                 {blk.videos && blk.videos.map((src: string, vi: number) => (
-                                  <div key={vi} style={{ border:`1px solid ${amberFaint}`, borderRadius:4, marginBottom:8, overflow:'hidden' }}>
-                                    <video src={src} autoPlay loop muted playsInline style={{ display:'block', width:'100%', height:'auto' }} />
+                                  <div key={vi} style={{ border:`1px solid ${amberFaint}`, borderRadius:4, marginBottom:8, overflow:'hidden', cursor:'zoom-in' }} onClick={() => setLightboxVideo(src)}>
+                                    <video src={src} autoPlay loop muted playsInline style={{ display:'block', width:'100%', height:'auto', pointerEvents:'none' }} />
                                   </div>
                                 ))}
                               </>
@@ -1623,6 +1626,47 @@ export default function HardwareBoard({ isDark = false, onOverlayChange, onDarkT
               cursor: 'default',
               display: 'block',
             }}
+          />
+        </div>
+      )}
+
+      {/* ── VIDEO LIGHTBOX ───────────────────────────────────── */}
+      {lightboxVideo && (
+        <div
+          onClick={() => setLightboxVideo(null)}
+          style={{
+            position: 'fixed', inset: 0, zIndex: 99999,
+            background: 'rgba(4,5,6,0.92)',
+            backdropFilter: 'blur(18px)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            animation: 'screenFadeIn 0.18s ease-out both',
+          }}
+        >
+          <button
+            onClick={() => setLightboxVideo(null)}
+            style={{
+              position: 'absolute', top: 20, right: 20,
+              width: 32, height: 32,
+              background: 'rgba(255,255,255,0.08)',
+              border: '1px solid rgba(255,255,255,0.18)',
+              borderRadius: 8,
+              color: 'rgba(255,255,255,0.7)',
+              fontSize: 14, lineHeight: 1,
+              cursor: 'pointer',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              transition: 'background 0.15s, color 0.15s',
+              zIndex: 1,
+            }}
+            onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = 'rgba(255,255,255,0.15)'; (e.currentTarget as HTMLButtonElement).style.color = '#fff' }}
+            onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = 'rgba(255,255,255,0.08)'; (e.currentTarget as HTMLButtonElement).style.color = 'rgba(255,255,255,0.7)' }}
+          >
+            ✕
+          </button>
+          <VideoPlayer
+            src={lightboxVideo}
+            accentColor={amber}
+            accentRGB={modalRGB}
+            onClose={() => setLightboxVideo(null)}
           />
         </div>
       )}
